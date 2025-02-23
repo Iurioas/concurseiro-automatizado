@@ -51,31 +51,35 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Configura persistência da sessão no início
+    // Configura persistência da sessão
+    console.log("Configurando persistência da sessão...");
     setPersistence(auth, browserLocalPersistence)
       .then(() => {
-        console.log("Persistência da sessão configurada.");
+        console.log("Persistência configurada com sucesso.");
       })
       .catch(error => {
         console.error("Erro ao configurar persistência:", error.message);
       });
 
     onAuthStateChanged(auth, async (user) => {
-      console.log("Estado de autenticação:", user ? "Autenticado" : "Não autenticado");
+      console.log("Estado de autenticação mudou. Usuário:", user ? user.uid : "Nenhum usuário");
       if (!user) {
-        console.log("Redirecionando para login...");
+        console.log("Nenhum usuário autenticado, redirecionando para login...");
         location.href = "login.html";
         return;
       }
+      console.log("Usuário autenticado:", user.uid, "Email:", user.email);
       try {
-        console.log("Carregando logs do usuário:", user.uid);
+        console.log("Carregando logs do usuário...");
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           const logs = userDoc.data().logs || [];
+          console.log("Logs carregados:", logs.length);
           renderCharts(logs);
           document.getElementById("loading").style.display = "none";
           document.querySelectorAll(".chart-container").forEach(container => container.style.display = "block");
         } else {
+          console.log("Documento do usuário não encontrado.");
           document.getElementById("loading").innerText = "Nenhum log encontrado.";
         }
       } catch (error) {
