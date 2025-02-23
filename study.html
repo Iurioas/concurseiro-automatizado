@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Planejado - Concurseiro Automatizado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 </head>
 <body>
   <nav>
@@ -13,17 +14,23 @@
     <a href="study.html">Planejado</a>
     <button onclick="signOut()">Sair</button>
   </nav>
-  <h1>Planejado</h1>
-  <table id="studyTable">
-    <thead><tr><th>Prioridade</th><th>Categoria</th><th>Matéria</th><th>Subtópico</th><th>Concluído</th><th>Motivo</th></tr></thead>
-    <tbody></tbody>
-  </table>
-  <button id="backButton" style="display:none" onclick="retrocederEtapa()">Retroceder</button>
-  <div>
-    <button onclick="location.href='log-txt.html'">Log Texto</button>
-    <button onclick="location.href='log-json.html'">Log JSON</button>
-    <button onclick="location.href='graficos.html'">Gráficos</button>
-  </div>
+  <main>
+    <h1>Planejado</h1>
+    <table id="studyTable">
+      <thead><tr><th>Prioridade</th><th>Categoria</th><th>Matéria</th><th>Subtópico</th><th>Concluído</th><th>Motivo</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <button id="backButton" style="display:none" onclick="retrocederEtapa()">Retroceder</button>
+    <div>
+      <button onclick="location.href='log-txt.html'">Log Texto</button>
+      <button onclick="location.href='log-json.html'">Log JSON</button>
+      <button onclick="location.href='graficos.html'">Gráficos</button>
+    </div>
+    <div id="loading">Carregando plano...</div>
+  </main>
+  <footer>
+    <p>&copy; 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
+  </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
@@ -42,96 +49,89 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    let currentIndex = 0;
+    let currentIndex = localStorage.getItem("currentIndex") ? parseInt(localStorage.getItem("currentIndex")) : 0;
     let planData = [];
     let logs = [];
 
-    console.log("Inicializando autenticação...");
     onAuthStateChanged(auth, async (user) => {
-      console.log("Estado de autenticação mudou. Usuário:", user ? user.uid : "Nenhum usuário");
       if (!user) {
-        console.log("Nenhum usuário autenticado, redirecionando para login...");
         location.href = "login.html";
-      } else {
-        console.log("Usuário autenticado com sucesso:", user.uid, "Email:", user.email);
-        try {
-          console.log("Carregando plano do Firestore...");
-          const planDoc = await getDoc(doc(db, "plans", user.uid));
-          if (planDoc.exists()) {
-            planData = planDoc.data().plan;
-            console.log("Plano carregado:", planData);
-            renderPlan();
-          } else {
-            console.log("Nenhum plano encontrado para o usuário.");
-            alert("Nenhum plano encontrado. Por favor, crie um plano na página do planejador.");
-            location.href = "planner.html";
-          }
-
-          console.log("Carregando logs do usuário...");
+        return;
+      }
+      try {
+        const planDoc = await getDoc(doc(db, "plans", user.uid));
+        if (planDoc.exists()) {
+          planData = planDoc.data().plan;
           const userDoc = await getDoc(doc(db, "users", user.uid));
           logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
-          console.log("Logs carregados:", logs);
-
-        } catch (error) {
-          console.error("Erro ao carregar dados do Firestore:", error.message);
+          renderPlan();
+        } else {
+          document.getElementById("loading").innerText = "Nenhum plano encontrado. Crie um plano no Planejador.";
+          setTimeout(() => location.href = "planner.html", 2000);
         }
+      } catch (error) {
+        document.getElementById("loading").innerText = "Erro ao carregar plano: " + error.message;
       }
     });
 
     function renderPlan() {
-      console.log("Renderizando plano...");
+      document.getElementById("loading").style.display = "none";
       const tbody = document.querySelector("#studyTable tbody");
       tbody.innerHTML = "";
       if (currentIndex < planData.length) {
         const item = planData[currentIndex];
-        const row = `<tr><td>${item.priorityNumber}</td><td>${item.priorityCategory}</td><td>${item.subject}</td><td>${item.subtopic}</td><td><input type="checkbox" onchange="completeStep()"></td><td>${item.reason}</td></tr>`;
-        tbody.innerHTML = row;
+        tbody.innerHTML = `<tr><td>${item.priorityNumber}</td><td>${item.priorityCategory}</td><td>${item.subject}</td><td>${item.subtopic}</td><td><input type="checkbox" onchange="completeStep()"></td><td>${item.reason}</td></tr>`;
       } else {
-        tbody.innerHTML = "<tr><td colspan='6'>Nenhum plano disponível ou todas as etapas concluídas.</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='6'>Todas as etapas concluídas!</td></tr>";
       }
       document.getElementById("backButton").style.display = currentIndex > 0 ? "block" : "none";
     }
 
     window.completeStep = async function() {
-      console.log("Completando etapa...");
-      const tempo = prompt("Tempo gasto (minutos):") || 0;
-      const dificuldade = prompt("Dificuldade (F/M/D):").toUpperCase();
-      const notaAutoavaliacao = prompt("Nota de autoavaliação (0-10):") || 0;
+      const tempo = prompt("Tempo gasto (minutos):") || "0";
+      const dificuldade = prompt("Dificuldade (F/M/D):")?.toUpperCase() || "M";
+      const nota = prompt("Nota (0-10):") || "0";
       const comentarios = prompt("Comentários:") || "Sem comentários";
-
       const log = {
         etapa: currentIndex + 1,
         subtopico: planData[currentIndex].subtopic,
         materia: planData[currentIndex].subject,
-        dificuldade: dificuldade === "F" ? "Fácil" : dificuldade === "M" ? "Médio" : "Difícil",
+        dificuldade: dificuldade === "F" ? "Fácil" : dificuldade === "D" ? "Difícil" : "Médio",
         tempo_gasto: tempo,
-        nota_autoavaliacao: notaAutoavaliacao,
-        comentarios: comentarios,
+        nota_autoavaliacao: nota,
+        comentarios,
         data_conclusao: new Date().toISOString(),
         status: "Concluído"
       };
-
       logs.push(log);
-      await updateDoc(doc(db, "users", auth.currentUser.uid), { logs });
-
-      currentIndex++;
-      renderPlan();
+      try {
+        await updateDoc(doc(db, "users", auth.currentUser.uid), { logs });
+        currentIndex++;
+        localStorage.setItem("currentIndex", currentIndex);
+        renderPlan();
+      } catch (error) {
+        alert("Erro ao salvar log: " + error.message);
+      }
     };
 
     window.retrocederEtapa = function() {
-      if (confirm("Tem certeza que deseja retroceder para a etapa anterior?")) {
+      if (confirm("Tem certeza que deseja retroceder?")) {
         if (currentIndex > 0) {
           currentIndex--;
+          localStorage.setItem("currentIndex", currentIndex);
           renderPlan();
         }
       }
     };
 
-    window.signOut = function() {
-      console.log("Fazendo logout...");
-      signOut(auth).then(() => {
+    window.signOut = async function() {
+      try {
+        await signOut(auth);
+        localStorage.removeItem("currentIndex");
         location.href = "index.html";
-      }).catch((error) => alert(error.message));
+      } catch (error) {
+        alert("Erro ao sair: " + error.message);
+      }
     };
   </script>
 </body>
