@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Área do Concurseiro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,8 +13,13 @@
     <a href="study.html">Planejado</a>
     <button onclick="signOut()">Sair</button>
   </nav>
-  <h1>Área do Concurseiro</h1>
-  <p>Bem-vindo! Escolha uma opção no menu acima para começar.</p>
+  <main>
+    <h1>Área do Concurseiro</h1>
+    <p>Bem-vindo! Escolha uma opção no menu acima para começar.</p>
+  </main>
+  <footer>
+    <p>&copy; 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
+  </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
@@ -32,15 +38,15 @@
     const auth = getAuth(app);
 
     onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        location.href = "login.html";
-      }
+      if (!user) location.href = "login.html";
     });
 
-    window.signOut = function() {
-      signOut(auth).then(() => {
-        location.href = "index.html";
-      }).catch((error) => alert(error.message));
+    window.signOut = async function() {
+      try	await signOut(auth);
+          location.href = "index.html";
+      } catch (error) {
+        alert("Erro ao sair: " + error.message);
+      }
     };
   </script>
 </body>
