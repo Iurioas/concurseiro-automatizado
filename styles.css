@@ -38,12 +38,13 @@ nav a {
   text-decoration: none;
   padding: 10px 15px;
   font-weight: 500;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 nav a:hover {
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 5px;
+  transform: scale(1.05);
 }
 
 nav button {
@@ -54,11 +55,12 @@ nav button {
   cursor: pointer;
   border-radius: 5px;
   font-weight: 500;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 nav button:hover {
   transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(187, 134, 252, 0.4);
 }
 
 /* Conteúdo Principal */
@@ -69,6 +71,12 @@ main {
   background: #252525;
   border-radius: 10px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 h1 {
@@ -89,6 +97,12 @@ input, textarea {
   border-radius: 5px;
   color: #fff;
   font-size: 16px;
+  transition: border-color 0.3s ease;
+}
+
+input:focus, textarea:focus {
+  border-color: #bb86fc;
+  outline: none;
 }
 
 textarea {
@@ -106,12 +120,17 @@ button {
   border-radius: 5px;
   font-size: 16px;
   margin: 5px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
 }
 
 button:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 10px rgba(187, 134, 252, 0.4);
+}
+
+button:active {
+  transform: scale(0.95);
+  background: linear-gradient(135deg, #9c27b0, #bb86fc);
 }
 
 /* Tabela */
@@ -138,11 +157,46 @@ td {
   color: #e0e0e0;
 }
 
+/* Checkbox com Efeito */
+input[type="checkbox"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #333;
+  border: 2px solid #444;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s ease;
+}
+
+input[type="checkbox"]:checked {
+  background: #bb86fc;
+  border-color: #9c27b0;
+}
+
+input[type="checkbox"]:checked:after {
+  content: "✔";
+  color: #fff;
+  font-size: 14px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 /* Loader */
 #loading {
   font-size: 18px;
   color: #bb86fc;
   margin: 20px 0;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
 }
 
 /* Conteúdo de Logs e Gráficos */
@@ -161,6 +215,30 @@ td {
   background: #2c2c2c;
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Notificação de Conquista */
+.notification {
+  position: fixed;
+  top: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.5s ease forwards, fadeOut 0.5s ease 2s forwards;
+  z-index: 2000;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes fadeOut {
+  to { opacity: 0; transform: translateX(-50%) translateY(-20px); }
 }
 
 /* Footer */
