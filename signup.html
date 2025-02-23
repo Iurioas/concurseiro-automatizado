@@ -7,7 +7,6 @@
 </head>
 <body>
   <h1>Criar Conta</h1>
-  <input id="name" type="text" placeholder="Nome">
   <input id="email" type="email" placeholder="E-mail">
   <input id="password" type="password" placeholder="Senha">
   <button onclick="signup()">Cadastrar</button>
@@ -15,7 +14,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-    import { getFirestore, collection, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
@@ -32,7 +31,6 @@
     const db = getFirestore(app);
 
     window.signup = async function() {
-      const name = document.getElementById("name").value;
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
       
@@ -43,7 +41,7 @@
         await sendEmailVerification(user);
         console.log("E-mail de verificação enviado para:", email);
         
-        await setDoc(doc(db, "users", user.uid), { name, email, status: "inativo" });
+        await setDoc(doc(db, "users", user.uid), { email, status: "inativo" });
         document.getElementById("message").innerHTML = "Conta criada com sucesso! <strong>Verifique seu e-mail agora</strong> (cheque a pasta de spam ou promoções se não encontrar). Após verificar, você será redirecionado ao login. Envie R$ 15 via PIX para [SEU PIX] e aguarde ativação em até 24h.";
 
         const checkEmailVerified = setInterval(async () => {
