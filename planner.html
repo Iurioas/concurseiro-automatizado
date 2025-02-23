@@ -11,30 +11,31 @@
   <button onclick="generatePlan()">Gerar Plano</button>
   <button onclick="newPlan()">Novo Plano</button>
   <p id="prompt"></p>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
-  <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
-    authDomain: "concurseiro-automatizado.firebaseapp.com",
-    projectId: "concurseiro-automatizado",
-    storageBucket: "concurseiro-automatizado.firebasestorage.app",
-    messagingSenderId: "938840578480",
-    appId: "1:938840578480:web:4e8dd7e2dfdc42d7649e75",
-    measurementId: "G-H72D875STB"
-  };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
-    auth.onAuthStateChanged((user) => {
+    const firebaseConfig = {
+      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
+      authDomain: "concurseiro-automatizado.firebaseapp.com",
+      projectId: "concurseiro-automatizado",
+      storageBucket: "concurseiro-automatizado.firebasestorage.app",
+      messagingSenderId: "938840578480",
+      appId: "1:938840578480:web:4e8dd7e2dfdc42d7649e75",
+      measurementId: "G-H72D875STB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    onAuthStateChanged(auth, (user) => {
       if (!user) location.href = "login.html";
     });
 
-    function generatePlan() {
+    window.generatePlan = function() {
       const raiox = document.getElementById("raiox").value;
-      // Simulação simples: extrai prioridades e organiza como seu modelo
       const plan = raiox.split("\n").map((line, idx) => ({
         priorityNumber: idx + 1,
         priorityCategory: line.includes("urgente") ? "Urgente" : "Média",
@@ -42,17 +43,17 @@
         subtopic: line.split(" - ")[1] || "Geral",
         reason: "Baseado no raio-x fornecido"
       }));
-      db.collection("plans").doc(auth.currentUser.uid).set({ plan });
+      setDoc(doc(db, "plans", auth.currentUser.uid), { plan });
       alert("Plano gerado com sucesso!");
       document.getElementById("prompt").innerText = "Prompt sugerido para Google AI Studio: 'Organize este raio-x em prioridades como no modelo de Iuri: " + raiox + "'";
-    }
+    };
 
-    function newPlan() {
+    window.newPlan = function() {
       if (confirm("Tem certeza? O plano atual será substituído.")) {
         document.getElementById("raiox").value = "";
-        db.collection("plans").doc(auth.currentUser.uid).delete();
+        deleteDoc(doc(db, "plans", auth.currentUser.uid));
       }
-    }
+    };
   </script>
 </body>
 </html>
