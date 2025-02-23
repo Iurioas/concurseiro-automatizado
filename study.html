@@ -16,33 +16,39 @@
   <div><button onclick="showLog('txt')">Log Texto</button><button onclick="showLog('json')">Log JSON</button><button onclick="showLog('charts')">Gráficos</button></div>
   <div id="logContent"></div>
   <canvas id="chartCanvas" style="display:none"></canvas>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
-  <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
-    authDomain: "concurseiro-automatizado.firebaseapp.com",
-    projectId: "concurseiro-automatizado",
-    storageBucket: "concurseiro-automatizado.firebasestorage.app",
-    messagingSenderId: "938840578480",
-    appId: "1:938840578480:web:4e8dd7e2dfdc42d7649e75",
-    measurementId: "G-H72D875STB"
-  };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
+      authDomain: "concurseiro-automatizado.firebaseapp.com",
+      projectId: "concurseiro-automatizado",
+      storageBucket: "concurseiro-automatizado.firebasestorage.app",
+      messagingSenderId: "938840578480",
+      appId: "1:938840578480:web:4e8dd7e2dfdc42d7649e75",
+      measurementId: "G-H72D875STB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
     let currentIndex = 0;
     let planData = [];
     let logs = [];
 
-    auth.onAuthStateChanged((user) => {
-      if (!user) location.href = "login.html";
-      else {
-        db.collection("plans").doc(user.uid).get().then((doc) => {
-          if (doc.exists) {
-            planData = doc.data().plan;
-            renderPlan();
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        location.href = "login.html";
+      } else {
+        getDoc(doc(db, "plans", user.uid)).then((docSnap) => {
+          if (docSnap.exists()) {
+            planData = docSnap.data().plan;
+            getDoc(doc(db, "users", user.uid)).then((userDoc) => {
+              logs = userDoc.data().logs || [];
+              renderPlan();
+            });
           }
         });
       }
@@ -59,22 +65,23 @@
       document.getElementById("backButton").style.display = currentIndex > 0 ? "block" : "none";
     }
 
-    function completeStep() {
+    window.completeStep = function() {
       const tempo = prompt("Tempo gasto (minutos):") || 0;
       const dificuldade = prompt("Dificuldade (F/M/D):").toUpperCase() === "F" ? "Fácil" : "Médio";
       const nota = prompt("Nota (0-10):") || 0;
       const comentario = prompt("Comentário:") || "Sem comentários";
       logs.push({ etapa: currentIndex + 1, subtopico: planData[currentIndex].subtopic, materia: planData[currentIndex].subject, tempo, dificuldade, nota, comentario, data: new Date().toISOString() });
+      updateDoc(doc(db, "users", auth.currentUser.uid), { logs });
       currentIndex++;
       renderPlan();
-    }
+    };
 
     document.getElementById("backButton").onclick = () => {
       if (confirm("Retroceder?")) currentIndex--;
       renderPlan();
     };
 
-    function showLog(type) {
+    window.showLog = function(type) {
       const content = document.getElementById("logContent");
       document.getElementById("chartCanvas").style.display = "none";
       if (type === "txt") {
@@ -93,7 +100,7 @@
           options: { scales: { y: { beginAtZero: true } } }
         });
       }
-    }
+    };
   </script>
 </body>
 </html>
