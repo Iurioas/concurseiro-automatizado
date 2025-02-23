@@ -25,12 +25,12 @@
   </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { playClickSound } from "./sounds.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
+      apiKey: "AIzxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
       authDomain: "concurseiro-automatizado.firebaseapp.com",
       projectId: "concurseiro-automatizado",
       storageBucket: "concurseiro-automatizado.firebasestorage.app",
@@ -51,16 +51,26 @@
       { id: 5, name: "Magistrado Supremo", description: "Conclua 50 etapas." }
     ];
 
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => console.log("Persistência configurada em achievements."))
+      .catch(error => console.error("Erro ao configurar persistência:", error.message));
+
     onAuthStateChanged(auth, async (user) => {
+      console.log("Estado de autenticação em achievements:", user ? "Autenticado" : "Não autenticado");
       if (!user) {
+        console.log("Redirecionando para login...");
         location.href = "login.html";
         return;
       }
+      console.log("Usuário autenticado:", user.uid);
       try {
+        console.log("Carregando conquistas...");
         const userDoc = await getDoc(doc(db, "users", user.uid));
         const achievements = userDoc.exists() && userDoc.data().achievements ? userDoc.data().achievements : [];
+        console.log("Conquistas carregadas:", achievements.length);
         renderAchievements(achievements);
       } catch (error) {
+        console.error("Erro ao carregar conquistas:", error.message);
         document.getElementById("loading").innerText = "Erro ao carregar conquistas: " + error.message;
       }
     });
@@ -70,7 +80,7 @@
       const list = document.getElementById("achievementsList");
       list.style.display = "block";
       list.innerHTML = achievements.length ? achievements.map(a => `
-        <div style="background: #333; padding: 15px; margin: 10px 0; border-radius: 5px;">
+        <div style="background: #333; padding: 12px; margin: 8px 0; border-radius: 4px;">
           <strong>${a.name}</strong><br>
           <span>${achievementList.find(al => al.id === a.id).description}</span><br>
           <span style="font-size: 12px; color: #bbb;">Conquistado em: ${new Date(a.date).toLocaleString("pt-BR")}</span>
@@ -82,8 +92,10 @@
       playClickSound();
       try {
         await signOut(auth);
+        console.log("Logout realizado com sucesso.");
         location.href = "index.html";
       } catch (error) {
+        console.error("Erro ao sair:", error.message);
         alert("Erro ao sair: " + error.message);
       }
     };
