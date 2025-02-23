@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Planejador - Concurseiro Automatizado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,11 +13,16 @@
     <a href="study.html">Planejado</a>
     <button onclick="signOut()">Sair</button>
   </nav>
-  <h1>Planejador</h1>
-  <textarea id="raiox" placeholder="Cole o raio-x do seu concurso aqui"></textarea>
-  <button onclick="generatePlan()">Gerar Plano</button>
-  <button onclick="newPlan()">Novo Plano</button>
-  <p id="prompt"></p>
+  <main>
+    <h1>Planejador</h1>
+    <textarea id="raiox" placeholder="Cole o raio-x do seu concurso aqui (ex.: Português - Interpretação)"></textarea>
+    <button onclick="generatePlan()">Gerar Plano</button>
+    <button onclick="newPlan()">Novo Plano</button>
+    <p id="prompt"></p>
+  </main>
+  <footer>
+    <p>&copy; 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
+  </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
@@ -36,25 +42,13 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    console.log("Inicializando autenticação...");
     onAuthStateChanged(auth, (user) => {
-      console.log("Estado de autenticação mudou. Usuário:", user ? user.uid : "Nenhum usuário");
-      if (!user) {
-        console.log("Nenhum usuário autenticado, redirecionando para login...");
-        location.href = "login.html";
-      } else {
-        console.log("Usuário autenticado com sucesso:", user.uid, "Email:", user.email);
-      }
+      if (!user) location.href = "login.html";
     });
 
     window.generatePlan = async function() {
-      console.log("Gerando plano...");
       const raiox = document.getElementById("raiox").value;
-
-      // Divide o raio-x em linhas e filtra as linhas vazias
       const linhas = raiox.split("\n").filter(line => line.trim() !== "");
-
-      // Gera o plano com base nas matérias e subtópicos
       const plan = linhas.map((line, idx) => {
         const [materia, topico] = line.split(" - ");
         return {
@@ -65,33 +59,34 @@
           reason: "Baseado no raio-x fornecido"
         };
       });
-
       try {
         await setDoc(doc(db, "plans", auth.currentUser.uid), { plan });
-        console.log("Plano salvo com sucesso:", plan);
-        alert("Plano gerado com sucesso! Você será redirecionado para começar seus estudos.");
         document.getElementById("prompt").innerText = "Prompt sugerido para Google AI Studio: 'Organize este raio-x em prioridades como no modelo de Iuri: " + raiox + "'";
+        alert("Plano gerado! Redirecionando para Planejado...");
         location.href = "study.html";
       } catch (error) {
-        console.error("Erro ao gerar plano:", error.message);
         alert("Erro ao gerar plano: " + error.message);
       }
     };
 
-    window.newPlan = function() {
+    window.newPlan = async function() {
       if (confirm("Tem certeza? O plano atual será substituído.")) {
         document.getElementById("raiox").value = "";
-        deleteDoc(doc(db, "plans", auth.currentUser.uid))
-          .then(() => console.log("Plano antigo deletado."))
-          .catch((error) => console.error("Erro ao deletar plano:", error.message));
+        try {
+          await deleteDoc(doc(db, "plans", auth.currentUser.uid));
+        } catch (error) {
+          alert("Erro ao deletar plano: " + error.message);
+        }
       }
     };
 
-    window.signOut = function() {
-      console.log("Fazendo logout...");
-      signOut(auth).then(() => {
+    window.signOut = async function() {
+      try {
+        await signOut(auth);
         location.href = "index.html";
-      }).catch((error) => alert(error.message));
+      } catch (error) {
+        alert("Erro ao sair: " + error.message);
+      }
     };
   </script>
 </body>
