@@ -34,7 +34,7 @@
       if (!user) location.href = "login.html";
     });
 
-    window.generatePlan = function() {
+    window.generatePlan = async function() {
       const raiox = document.getElementById("raiox").value;
       const plan = raiox.split("\n").map((line, idx) => ({
         priorityNumber: idx + 1,
@@ -43,9 +43,15 @@
         subtopic: line.split(" - ")[1] || "Geral",
         reason: "Baseado no raio-x fornecido"
       }));
-      setDoc(doc(db, "plans", auth.currentUser.uid), { plan });
-      alert("Plano gerado com sucesso!");
-      document.getElementById("prompt").innerText = "Prompt sugerido para Google AI Studio: 'Organize este raio-x em prioridades como no modelo de Iuri: " + raiox + "'";
+      try {
+        await setDoc(doc(db, "plans", auth.currentUser.uid), { plan });
+        alert("Plano gerado com sucesso! Você será redirecionado para começar seus estudos.");
+        document.getElementById("prompt").innerText = "Prompt sugerido para Google AI Studio: 'Organize este raio-x em prioridades como no modelo de Iuri: " + raiox + "'";
+        location.href = "study.html"; // Redireciona para Planejado
+      } catch (error) {
+        console.error("Erro ao gerar plano:", error.message);
+        alert("Erro ao gerar plano: " + error.message);
+      }
     };
 
     window.newPlan = function() {
