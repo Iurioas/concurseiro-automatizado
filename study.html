@@ -58,8 +58,11 @@
           if (planDoc.exists()) {
             planData = planDoc.data().plan;
             console.log("Plano carregado:", planData);
+            renderPlan();
           } else {
             console.log("Nenhum plano encontrado para o usuário.");
+            alert("Nenhum plano encontrado. Por favor, crie um plano na página do planejador.");
+            location.href = "planner.html";
           }
 
           console.log("Carregando logs do usuário...");
@@ -67,7 +70,6 @@
           logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
           console.log("Logs carregados:", logs);
 
-          renderPlan();
         } catch (error) {
           console.error("Erro ao carregar dados do Firestore:", error.message);
         }
@@ -91,4 +93,35 @@
     window.completeStep = async function() {
       console.log("Completando etapa...");
       const tempo = prompt("Tempo gasto (minutos):") || 0;
-      const dificuldade = prompt("Dificuldade (F/M/D):").toUpperCase() ===
+      const dificuldade = prompt("Dificuldade (F/M/D):").toUpperCase();
+      const notaAutoavaliacao = prompt("Nota de autoavaliação (0-10):") || 0;
+      const comentarios = prompt("Comentários:") || "Sem comentários";
+
+      const log = {
+        etapa: currentIndex + 1,
+        subtopico: planData[currentIndex].subtopic,
+        materia: planData[currentIndex].subject,
+        dificuldade: dificuldade === "F" ? "Fácil" : dificuldade === "M" ? "Médio" : "Difícil",
+        tempo_gasto: tempo,
+        nota_autoavaliacao: notaAutoavaliacao,
+        comentarios: comentarios,
+        data_conclusao: new Date().toISOString(),
+        status: "Concluído"
+      };
+
+      logs.push(log);
+      await updateDoc(doc(db, "users", auth.currentUser.uid), { logs });
+
+      currentIndex++;
+      renderPlan();
+    };
+
+    window.signOut = function() {
+      console.log("Fazendo logout...");
+      signOut(auth).then(() => {
+        location.href = "index.html";
+      }).catch((error) => alert(error.message));
+    };
+  </script>
+</body>
+</html>
