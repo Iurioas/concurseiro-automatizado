@@ -14,7 +14,28 @@
     <button onclick="signOut()">Sair</button>
   </nav>
   <h1>Gráficos</h1>
-  <canvas id="chartCanvas"></canvas>
+  <button onclick="location.href='study.html'">Voltar</button>
+  <div class="chart-container">
+    <canvas id="tempoChart"></canvas>
+  </div>
+  <div class="chart-container">
+    <canvas id="dificuldadeChart"></canvas>
+  </div>
+  <div class="chart-container">
+    <canvas id="autoavaliacaoChart"></canvas>
+  </div>
+  <div class="chart-container">
+    <canvas id="progressoChart"></canvas>
+  </div>
+  <div class="chart-container">
+    <canvas id="dificuldadeTotalChart"></canvas>
+  </div>
+  <div class="chart-container">
+    <canvas id="tempoDificuldadeChart"></canvas>
+  </div>
+  <div class="chart-container">
+    <canvas id="dispersaoChart"></canvas>
+  </div>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
@@ -45,38 +66,148 @@
     });
 
     function renderCharts(logs) {
-      const ctx = document.getElementById("chartCanvas").getContext("2d");
+      const materias = [...new Set(logs.map(log => log.materia))];
+      const tempoPorMateria = materias.map(m => ({
+        materia: m,
+        tempo: logs.filter(log => log.materia === m).reduce((sum, log) => sum + log.tempo_gasto, 0)
+      }));
+      const dificuldadePorMateria = materias.map(m => ({
+        materia: m,
+        facil: logs.filter(log => log.materia === m && log.dificuldade === "Fácil").length,
+        medio: logs.filter(log => log.materia === m && log.dificuldade === "Médio").length,
+        dificil: logs.filter(log => log.materia === m && log.dificuldade === "Difícil").length
+      }));
+      const mediaAutoavaliacaoPorMateria = materias.map(m => {
+        const notas = logs.filter(log => log.materia === m).map(log => log.nota_autoavaliacao);
+        const media = notas.length > 0 ? notas.reduce((sum, n) => sum + n, 0) / notas.length : 0;
+        return { materia: m, media: media.toFixed(2) };
+      });
+      const progressoAutoavaliacao = logs.map((log, idx) => ({ etapa: idx + 1, nota: log.nota_autoavaliacao }));
+      const dificuldadeTotal = {
+        facil: logs.filter(log => log.dificuldade === "Fácil").length,
+        medio: logs.filter(log => log.dificuldade === "Médio").length,
+        dificil: logs.filter(log => log.dificuldade === "Difícil").length
+      };
+      const tempoMedioPorDificuldade = [
+        { dificuldade: "Fácil", tempo: logs.filter(log => log.dificuldade === "Fácil").reduce((sum, log) => sum + log.tempo_gasto, 0) / (dificuldadeTotal.facil || 1) },
+        { dificuldade: "Médio", tempo: logs.filter(log => log.dificuldade === "Médio").reduce((sum, log) => sum + log.tempo_gasto, 0) / (dificuldadeTotal.medio || 1) },
+        { dificuldade: "Difícil", tempo: logs.filter(log => log.dificuldade === "Difícil").reduce((sum, log) => sum + log.tempo_gasto, 0) / (dificuldadeTotal.dificil || 1) }
+      ];
+      const dispersaoDados = logs.map(log => ({ materia: log.materia, tempo: log.tempo_gasto, nota: log.nota_autoavaliacao }));
 
-      const labels = logs.map(log => `Etapa ${log.etapa}`);
-      const tempos = logs.map(log => log.tempo_gasto);
-      const notas = logs.map(log => log.nota_autoavaliacao);
-
-      new Chart(ctx, {
-        type: "line",
+      // Gráfico de Tempo por Matéria
+      new Chart(document.getElementById("tempoChart").getContext("2d"), {
+        type: "bar",
         data: {
-          labels: labels,
+          labels: tempoPorMateria.map(t => t.materia),
+          datasets: [{
+            label: "Tempo Total (min)",
+            data: tempoPorMateria.map(t => t.tempo),
+            backgroundColor: "#42a5f5"
+          }]
+        },
+        options: {
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+
+      // Gráfico de Dificuldade por Matéria
+      new Chart(document.getElementById("dificuldadeChart").getContext("2d"), {
+        type: "bar",
+        data: {
+          labels: dificuldadePorMateria.map(d => d.materia),
           datasets: [
-            {
-              label: "Tempo Gasto (minutos)",
-              data: tempos,
-              borderColor: "#42a5f5",
-              backgroundColor: "rgba(66, 165, 245, 0.2)",
-              fill: true
-            },
-            {
-              label: "Nota de Autoavaliação",
-              data: notas,
-              borderColor: "#4caf50",
-              backgroundColor: "rgba(76, 175, 80, 0.2)",
-              fill: true
-            }
+            { label: "Fácil", data: dificuldadePorMateria.map(d => d.facil), backgroundColor: "#4caf50" },
+            { label: "Médio", data: dificuldadePorMateria.map(d => d.medio), backgroundColor: "#ffca28" },
+            { label: "Difícil", data: dificuldadePorMateria.map(d => d.dificil), backgroundColor: "#ef5350" }
           ]
         },
         options: {
+          scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }
+        }
+      });
+
+      // Gráfico de Média de Autoavaliação por Matéria
+      new Chart(document.getElementById("autoavaliacaoChart").getContext("2d"), {
+        type: "bar",
+        data: {
+          labels: mediaAutoavaliacaoPorMateria.map(m => m.materia),
+          datasets: [{
+            label: "Média (0-10)",
+            data: mediaAutoavaliacaoPorMateria.map(m => m.media),
+            backgroundColor: "#ab47bc"
+          }]
+        },
+        options: {
+          scales: { y: { beginAtZero: true, max: 10 } }
+        }
+      });
+
+      // Gráfico de Progresso da Autoavaliação
+      new Chart(document.getElementById("progressoChart").getContext("2d"), {
+        type: "line",
+        data: {
+          labels: progressoAutoavaliacao.map(p => `Etapa ${p.etapa}`),
+          datasets: [{
+            label: "Nota (0-10)",
+            data: progressoAutoavaliacao.map(p => p.nota),
+            borderColor: "#42a5f5",
+            backgroundColor: "rgba(66, 165, 245, 0.2)",
+            fill: true
+          }]
+        },
+        options: {
+          scales: { y: { beginAtZero: true, max: 10 } }
+        }
+      });
+
+      // Gráfico de Distribuição Total de Dificuldade
+      new Chart(document.getElementById("dificuldadeTotalChart").getContext("2d"), {
+        type: "bar",
+        data: {
+          labels: ["Fácil", "Médio", "Difícil"],
+          datasets: [{
+            label: "Quantidade de Etapas",
+            data: [dificuldadeTotal.facil, dificuldadeTotal.medio, dificuldadeTotal.dificil],
+            backgroundColor: ["#4caf50", "#ffca28", "#ef5350"]
+          }]
+        },
+        options: {
+          indexAxis: "y",
+          scales: { x: { beginAtZero: true } }
+        }
+      });
+
+      // Gráfico de Tempo Médio por Dificuldade
+      new Chart(document.getElementById("tempoDificuldadeChart").getContext("2d"), {
+        type: "bar",
+        data: {
+          labels: tempoMedioPorDificuldade.map(t => t.dificuldade),
+          datasets: [{
+            label: "Tempo Médio (min)",
+            data: tempoMedioPorDificuldade.map(t => t.tempo.toFixed(2)),
+            backgroundColor: "#4caf50"
+          }]
+        },
+        options: {
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+
+      // Gráfico de Dispersão (Tempo vs. Nota)
+      new Chart(document.getElementById("dispersaoChart").getContext("2d"), {
+        type: "scatter",
+        data: {
+          datasets: materias.map(m => ({
+            label: m,
+            data: dispersaoDados.filter(d => d.materia === m).map(d => ({ x: d.tempo, y: d.nota })),
+            backgroundColor: ["#42a5f5", "#4caf50", "#ffca28", "#ef5350", "#ab47bc"][materias.indexOf(m) % 5]
+          }))
+        },
+        options: {
           scales: {
-            y: {
-              beginAtZero: true
-            }
+            x: { title: { display: true, text: "Tempo (min)" } },
+            y: { title: { display: true, text: "Nota (0-10)" }, beginAtZero: true, max: 10 }
           }
         }
       });
