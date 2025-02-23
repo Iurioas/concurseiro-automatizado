@@ -44,81 +44,51 @@
     let planData = [];
     let logs = [];
 
+    console.log("Inicializando autenticação...");
     onAuthStateChanged(auth, async (user) => {
+      console.log("Estado de autenticação mudou. Usuário:", user ? user.uid : "Nenhum usuário");
       if (!user) {
-        console.log("Usuário não autenticado, redirecionando para login...");
+        console.log("Nenhum usuário autenticado, redirecionando para login...");
         location.href = "login.html";
       } else {
-        console.log("Usuário autenticado:", user.uid);
+        console.log("Usuário autenticado com sucesso:", user.uid, "Email:", user.email);
         try {
+          console.log("Carregando plano do Firestore...");
           const planDoc = await getDoc(doc(db, "plans", user.uid));
           if (planDoc.exists()) {
             planData = planDoc.data().plan;
+            console.log("Plano carregado:", planData);
           } else {
             console.log("Nenhum plano encontrado para o usuário.");
           }
+
+          console.log("Carregando logs do usuário...");
           const userDoc = await getDoc(doc(db, "users", user.uid));
           logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
+          console.log("Logs carregados:", logs);
+
           renderPlan();
         } catch (error) {
-          console.error("Erro ao carregar dados:", error.message);
+          console.error("Erro ao carregar dados do Firestore:", error.message);
         }
       }
     });
 
     function renderPlan() {
+      console.log("Renderizando plano...");
       const tbody = document.querySelector("#studyTable tbody");
       tbody.innerHTML = "";
       if (currentIndex < planData.length) {
         const item = planData[currentIndex];
         const row = `<tr><td>${item.priorityNumber}</td><td>${item.priorityCategory}</td><td>${item.subject}</td><td>${item.subtopic}</td><td><input type="checkbox" onchange="completeStep()"></td><td>${item.reason}</td></tr>`;
         tbody.innerHTML = row;
+      } else {
+        tbody.innerHTML = "<tr><td colspan='6'>Nenhum plano disponível ou todas as etapas concluídas.</td></tr>";
       }
       document.getElementById("backButton").style.display = currentIndex > 0 ? "block" : "none";
     }
 
     window.completeStep = async function() {
+      console.log("Completando etapa...");
       const tempo = prompt("Tempo gasto (minutos):") || 0;
-      const dificuldade = prompt("Dificuldade (F/M/D):").toUpperCase() === "F" ? "Fácil" : "Médio";
-      const nota = prompt("Nota (0-10):") || 0;
-      const comentario = prompt("Comentário:") || "Sem comentários";
-      logs.push({ etapa: currentIndex + 1, subtopico: planData[currentIndex].subtopic, materia: planData[currentIndex].subject, tempo, dificuldade, nota, comentario, data: new Date().toISOString() });
-      await updateDoc(doc(db, "users", auth.currentUser.uid), { logs });
-      currentIndex++;
-      renderPlan();
-    };
-
-    document.getElementById("backButton").onclick = () => {
-      if (confirm("Retroceder?")) currentIndex--;
-      renderPlan();
-    };
-
-    window.showLog = function(type) {
-      const content = document.getElementById("logContent");
-      document.getElementById("chartCanvas").style.display = "none";
-      if (type === "txt") {
-        content.innerHTML = logs.map(l => `Etapa ${l.etapa}: ${l.subtopico}\nTempo: ${l.tempo} min\nDificuldade: ${l.dificuldade}\nNota: ${l.nota}\nComentário: ${l.comentario}\nData: ${new Date(l.data).toLocaleString("pt-BR")}`).join("\n\n");
-      } else if (type === "json") {
-        content.innerHTML = `<pre>${JSON.stringify(logs, null, 2)}</pre>`;
-      } else if (type === "charts") {
-        content.innerHTML = "";
-        document.getElementById("chartCanvas").style.display = "block";
-        new Chart(document.getElementById("chartCanvas"), {
-          type: "bar",
-          data: {
-            labels: logs.map(l => l.materia),
-            datasets: [{ label: "Tempo (min)", data: logs.map(l => l.tempo), backgroundColor: "#42a5f5" }]
-          },
-          options: { scales: { y: { beginAtZero: true } } }
-        });
-      }
-    };
-
-    window.signOut = function() {
-      signOut(auth).then(() => {
-        location.href = "index.html";
-      }).catch((error) => alert(error.message));
-    };
-  </script>
-</body>
-</html>
+      const dificuldade = prompt("Dificuldade (F/M/D):").toUpperCase() ===
