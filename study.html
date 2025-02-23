@@ -12,6 +12,8 @@
     <span>Concurseiro Automatizado</span>
     <a href="planner.html">Planejador</a>
     <a href="study.html">Planejado</a>
+    <a href="achievements.html">Conquistas</a>
+    <a href="ranking.html">Ranking</a>
     <button onclick="signOut()">Sair</button>
   </nav>
   <main>
@@ -54,6 +56,15 @@
     let currentIndex = localStorage.getItem("currentIndex") ? parseInt(localStorage.getItem("currentIndex")) : 0;
     let planData = [];
     let logs = [];
+    let achievements = [];
+
+    const achievementList = [
+      { id: 1, name: "Guardião da Lei", condition: logs => logs.length >= 1, description: "Conclua sua primeira etapa." },
+      { id: 2, name: "Advogado do Saber", condition: logs => logs.length >= 5, description: "Conclua 5 etapas." },
+      { id: 3, name: "Juiz do Conhecimento", condition: logs => logs.length >= 10, description: "Conclua 10 etapas." },
+      { id: 4, name: "Promotor da Justiça", condition: logs => logs.length >= 20, description: "Conclua 20 etapas." },
+      { id: 5, name: "Magistrado Supremo", condition: logs => logs.length >= 50, description: "Conclua 50 etapas." }
+    ];
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -66,7 +77,9 @@
           planData = planDoc.data().plan;
           const userDoc = await getDoc(doc(db, "users", user.uid));
           logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
+          achievements = userDoc.exists() && userDoc.data().achievements ? userDoc.data().achievements : [];
           renderPlan();
+          checkAchievements();
         } else {
           document.getElementById("loading").innerText = "Nenhum plano encontrado. Crie um plano no Planejador.";
           setTimeout(() => location.href = "planner.html", 2000);
@@ -109,11 +122,11 @@
       };
       logs.push(log);
       try {
-        await updateDoc(doc(db, "users", auth.currentUser.uid), { logs });
+        await updateDoc(doc(db, "users", auth.currentUser.uid), { logs, achievements });
         currentIndex++;
         localStorage.setItem("currentIndex", currentIndex);
         playSuccessSound();
-        showNotification("Etapa concluída com sucesso!");
+        checkAchievements();
         renderPlan();
       } catch (error) {
         alert("Erro ao salvar log: " + error.message);
@@ -148,6 +161,17 @@
       notification.innerText = message;
       document.body.appendChild(notification);
       setTimeout(() => notification.remove(), 2500);
+    }
+
+    function checkAchievements() {
+      achievementList.forEach(achievement => {
+        if (!achievements.some(a => a.id === achievement.id) && achievement.condition(logs)) {
+          achievements.push({ id: achievement.id, name: achievement.name, date: new Date().toISOString() });
+          showNotification(`Nova conquista: ${achievement.name}!`);
+          playSuccessSound();
+        }
+      });
+      updateDoc(doc(db, "users", auth.currentUser.uid), { achievements });
     }
   </script>
 </body>
