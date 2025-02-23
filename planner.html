@@ -23,7 +23,7 @@
     import { getFirestore, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "AIzxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
       authDomain: "concurseiro-automatizado.firebaseapp.com",
       projectId: "concurseiro-automatizado",
       storageBucket: "concurseiro-automatizado.firebasestorage.app",
@@ -36,11 +36,20 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    console.log("Inicializando autenticação...");
     onAuthStateChanged(auth, (user) => {
-      if (!user) location.href = "login.html";
+      console.log("Estado de autenticação mudou. Usuário:", user ? user.uid : "Nenhum usuário");
+      if (!user) {
+        console.log("Nenhum usuário autenticado, redirecionando para login...");
+        location.href = "login.html";
+      } else {
+        console.log("Usuário autenticado com sucesso:", user.uid, "Email:", user.email);
+        // Não precisa carregar dados aqui, apenas garantir que o usuário está logado
+      }
     });
 
     window.generatePlan = async function() {
+      console.log("Gerando plano...");
       const raiox = document.getElementById("raiox").value;
       const plan = raiox.split("\n").map((line, idx) => ({
         priorityNumber: idx + 1,
@@ -51,9 +60,10 @@
       }));
       try {
         await setDoc(doc(db, "plans", auth.currentUser.uid), { plan });
+        console.log("Plano salvo com sucesso:", plan);
         alert("Plano gerado com sucesso! Você será redirecionado para começar seus estudos.");
         document.getElementById("prompt").innerText = "Prompt sugerido para Google AI Studio: 'Organize este raio-x em prioridades como no modelo de Iuri: " + raiox + "'";
-        location.href = "study.html"; // Mantido o redirecionamento automático
+        location.href = "study.html";
       } catch (error) {
         console.error("Erro ao gerar plano:", error.message);
         alert("Erro ao gerar plano: " + error.message);
@@ -63,11 +73,14 @@
     window.newPlan = function() {
       if (confirm("Tem certeza? O plano atual será substituído.")) {
         document.getElementById("raiox").value = "";
-        deleteDoc(doc(db, "plans", auth.currentUser.uid));
+        deleteDoc(doc(db, "plans", auth.currentUser.uid))
+          .then(() => console.log("Plano antigo deletado."))
+          .catch((error) => console.error("Erro ao deletar plano:", error.message));
       }
     };
 
     window.signOut = function() {
+      console.log("Fazendo logout...");
       signOut(auth).then(() => {
         location.href = "index.html";
       }).catch((error) => alert(error.message));
