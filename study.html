@@ -57,6 +57,9 @@
     let planData = [];
     let logs = [];
     let achievements = [];
+    let lastCompletionTime = localStorage.getItem("lastCompletionTime") ? parseInt(localStorage.getItem("lastCompletionTime")) : 0;
+
+    const MINIMUM_TIME_BETWEEN_STEPS = 5 * 60 * 1000; // 5 minutos em milissegundos
 
     const achievementList = [
       { id: 1, name: "Guardião da Lei", condition: logs => logs.length >= 1, description: "Conclua sua primeira etapa." },
@@ -105,6 +108,12 @@
 
     window.completeStep = async function() {
       playClickSound();
+      const now = Date.now();
+      if (now - lastCompletionTime < MINIMUM_TIME_BETWEEN_STEPS) {
+        alert("Você deve esperar pelo menos 5 minutos entre etapas para evitar avanços rápidos demais!");
+        return;
+      }
+
       const tempo = prompt("Tempo gasto (minutos):") || "0";
       const dificuldade = prompt("Dificuldade (F/M/D):")?.toUpperCase() || "M";
       const nota = prompt("Nota (0-10):") || "0";
@@ -121,10 +130,16 @@
         status: "Concluído"
       };
       logs.push(log);
+      const totalTime = logs.reduce((sum, l) => sum + parseInt(l.tempo_gasto), 0);
+      const avgScore = logs.reduce((sum, l) => sum + parseInt(l.nota_autoavaliacao), 0) / logs.length || 1;
+      const rankingScore = logs.length * (totalTime / logs.length) * avgScore;
+
       try {
-        await updateDoc(doc(db, "users", auth.currentUser.uid), { logs, achievements });
+        await updateDoc(doc(db, "users", auth.currentUser.uid), { logs, achievements, rankingScore });
         currentIndex++;
+        lastCompletionTime = now;
         localStorage.setItem("currentIndex", currentIndex);
+        localStorage.setItem("lastCompletionTime", lastCompletionTime);
         playSuccessSound();
         checkAchievements();
         renderPlan();
@@ -149,6 +164,7 @@
       try {
         await signOut(auth);
         localStorage.removeItem("currentIndex");
+        localStorage.removeItem("lastCompletionTime");
         location.href = "index.html";
       } catch (error) {
         alert("Erro ao sair: " + error.message);
