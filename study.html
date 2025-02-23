@@ -41,7 +41,7 @@
     import { playClickSound, playSuccessSound } from "./sounds.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
+      apiKey: "AIzxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
       authDomain: "concurseiro-automatizado.firebaseapp.com",
       projectId: "concurseiro-automatizado",
       storageBucket: "concurseiro-automatizado.firebasestorage.app",
@@ -59,7 +59,7 @@
     let achievements = [];
     let lastCompletionTime = localStorage.getItem("lastCompletionTime") ? parseInt(localStorage.getItem("lastCompletionTime")) : 0;
 
-    const MINIMUM_TIME_BETWEEN_STEPS = 5 * 60 * 1000; // 5 minutos em milissegundos
+    const MINIMUM_TIME_FOR_RANKING = 10 * 60 * 1000; // 10 minutos em milissegundos
 
     const achievementList = [
       { id: 1, name: "Guardião da Lei", condition: logs => logs.length >= 1, description: "Conclua sua primeira etapa." },
@@ -109,8 +109,10 @@
     window.completeStep = async function() {
       playClickSound();
       const now = Date.now();
-      if (now - lastCompletionTime < MINIMUM_TIME_BETWEEN_STEPS) {
-        alert("Você deve esperar pelo menos 5 minutos entre etapas para evitar avanços rápidos demais!");
+      const timeSinceLast = now - lastCompletionTime;
+      let validForRanking = timeSinceLast >= MINIMUM_TIME_FOR_RANKING;
+
+      if (!confirm(`Tem certeza que deseja avançar para a próxima etapa? ${!validForRanking ? "Avanços em menos de 10 minutos não contam para o ranking." : ""}`)) {
         return;
       }
 
@@ -127,12 +129,15 @@
         nota_autoavaliacao: nota,
         comentarios,
         data_conclusao: new Date().toISOString(),
-        status: "Concluído"
+        status: "Concluído",
+        validForRanking: validForRanking
       };
       logs.push(log);
-      const totalTime = logs.reduce((sum, l) => sum + parseInt(l.tempo_gasto), 0);
-      const avgScore = logs.reduce((sum, l) => sum + parseInt(l.nota_autoavaliacao), 0) / logs.length || 1;
-      const rankingScore = logs.length * (totalTime / logs.length) * avgScore;
+
+      const validLogs = logs.filter(l => l.validForRanking);
+      const totalTime = validLogs.reduce((sum, l) => sum + parseInt(l.tempo_gasto), 0);
+      const avgScore = validLogs.reduce((sum, l) => sum + parseInt(l.nota_autoavaliacao), 0) / validLogs.length || 1;
+      const rankingScore = validLogs.length * (totalTime / validLogs.length) * avgScore;
 
       try {
         await updateDoc(doc(db, "users", auth.currentUser.uid), { logs, achievements, rankingScore });
