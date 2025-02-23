@@ -23,9 +23,10 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { playClickSound } from "./sounds.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
+      apiKey: "AIzxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
       authDomain: "concurseiro-automatizado.firebaseapp.com",
       projectId: "concurseiro-automatizado",
       storageBucket: "concurseiro-automatizado.firebasestorage.app",
@@ -44,17 +45,24 @@
       const loginBtn = document.getElementById("loginBtn");
       loginBtn.disabled = true;
       loginBtn.innerText = "Entrando...";
+      console.log("Tentando login para:", email);
       try {
         await setPersistence(auth, browserLocalPersistence);
+        console.log("Persistência configurada.");
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
+        console.log("Usuário logado:", user.uid);
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists() && userDoc.data().status === "ativo") {
+          console.log("Conta ativa, redirecionando para dashboard...");
+          playClickSound();
           location.href = "dashboard.html";
         } else {
           document.getElementById("message").innerText = "Conta aguardando ativação.";
+          console.log("Conta inativa.");
         }
       } catch (error) {
+        console.error("Erro ao logar:", error.message);
         document.getElementById("message").innerText = "Erro ao logar: " + error.message;
       } finally {
         loginBtn.disabled = false;
@@ -70,8 +78,11 @@
       }
       try {
         await sendPasswordResetEmail(auth, email);
+        console.log("E-mail de redefinição enviado para:", email);
         document.getElementById("message").innerText = "E-mail de redefinição enviado! Verifique sua caixa de entrada (e spam).";
+        playClickSound();
       } catch (error) {
+        console.error("Erro ao enviar e-mail de redefinição:", error.message);
         document.getElementById("message").innerText = "Erro ao enviar e-mail: " + error.message;
       }
     };
