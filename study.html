@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Planejado - Concurseiro Automatizado</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>Planejado</h1>
+  <table id="studyTable">
+    <thead><tr><th>Prioridade</th><th>Categoria</th><th>Matéria</th><th>Subtópico</th><th>Concluído</th><th>Motivo</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <button id="backButton" style="display:none">Retroceder</button>
+  <div><button onclick="showLog('txt')">Log Texto</button><button onclick="showLog('json')">Log JSON</button><button onclick="showLog('charts')">Gráficos</button></div>
+  <div id="logContent"></div>
+  <canvas id="chartCanvas" style="display:none"></canvas>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = { /* Cole sua config do Firebase aqui */ };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    let currentIndex = 0;
+    let planData = [];
+    let logs = [];
+
+    auth.onAuthStateChanged((user) => {
+      if (!user) location.href = "login.html";
+      else {
+        db.collection("plans").doc(user.uid).get().then((doc) => {
+          if (doc.exists) {
+            planData = doc.data().plan;
+            renderPlan();
+          }
+        });
+      }
+    });
+
+    function renderPlan() {
+      const tbody = document.querySelector("#studyTable tbody");
+      tbody.innerHTML = "";
+      if (currentIndex < planData.length) {
+        const item = planData[currentIndex];
+        const row = `<tr><td>${item.priorityNumber}</td><td>${item.priorityCategory}</td><td>${item.subject}</td><td>${item.subtopic}</td><td><input type="checkbox" onchange="completeStep()"></td><td>${item.reason}</td></tr>`;
+        tbody.innerHTML = row;
+      }
+      document.getElementById("backButton").style.display = currentIndex > 0 ? "block" : "none";
+    }
+
+    function completeStep() {
+      const tempo = prompt("Tempo gasto (minutos):") || 0;
+      const dificuldade = prompt("Dificuldade (F/M/D):").toUpperCase() === "F" ? "Fácil" : "Médio";
+      const nota = prompt("Nota (0-10):") || 0;
+      const comentario = prompt("Comentário:") || "Sem comentários";
+      logs.push({ etapa: currentIndex + 1, subtopico: planData[currentIndex].subtopic, materia: planData[currentIndex].subject, tempo, dificuldade, nota, comentario, data: new Date().toISOString() });
+      currentIndex++;
+      renderPlan();
+    }
+
+    document.getElementById("backButton").onclick = () => {
+      if (confirm("Retroceder?")) currentIndex--;
+      renderPlan();
+    };
+
+    function showLog(type) {
+      const content = document.getElementById("logContent");
+      document.getElementById("chartCanvas").style.display = "none";
+      if (type === "txt") {
+        content.innerHTML = logs.map(l => `Etapa ${l.etapa}: ${l.subtopico}\nTempo: ${l.tempo} min\nDificuldade: ${l.dificuldade}\nNota: ${l.nota}\nComentário: ${l.comentario}\nData: ${new Date(l.data).toLocaleString("pt-BR")}`).join("\n\n");
+      } else if (type === "json") {
+        content.innerHTML = `<pre>${JSON.stringify(logs, null, 2)}</pre>`;
+      } else if (type === "charts") {
+        content.innerHTML = "";
+        document.getElementById("chartCanvas").style.display = "block";
+        new Chart(document.getElementById("chartCanvas"), {
+          type: "bar",
+          data: {
+            labels: logs.map(l => l.materia),
+            datasets: [{ label: "Tempo (min)", data: logs.map(l => l.tempo), backgroundColor: "#42a5f5" }]
+          },
+          options: { scales: { y: { beginAtZero: true } } }
+        });
+      }
+    }
+  </script>
+</body>
+</html>
