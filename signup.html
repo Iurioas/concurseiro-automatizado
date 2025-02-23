@@ -31,19 +31,33 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    window.signup = function() {
+    window.signup = async function() {
       const name = document.getElementById("name").value;
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
       
-      createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          sendEmailVerification(user);
-          setDoc(doc(db, "users", user.uid), { name, email, status: "inativo" });
-          document.getElementById("message").innerHTML = "Conta criada! Verifique seu e-mail e envie R$ 15 via PIX para [SEU PIX]. Aguarde ativação em até 24h.";
-        })
-        .catch((error) => alert(error.message));
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        
+        await sendEmailVerification(user);
+        console.log("E-mail de verificação enviado para:", email);
+        
+        await setDoc(doc(db, "users", user.uid), { name, email, status: "inativo" });
+        document.getElementById("message").innerHTML = "Conta criada! Verifique seu e-mail (pode estar no spam) e envie R$ 15 via PIX para [SEU PIX]. Aguarde ativação em até 24h. Após verificar o e-mail, você será redirecionado ao login.";
+
+        // Verifica periodicamente se o e-mail foi confirmado
+        const checkEmailVerified = setInterval(async () => {
+          await user.reload(); // Atualiza o estado do usuário
+          if (user.emailVerified) {
+            clearInterval(checkEmailVerified); // Para o intervalo
+            location.href = "login.html"; // Redireciona para o login
+          }
+        }, 2000); // Checa a cada 2 segundos
+      } catch (error) {
+        console.error("Erro:", error.message);
+        alert("Erro ao criar conta: " + error.message);
+      }
     };
   </script>
 </body>
