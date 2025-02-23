@@ -50,13 +50,22 @@
     window.generatePlan = async function() {
       console.log("Gerando plano...");
       const raiox = document.getElementById("raiox").value;
-      const plan = raiox.split("\n").map((line, idx) => ({
-        priorityNumber: idx + 1,
-        priorityCategory: line.includes("urgente") ? "Urgente" : "Média",
-        subject: line.split(" - ")[0] || "Desconhecido",
-        subtopic: line.split(" - ")[1] || "Geral",
-        reason: "Baseado no raio-x fornecido"
-      }));
+
+      // Divide o raio-x em linhas e filtra as linhas vazias
+      const linhas = raiox.split("\n").filter(line => line.trim() !== "");
+
+      // Gera o plano com base nas matérias e subtópicos
+      const plan = linhas.map((line, idx) => {
+        const [materia, topico] = line.split(" - ");
+        return {
+          priorityNumber: idx + 1,
+          priorityCategory: line.toLowerCase().includes("urgente") ? "Urgente" : "Média",
+          subject: materia || "Desconhecido",
+          subtopic: topico || "Geral",
+          reason: "Baseado no raio-x fornecido"
+        };
+      });
+
       try {
         await setDoc(doc(db, "plans", auth.currentUser.uid), { plan });
         console.log("Plano salvo com sucesso:", plan);
