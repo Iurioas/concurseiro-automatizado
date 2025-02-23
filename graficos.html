@@ -15,25 +15,26 @@
   </nav>
   <h1>Gráficos</h1>
   <button onclick="location.href='study.html'">Voltar</button>
-  <div class="chart-container">
+  <div id="loading">Carregando...</div>
+  <div class="chart-container" style="display: none;">
     <canvas id="tempoChart"></canvas>
   </div>
-  <div class="chart-container">
+  <div class="chart-container" style="display: none;">
     <canvas id="dificuldadeChart"></canvas>
   </div>
-  <div class="chart-container">
+  <div class="chart-container" style="display: none;">
     <canvas id="autoavaliacaoChart"></canvas>
   </div>
-  <div class="chart-container">
+  <div class="chart-container" style="display: none;">
     <canvas id="progressoChart"></canvas>
   </div>
-  <div class="chart-container">
+  <div class="chart-container" style="display: none;">
     <canvas id="dificuldadeTotalChart"></canvas>
   </div>
-  <div class="chart-container">
+  <div class="chart-container" style="display: none;">
     <canvas id="tempoDificuldadeChart"></canvas>
   </div>
-  <div class="chart-container">
+  <div class="chart-container" style="display: none;">
     <canvas id="dispersaoChart"></canvas>
   </div>
   <script type="module">
@@ -64,11 +65,16 @@
           if (userDoc.exists()) {
             const logs = userDoc.data().logs || [];
             renderCharts(logs);
+            document.getElementById("loading").style.display = "none";
+            document.querySelectorAll(".chart-container").forEach(container => {
+              container.style.display = "block";
+            });
           } else {
-            alert("Nenhum log encontrado.");
+            document.getElementById("loading").innerText = "Nenhum log encontrado.";
           }
         } catch (error) {
           console.error("Erro ao carregar logs:", error);
+          document.getElementById("loading").innerText = "Erro ao carregar logs.";
         }
       }
     });
