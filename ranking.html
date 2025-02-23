@@ -28,7 +28,7 @@
   </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { playClickSound } from "./sounds.js";
 
@@ -46,12 +46,20 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => console.log("Persistência configurada em ranking."))
+      .catch(error => console.error("Erro ao configurar persistência:", error.message));
+
     onAuthStateChanged(auth, async (user) => {
+      console.log("Estado de autenticação em ranking:", user ? "Autenticado" : "Não autenticado");
       if (!user) {
+        console.log("Redirecionando para login...");
         location.href = "login.html";
         return;
       }
+      console.log("Usuário autenticado:", user.uid);
       try {
+        console.log("Carregando ranking...");
         const usersSnapshot = await getDocs(query(collection(db, "users"), orderBy("rankingScore", "desc"), limit(10)));
         const ranking = usersSnapshot.docs.map((doc, index) => ({
           email: doc.data().email,
@@ -59,8 +67,10 @@
           validLogs: doc.data().logs ? doc.data().logs.filter(l => l.validForRanking).length : 0,
           achievements: doc.data().achievements ? doc.data().achievements.length : 0
         }));
+        console.log("Ranking carregado:", ranking.length, "usuários.");
         renderRanking(ranking);
       } catch (error) {
+        console.error("Erro ao carregar ranking:", error.message);
         document.getElementById("loading").innerText = "Erro ao carregar ranking: " + error.message;
       }
     });
@@ -84,8 +94,10 @@
       playClickSound();
       try {
         await signOut(auth);
+        console.log("Logout realizado com sucesso.");
         location.href = "index.html";
       } catch (error) {
+        console.error("Erro ao sair:", error.message);
         alert("Erro ao sair: " + error.message);
       }
     };
