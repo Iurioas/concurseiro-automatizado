@@ -13,7 +13,7 @@
   <p id="message"></p>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -30,21 +30,28 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    window.login = function() {
+    window.login = async function() {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
-      signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          getDoc(doc(db, "users", user.uid)).then((docSnap) => {
-            if (docSnap.exists() && docSnap.data().status === "ativo") {
-              location.href = "dashboard.html";
-            } else {
-              document.getElementById("message").innerText = "Conta aguardando ativação.";
-            }
-          });
-        })
-        .catch((error) => alert(error.message));
+      try {
+        console.log("Configurando persistência da sessão...");
+        await setPersistence(auth, browserLocalPersistence); // Força persistência local
+        console.log("Fazendo login...");
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        console.log("Usuário logado:", user.uid);
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists() && userDoc.data().status === "ativo") {
+          console.log("Conta ativa, redirecionando para dashboard...");
+          location.href = "dashboard.html";
+        } else {
+          document.getElementById("message").innerText = "Conta aguardando ativação.";
+          console.log("Conta inativa.");
+        }
+      } catch (error) {
+        console.error("Erro ao logar:", error.message);
+        alert("Erro ao logar: " + error.message);
+      }
     };
   </script>
 </body>
