@@ -19,7 +19,7 @@
     <h1>Ranking dos Top 10 Concurseiros</h1>
     <div id="loading">Carregando...</div>
     <table id="rankingTable" style="display: none;">
-      <thead><tr><th>Posição</th><th>E-mail</th><th>Etapas Concluídas</th><th>Insígnias</th></tr></thead>
+      <thead><tr><th>Posição</th><th>E-mail</th><th>Pontuação</th><th>Etapas</th><th>Insígnias</th></tr></thead>
       <tbody></tbody>
     </table>
   </main>
@@ -33,7 +33,7 @@
     import { playClickSound } from "./sounds.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
+      apiKey: "AIzxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
       authDomain: "concurseiro-automatizado.firebaseapp.com",
       projectId: "concurseiro-automatizado",
       storageBucket: "concurseiro-automatizado.firebasestorage.app",
@@ -52,9 +52,10 @@
         return;
       }
       try {
-        const usersSnapshot = await getDocs(query(collection(db, "users"), orderBy("logs.length", "desc"), limit(10)));
+        const usersSnapshot = await getDocs(query(collection(db, "users"), orderBy("rankingScore", "desc"), limit(10)));
         const ranking = usersSnapshot.docs.map((doc, index) => ({
           email: doc.data().email,
+          rankingScore: doc.data().rankingScore ? doc.data().rankingScore.toFixed(2) : 0,
           logs: doc.data().logs ? doc.data().logs.length : 0,
           achievements: doc.data().achievements ? doc.data().achievements.length : 0
         }));
@@ -72,6 +73,7 @@
         <tr>
           <td>${index + 1}</td>
           <td>${user.email}</td>
+          <td>${user.rankingScore}</td>
           <td>${user.logs}</td>
           <td>${user.achievements}</td>
         </tr>
