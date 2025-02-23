@@ -11,11 +11,12 @@
     <h1>Criar Conta</h1>
     <input id="email" type="email" placeholder="E-mail">
     <input id="password" type="password" placeholder="Senha">
-    <button onclick="signup()">Cadastrar</button>
+    <button id="signupBtn" onclick="signup()">Cadastrar</button>
+    <button onclick="location.href='index.html'">Voltar</button>
     <p id="message"></p>
   </main>
   <footer>
-    <p>&copy; 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
+    <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
   </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
@@ -39,12 +40,15 @@
     window.signup = async function() {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
+      const signupBtn = document.getElementById("signupBtn");
+      signupBtn.disabled = true;
+      signupBtn.innerText = "Enviando...";
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         await sendEmailVerification(user);
         await setDoc(doc(db, "users", user.uid), { email, status: "inativo" });
-        document.getElementById("message").innerHTML = "Conta criada! <strong>Verifique seu e-mail</strong> (cheque spam/promoções). Envie R$ 15 via PIX para [SEU PIX] e aguarde ativação.";
+        document.getElementById("message").innerHTML = "Conta criada! <strong>Verifique seu e-mail</strong> <span style='color: #ffca28;'>(cheque spam/promoções)</span>. Envie R$ 15 via PIX para [SEU PIX] e aguarde ativação.";
         const checkEmailVerified = setInterval(async () => {
           await user.reload();
           if (user.emailVerified) {
@@ -54,6 +58,9 @@
         }, 2000);
       } catch (error) {
         document.getElementById("message").innerText = "Erro: " + error.message;
+      } finally {
+        signupBtn.disabled = false;
+        signupBtn.innerText = "Cadastrar";
       }
     };
   </script>
