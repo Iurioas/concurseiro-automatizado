@@ -33,7 +33,7 @@
   </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { playClickSound } from "./sounds.js";
 
@@ -51,12 +51,24 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // Configura persistência da sessão no início
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => {
+        console.log("Persistência da sessão configurada.");
+      })
+      .catch(error => {
+        console.error("Erro ao configurar persistência:", error.message);
+      });
+
     onAuthStateChanged(auth, async (user) => {
+      console.log("Estado de autenticação:", user ? "Autenticado" : "Não autenticado");
       if (!user) {
+        console.log("Redirecionando para login...");
         location.href = "login.html";
         return;
       }
       try {
+        console.log("Carregando logs do usuário:", user.uid);
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           const logs = userDoc.data().logs || [];
@@ -67,6 +79,7 @@
           document.getElementById("loading").innerText = "Nenhum log encontrado.";
         }
       } catch (error) {
+        console.error("Erro ao carregar logs:", error.message);
         document.getElementById("loading").innerText = "Erro ao carregar logs: " + error.message;
       }
     });
