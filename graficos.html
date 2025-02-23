@@ -51,26 +51,20 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Configura persistência da sessão
-    console.log("Configurando persistência da sessão...");
     setPersistence(auth, browserLocalPersistence)
-      .then(() => {
-        console.log("Persistência configurada com sucesso.");
-      })
-      .catch(error => {
-        console.error("Erro ao configurar persistência:", error.message);
-      });
+      .then(() => console.log("Persistência configurada em graficos."))
+      .catch(error => console.error("Erro ao configurar persistência:", error.message));
 
     onAuthStateChanged(auth, async (user) => {
-      console.log("Estado de autenticação mudou. Usuário:", user ? user.uid : "Nenhum usuário");
+      console.log("Estado de autenticação em graficos:", user ? "Autenticado" : "Não autenticado");
       if (!user) {
-        console.log("Nenhum usuário autenticado, redirecionando para login...");
+        console.log("Redirecionando para login...");
         location.href = "login.html";
         return;
       }
-      console.log("Usuário autenticado:", user.uid, "Email:", user.email);
+      console.log("Usuário autenticado:", user.uid);
       try {
-        console.log("Carregando logs do usuário...");
+        console.log("Carregando logs para gráficos...");
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           const logs = userDoc.data().logs || [];
@@ -79,7 +73,7 @@
           document.getElementById("loading").style.display = "none";
           document.querySelectorAll(".chart-container").forEach(container => container.style.display = "block");
         } else {
-          console.log("Documento do usuário não encontrado.");
+          console.log("Nenhum log encontrado.");
           document.getElementById("loading").innerText = "Nenhum log encontrado.";
         }
       } catch (error) {
@@ -192,8 +186,10 @@
       playClickSound();
       try {
         await signOut(auth);
+        console.log("Logout realizado com sucesso.");
         location.href = "index.html";
       } catch (error) {
+        console.error("Erro ao sair:", error.message);
         alert("Erro ao sair: " + error.message);
       }
     };
