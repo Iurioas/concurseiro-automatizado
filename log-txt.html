@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Log Texto - Concurseiro Automatizado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,10 +13,15 @@
     <a href="study.html">Planejado</a>
     <button onclick="signOut()">Sair</button>
   </nav>
-  <h1>Log Texto</h1>
-  <button onclick="location.href='study.html'">Voltar</button>
-  <div id="loading">Carregando...</div>
-  <pre id="logContent" style="display: none;"></pre>
+  <main>
+    <h1>Log Texto</h1>
+    <button onclick="location.href='study.html'">Voltar</button>
+    <div id="loading">Carregando...</div>
+    <pre id="logContent" style="display: none;"></pre>
+  </main>
+  <footer>
+    <p>&copy; 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
+  </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
@@ -38,41 +44,43 @@
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         location.href = "login.html";
-      } else {
-        try {
-          const userDoc = await getDoc(doc(db, "users", user.uid));
-          if (userDoc.exists()) {
-            const logs = userDoc.data().logs || [];
-            const logText = logs.map(log => `
-              Etapa ${log.etapa}: ${log.subtopico}
-              - Matéria: ${log.materia}
-              - Dificuldade: ${log.dificuldade}
-              - Tempo Gasto: ${log.tempo_gasto} minutos
-              - Nota de Autoavaliação: ${log.nota_autoavaliacao}
-              - Comentários: ${log.comentarios}
-              - Data de Conclusão: ${new Date(log.data_conclusao).toLocaleString("pt-BR")}
-            `).join("\n");
-            document.getElementById("logContent").innerText = logText;
-            document.getElementById("logContent").style.display = "block";
-            document.getElementById("loading").style.display = "none";
-          } else {
-            document.getElementById("logContent").innerText = "Nenhum log encontrado.";
-            document.getElementById("logContent").style.display = "block";
-            document.getElementById("loading").style.display = "none";
-          }
-        } catch (error) {
-          console.error("Erro ao carregar logs:", error);
-          document.getElementById("logContent").innerText = "Erro ao carregar logs.";
+        return;
+      }
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          const logs = userDoc.data().logs || [];
+          const logText = logs.map(log => `
+Etapa ${log.etapa}: ${log.subtopico}
+- Matéria: ${log.materia}
+- Dificuldade: ${log.dificuldade}
+- Tempo Gasto: ${log.tempo_gasto} minutos
+- Nota: ${log.nota_autoavaliacao}
+- Comentários: ${log.comentarios}
+- Data: ${new Date(log.data_conclusao).toLocaleString("pt-BR")}
+          `).join("\n");
+          document.getElementById("logContent").innerText = logText || "Nenhum log registrado.";
+          document.getElementById("logContent").style.display = "block";
+          document.getElementById("loading").style.display = "none";
+        } else {
+          document.getElementById("logContent").innerText = "Nenhum log encontrado.";
           document.getElementById("logContent").style.display = "block";
           document.getElementById("loading").style.display = "none";
         }
+      } catch (error) {
+        document.getElementById("logContent").innerText = "Erro ao carregar logs: " + error.message;
+        document.getElementById("logContent").style.display = "block";
+        document.getElementById("loading").style.display = "none";
       }
     });
 
-    window.signOut = function() {
-      signOut(auth).then(() => {
+    window.signOut = async function() {
+      try {
+        await signOut(auth);
         location.href = "index.html";
-      }).catch((error) => alert(error.message));
+      } catch (error) {
+        alert("Erro ao sair: " + error.message);
+      }
     };
   </script>
 </body>
