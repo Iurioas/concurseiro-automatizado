@@ -14,7 +14,8 @@
   </nav>
   <h1>Log Texto</h1>
   <button onclick="location.href='study.html'">Voltar</button>
-  <pre id="logContent"></pre>
+  <div id="loading">Carregando...</div>
+  <pre id="logContent" style="display: none;"></pre>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
@@ -52,12 +53,18 @@
               - Data de Conclusão: ${new Date(log.data_conclusao).toLocaleString("pt-BR")}
             `).join("\n");
             document.getElementById("logContent").innerText = logText;
+            document.getElementById("logContent").style.display = "block";
+            document.getElementById("loading").style.display = "none";
           } else {
             document.getElementById("logContent").innerText = "Nenhum log encontrado.";
+            document.getElementById("logContent").style.display = "block";
+            document.getElementById("loading").style.display = "none";
           }
         } catch (error) {
           console.error("Erro ao carregar logs:", error);
           document.getElementById("logContent").innerText = "Erro ao carregar logs.";
+          document.getElementById("logContent").style.display = "block";
+          document.getElementById("loading").style.display = "none";
         }
       }
     });
