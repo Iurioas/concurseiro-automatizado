@@ -12,11 +12,13 @@
     <span>Concurseiro Automatizado</span>
     <a href="planner.html">Planejador</a>
     <a href="study.html">Planejado</a>
+    <a href="achievements.html">Conquistas</a>
+    <a href="ranking.html">Ranking</a>
     <button onclick="signOut()">Sair</button>
   </nav>
   <main>
     <h1>Gráficos</h1>
-    <button onclick="location.href='study.html'">Voltar</button>
+    <button onclick="location.href='study.html'; playClickSound()">Voltar</button>
     <div id="loading">Carregando...</div>
     <div class="chart-container" style="display: none;"><canvas id="tempoChart"></canvas></div>
     <div class="chart-container" style="display: none;"><canvas id="dificuldadeChart"></canvas></div>
@@ -27,15 +29,16 @@
     <div class="chart-container" style="display: none;"><canvas id="dispersaoChart"></canvas></div>
   </main>
   <footer>
-    <p>&copy; 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
+    <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
   </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { playClickSound } from "./sounds.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
+      apiKey: "AIzxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
       authDomain: "concurseiro-automatizado.firebaseapp.com",
       projectId: "concurseiro-automatizado",
       storageBucket: "concurseiro-automatizado.firebasestorage.app",
@@ -169,6 +172,7 @@
     }
 
     window.signOut = async function() {
+      playClickSound();
       try {
         await signOut(auth);
         location.href = "index.html";
