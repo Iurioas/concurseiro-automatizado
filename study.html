@@ -22,10 +22,10 @@
     </table>
     <button id="backButton" style="display:none" onclick="retrocederEtapa()">Retroceder</button>
     <div>
-      <button onclick="location.href='log-txt.html'">Log Texto</button>
-      <button onclick="location.href='log-json.html'">Log JSON</button>
+      <button onclick="location.href='log-txt.html'; playClickSound()">Log Texto</button>
+      <button onclick="location.href='log-json.html'; playClickSound()">Log JSON</button>
       <p style="font-size: 14px; color: #bbb;">(Copie o JSON para usar em conversores de gráficos)</p>
-      <button onclick="location.href='graficos.html'">Gráficos</button>
+      <button onclick="location.href='graficos.html'; playClickSound()">Gráficos</button>
     </div>
     <div id="loading">Carregando plano...</div>
   </main>
@@ -36,6 +36,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { playClickSound, playSuccessSound } from "./sounds.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
@@ -84,11 +85,13 @@
         tbody.innerHTML = `<tr><td>${item.priorityNumber}</td><td>${item.priorityCategory}</td><td>${item.subject}</td><td>${item.subtopic}</td><td><input type="checkbox" onchange="completeStep()"></td><td>${item.reason}</td></tr>`;
       } else {
         tbody.innerHTML = "<tr><td colspan='6'>Todas as etapas concluídas!</td></tr>";
+        showNotification("Plano concluído! Parabéns!");
       }
       document.getElementById("backButton").style.display = currentIndex > 0 ? "block" : "none";
     }
 
     window.completeStep = async function() {
+      playClickSound();
       const tempo = prompt("Tempo gasto (minutos):") || "0";
       const dificuldade = prompt("Dificuldade (F/M/D):")?.toUpperCase() || "M";
       const nota = prompt("Nota (0-10):") || "0";
@@ -109,6 +112,8 @@
         await updateDoc(doc(db, "users", auth.currentUser.uid), { logs });
         currentIndex++;
         localStorage.setItem("currentIndex", currentIndex);
+        playSuccessSound();
+        showNotification("Etapa concluída com sucesso!");
         renderPlan();
       } catch (error) {
         alert("Erro ao salvar log: " + error.message);
@@ -116,6 +121,7 @@
     };
 
     window.retrocederEtapa = function() {
+      playClickSound();
       if (confirm("Tem certeza que deseja retroceder?")) {
         if (currentIndex > 0) {
           currentIndex--;
@@ -126,6 +132,7 @@
     };
 
     window.signOut = async function() {
+      playClickSound();
       try {
         await signOut(auth);
         localStorage.removeItem("currentIndex");
@@ -134,6 +141,14 @@
         alert("Erro ao sair: " + error.message);
       }
     };
+
+    function showNotification(message) {
+      const notification = document.createElement("div");
+      notification.className = "notification";
+      notification.innerText = message;
+      document.body.appendChild(notification);
+      setTimeout(() => notification.remove(), 2500);
+    }
   </script>
 </body>
 </html>
