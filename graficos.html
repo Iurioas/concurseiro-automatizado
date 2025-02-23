@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Gráficos - Concurseiro Automatizado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 </head>
 <body>
   <nav>
@@ -13,30 +14,21 @@
     <a href="study.html">Planejado</a>
     <button onclick="signOut()">Sair</button>
   </nav>
-  <h1>Gráficos</h1>
-  <button onclick="location.href='study.html'">Voltar</button>
-  <div id="loading">Carregando...</div>
-  <div class="chart-container" style="display: none;">
-    <canvas id="tempoChart"></canvas>
-  </div>
-  <div class="chart-container" style="display: none;">
-    <canvas id="dificuldadeChart"></canvas>
-  </div>
-  <div class="chart-container" style="display: none;">
-    <canvas id="autoavaliacaoChart"></canvas>
-  </div>
-  <div class="chart-container" style="display: none;">
-    <canvas id="progressoChart"></canvas>
-  </div>
-  <div class="chart-container" style="display: none;">
-    <canvas id="dificuldadeTotalChart"></canvas>
-  </div>
-  <div class="chart-container" style="display: none;">
-    <canvas id="tempoDificuldadeChart"></canvas>
-  </div>
-  <div class="chart-container" style="display: none;">
-    <canvas id="dispersaoChart"></canvas>
-  </div>
+  <main>
+    <h1>Gráficos</h1>
+    <button onclick="location.href='study.html'">Voltar</button>
+    <div id="loading">Carregando...</div>
+    <div class="chart-container" style="display: none;"><canvas id="tempoChart"></canvas></div>
+    <div class="chart-container" style="display: none;"><canvas id="dificuldadeChart"></canvas></div>
+    <div class="chart-container" style="display: none;"><canvas id="autoavaliacaoChart"></canvas></div>
+    <div class="chart-container" style="display: none;"><canvas id="progressoChart"></canvas></div>
+    <div class="chart-container" style="display: none;"><canvas id="dificuldadeTotalChart"></canvas></div>
+    <div class="chart-container" style="display: none;"><canvas id="tempoDificuldadeChart"></canvas></div>
+    <div class="chart-container" style="display: none;"><canvas id="dispersaoChart"></canvas></div>
+  </main>
+  <footer>
+    <p>&copy; 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
+  </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
@@ -59,34 +51,130 @@
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         location.href = "login.html";
-      } else {
-        try {
-          const userDoc = await getDoc(doc(db, "users", user.uid));
-          if (userDoc.exists()) {
-            const logs = userDoc.data().logs || [];
-            renderCharts(logs);
-            document.getElementById("loading").style.display = "none";
-            document.querySelectorAll(".chart-container").forEach(container => {
-              container.style.display = "block";
-            });
-          } else {
-            document.getElementById("loading").innerText = "Nenhum log encontrado.";
-          }
-        } catch (error) {
-          console.error("Erro ao carregar logs:", error);
-          document.getElementById("loading").innerText = "Erro ao carregar logs.";
+        return;
+      }
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          const logs = userDoc.data().logs || [];
+          renderCharts(logs);
+          document.getElementById("loading").style.display = "none";
+          document.querySelectorAll(".chart-container").forEach(container => container.style.display = "block");
+        } else {
+          document.getElementById("loading").innerText = "Nenhum log encontrado.";
         }
+      } catch (error) {
+        document.getElementById("loading").innerText = "Erro ao carregar logs: " + error.message;
       }
     });
 
     function renderCharts(logs) {
-      // Código dos gráficos (já fornecido anteriormente)
+      const materias = [...new Set(logs.map(l => l.materia))];
+      const tempoPorMateria = materias.map(m => ({
+        materia: m,
+        tempo: logs.filter(l => l.materia === m).reduce((sum, l) => sum + parseInt(l.tempo_gasto), 0)
+      }));
+      const dificuldadePorMateria = materias.map(m => ({
+        materia: m,
+        facil: logs.filter(l => l.materia === m && l.dificuldade === "Fácil").length,
+        medio: logs.filter(l => l.materia === m && l.dificuldade === "Médio").length,
+        dificil: logs.filter(l => l.materia === m && l.dificuldade === "Difícil").length
+      }));
+      const mediaAutoavaliacaoPorMateria = materias.map(m => {
+        const notas = logs.filter(l => l.materia === m).map(l => parseInt(l.nota_autoavaliacao));
+        return { materia: m, media: notas.length ? (notas.reduce((sum, n) => sum + n, 0) / notas.length).toFixed(2) : 0 };
+      });
+      const progressoAutoavaliacao = logs.map((l, idx) => ({ etapa: idx + 1, nota: parseInt(l.nota_autoavaliacao) }));
+      const dificuldadeTotal = {
+        facil: logs.filter(l => l.dificuldade === "Fácil").length,
+        medio: logs.filter(l => l.dificuldade === "Médio").length,
+        dificil: logs.filter(l => l.dificuldade === "Difícil").length
+      };
+      const tempoMedioPorDificuldade = [
+        { dificuldade: "Fácil", tempo: logs.filter(l => l.dificuldade === "Fácil").reduce((sum, l) => sum + parseInt(l.tempo_gasto), 0) / (dificuldadeTotal.facil || 1) },
+        { dificuldade: "Médio", tempo: logs.filter(l => l.dificuldade === "Médio").reduce((sum, l) => sum + parseInt(l.tempo_gasto), 0) / (dificuldadeTotal.medio || 1) },
+        { dificuldade: "Difícil", tempo: logs.filter(l => l.dificuldade === "Difícil").reduce((sum, l) => sum + parseInt(l.tempo_gasto), 0) / (dificuldadeTotal.dificil || 1) }
+      ];
+      const dispersaoDados = logs.map(l => ({ materia: l.materia, tempo: parseInt(l.tempo_gasto), nota: parseInt(l.nota_autoavaliacao) }));
+
+      new Chart(document.getElementById("tempoChart"), {
+        type: "bar",
+        data: {
+          labels: tempoPorMateria.map(t => t.materia),
+          datasets: [{ label: "Tempo Total (min)", data: tempoPorMateria.map(t => t.tempo), backgroundColor: "#42a5f5" }]
+        },
+        options: { scales: { y: { beginAtZero: true } }, plugins: { title: { display: true, text: "Tempo por Matéria" } } }
+      });
+
+      new Chart(document.getElementById("dificuldadeChart"), {
+        type: "bar",
+        data: {
+          labels: dificuldadePorMateria.map(d => d.materia),
+          datasets: [
+            { label: "Fácil", data: dificuldadePorMateria.map(d => d.facil), backgroundColor: "#4caf50" },
+            { label: "Médio", data: dificuldadePorMateria.map(d => d.medio), backgroundColor: "#ffca28" },
+            { label: "Difícil", data: dificuldadePorMateria.map(d => d.dificil), backgroundColor: "#ef5350" }
+          ]
+        },
+        options: { scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }, plugins: { title: { display: true, text: "Dificuldade por Matéria" } } }
+      });
+
+      new Chart(document.getElementById("autoavaliacaoChart"), {
+        type: "bar",
+        data: {
+          labels: mediaAutoavaliacaoPorMateria.map(m => m.materia),
+          datasets: [{ label: "Média (0-10)", data: mediaAutoavaliacaoPorMateria.map(m => m.media), backgroundColor: "#ab47bc" }]
+        },
+        options: { scales: { y: { beginAtZero: true, max: 10 } }, plugins: { title: { display: true, text: "Autoavaliação por Matéria" } } }
+      });
+
+      new Chart(document.getElementById("progressoChart"), {
+        type: "line",
+        data: {
+          labels: progressoAutoavaliacao.map(p => `Etapa ${p.etapa}`),
+          datasets: [{ label: "Nota (0-10)", data: progressoAutoavaliacao.map(p => p.nota), borderColor: "#42a5f5", fill: false }]
+        },
+        options: { scales: { y: { beginAtZero: true, max: 10 } }, plugins: { title: { display: true, text: "Progresso da Autoavaliação" } } }
+      });
+
+      new Chart(document.getElementById("dificuldadeTotalChart"), {
+        type: "bar",
+        data: {
+          labels: ["Fácil", "Médio", "Difícil"],
+          datasets: [{ label: "Quantidade", data: [dificuldadeTotal.facil, dificuldadeTotal.medio, dificuldadeTotal.dificil], backgroundColor: ["#4caf50", "#ffca28", "#ef5350"] }]
+        },
+        options: { scales: { y: { beginAtZero: true } }, plugins: { title: { display: true, text: "Distribuição de Dificuldade" } } }
+      });
+
+      new Chart(document.getElementById("tempoDificuldadeChart"), {
+        type: "bar",
+        data: {
+          labels: tempoMedioPorDificuldade.map(t => t.dificuldade),
+          datasets: [{ label: "Tempo Médio (min)", data: tempoMedioPorDificuldade.map(t => t.tempo.toFixed(2)), backgroundColor: "#4caf50" }]
+        },
+        options: { scales: { y: { beginAtZero: true } }, plugins: { title: { display: true, text: "Tempo Médio por Dificuldade" } } }
+      });
+
+      new Chart(document.getElementById("dispersaoChart"), {
+        type: "scatter",
+        data: {
+          datasets: materias.map(m => ({
+            label: m,
+            data: dispersaoDados.filter(d => d.materia === m).map(d => ({ x: d.tempo, y: d.nota })),
+            backgroundColor: ["#42a5f5", "#4caf50", "#ffca28", "#ef5350", "#ab47bc"][materias.indexOf(m) % 5]
+          }))
+        },
+        options: { scales: { x: { title: { display: true, text: "Tempo (min)" } }, y: { title: { display: true, text: "Nota (0-10)" }, beginAtZero: true, max: 10 } }, plugins: { title: { display: true, text: "Tempo vs. Autoavaliação" } } }
+      });
     }
 
-    window.signOut = function() {
-      signOut(auth).then(() => {
+    window.signOut = async function() {
+      try {
+        await signOut(auth);
         location.href = "index.html";
-      }).catch((error) => alert(error.message));
+      } catch (error) {
+        alert("Erro ao sair: " + error.message);
+      }
     };
   </script>
 </body>
