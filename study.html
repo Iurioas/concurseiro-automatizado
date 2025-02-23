@@ -28,7 +28,7 @@
     import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "AIzxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
       authDomain: "concurseiro-automatizado.firebaseapp.com",
       projectId: "concurseiro-automatizado",
       storageBucket: "concurseiro-automatizado.firebasestorage.app",
@@ -44,19 +44,25 @@
     let planData = [];
     let logs = [];
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       if (!user) {
+        console.log("Usuário não autenticado, redirecionando para login...");
         location.href = "login.html";
       } else {
-        getDoc(doc(db, "plans", user.uid)).then((docSnap) => {
-          if (docSnap.exists()) {
-            planData = docSnap.data().plan;
-            getDoc(doc(db, "users", user.uid)).then((userDoc) => {
-              logs = userDoc.data().logs || [];
-              renderPlan();
-            });
+        console.log("Usuário autenticado:", user.uid);
+        try {
+          const planDoc = await getDoc(doc(db, "plans", user.uid));
+          if (planDoc.exists()) {
+            planData = planDoc.data().plan;
+          } else {
+            console.log("Nenhum plano encontrado para o usuário.");
           }
-        });
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
+          renderPlan();
+        } catch (error) {
+          console.error("Erro ao carregar dados:", error.message);
+        }
       }
     });
 
@@ -71,13 +77,13 @@
       document.getElementById("backButton").style.display = currentIndex > 0 ? "block" : "none";
     }
 
-    window.completeStep = function() {
+    window.completeStep = async function() {
       const tempo = prompt("Tempo gasto (minutos):") || 0;
       const dificuldade = prompt("Dificuldade (F/M/D):").toUpperCase() === "F" ? "Fácil" : "Médio";
       const nota = prompt("Nota (0-10):") || 0;
       const comentario = prompt("Comentário:") || "Sem comentários";
       logs.push({ etapa: currentIndex + 1, subtopico: planData[currentIndex].subtopic, materia: planData[currentIndex].subject, tempo, dificuldade, nota, comentario, data: new Date().toISOString() });
-      updateDoc(doc(db, "users", auth.currentUser.uid), { logs });
+      await updateDoc(doc(db, "users", auth.currentUser.uid), { logs });
       currentIndex++;
       renderPlan();
     };
