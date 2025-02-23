@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Planejador - Concurseiro Automatizado</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Planejador</h1>
+  <textarea id="raiox" placeholder="Cole o raio-x do seu concurso aqui"></textarea>
+  <button onclick="generatePlan()">Gerar Plano</button>
+  <button onclick="newPlan()">Novo Plano</button>
+  <p id="prompt"></p>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = { /* Cole sua config do Firebase aqui */ };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged((user) => {
+      if (!user) location.href = "login.html";
+    });
+
+    function generatePlan() {
+      const raiox = document.getElementById("raiox").value;
+      // Simulação simples: extrai prioridades e organiza como seu modelo
+      const plan = raiox.split("\n").map((line, idx) => ({
+        priorityNumber: idx + 1,
+        priorityCategory: line.includes("urgente") ? "Urgente" : "Média",
+        subject: line.split(" - ")[0] || "Desconhecido",
+        subtopic: line.split(" - ")[1] || "Geral",
+        reason: "Baseado no raio-x fornecido"
+      }));
+      db.collection("plans").doc(auth.currentUser.uid).set({ plan });
+      alert("Plano gerado com sucesso!");
+      document.getElementById("prompt").innerText = "Prompt sugerido para Google AI Studio: 'Organize este raio-x em prioridades como no modelo de Iuri: " + raiox + "'";
+    }
+
+    function newPlan() {
+      if (confirm("Tem certeza? O plano atual será substituído.")) {
+        document.getElementById("raiox").value = "";
+        db.collection("plans").doc(auth.currentUser.uid).delete();
+      }
+    }
+  </script>
+</body>
+</html>
