@@ -18,8 +18,12 @@
     <thead><tr><th>Prioridade</th><th>Categoria</th><th>Matéria</th><th>Subtópico</th><th>Concluído</th><th>Motivo</th></tr></thead>
     <tbody></tbody>
   </table>
-  <button id="backButton" style="display:none">Retroceder</button>
-  <div><button onclick="showLog('txt')">Log Texto</button><button onclick="showLog('json')">Log JSON</button><button onclick="showLog('charts')">Gráficos</button></div>
+  <button id="backButton" style="display:none" onclick="retrocederEtapa()">Retroceder</button>
+  <div>
+    <button onclick="showLog('txt')">Log Texto</button>
+    <button onclick="showLog('json')">Log JSON</button>
+    <button onclick="showLog('charts')">Gráficos</button>
+  </div>
   <div id="logContent"></div>
   <canvas id="chartCanvas" style="display:none"></canvas>
   <script type="module">
@@ -115,6 +119,74 @@
       currentIndex++;
       renderPlan();
     };
+
+    window.retrocederEtapa = function() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderPlan();
+      }
+    };
+
+    window.showLog = function(tipo) {
+      const logContent = document.getElementById("logContent");
+      if (tipo === "txt") {
+        const logText = logs.map(log => `
+          Etapa ${log.etapa}: ${log.subtopico}
+          - Matéria: ${log.materia}
+          - Dificuldade: ${log.dificuldade}
+          - Tempo Gasto: ${log.tempo_gasto} minutos
+          - Nota de Autoavaliação: ${log.nota_autoavaliacao}
+          - Comentários: ${log.comentarios}
+          - Data de Conclusão: ${new Date(log.data_conclusao).toLocaleString("pt-BR")}
+        `).join("\n");
+        logContent.innerText = logText;
+      } else if (tipo === "json") {
+        logContent.innerText = JSON.stringify(logs, null, 2);
+      } else if (tipo === "charts") {
+        renderCharts();
+      }
+    };
+
+    function renderCharts() {
+      const ctx = document.getElementById("chartCanvas").getContext("2d");
+
+      // Dados para os gráficos
+      const labels = logs.map(log => `Etapa ${log.etapa}`);
+      const tempos = logs.map(log => log.tempo_gasto);
+      const notas = logs.map(log => log.nota_autoavaliacao);
+
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Tempo Gasto (minutos)",
+              data: tempos,
+              borderColor: "#42a5f5",
+              backgroundColor: "rgba(66, 165, 245, 0.2)",
+              fill: true
+            },
+            {
+              label: "Nota de Autoavaliação",
+              data: notas,
+              borderColor: "#4caf50",
+              backgroundColor: "rgba(76, 175, 80, 0.2)",
+              fill: true
+            }
+          ]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+
+      document.getElementById("chartCanvas").style.display = "block";
+    }
 
     window.signOut = function() {
       console.log("Fazendo logout...");
