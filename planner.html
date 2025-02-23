@@ -11,6 +11,8 @@
     <span>Concurseiro Automatizado</span>
     <a href="planner.html">Planejador</a>
     <a href="study.html">Planejado</a>
+    <a href="achievements.html">Conquistas</a>
+    <a href="ranking.html">Ranking</a>
     <button onclick="signOut()">Sair</button>
   </nav>
   <main>
@@ -21,12 +23,13 @@
     <p id="prompt"></p>
   </main>
   <footer>
-    <p>&copy; 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
+    <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
   </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { playClickSound } from "./sounds.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
@@ -47,6 +50,7 @@
     });
 
     window.generatePlan = async function() {
+      playClickSound();
       const raiox = document.getElementById("raiox").value;
       const linhas = raiox.split("\n").filter(line => line.trim() !== "");
       const plan = linhas.map((line, idx) => {
@@ -62,18 +66,20 @@
       try {
         await setDoc(doc(db, "plans", auth.currentUser.uid), { plan });
         document.getElementById("prompt").innerText = "Prompt sugerido para Google AI Studio: 'Organize este raio-x em prioridades como no modelo de Iuri: " + raiox + "'";
-        alert("Plano gerado! Redirecionando para Planejado...");
-        location.href = "study.html";
+        showNotification("Plano gerado com sucesso!");
+        setTimeout(() => location.href = "study.html", 1000);
       } catch (error) {
         alert("Erro ao gerar plano: " + error.message);
       }
     };
 
     window.newPlan = async function() {
+      playClickSound();
       if (confirm("Tem certeza? O plano atual será substituído.")) {
         document.getElementById("raiox").value = "";
         try {
           await deleteDoc(doc(db, "plans", auth.currentUser.uid));
+          showNotification("Plano anterior removido!");
         } catch (error) {
           alert("Erro ao deletar plano: " + error.message);
         }
@@ -81,6 +87,7 @@
     };
 
     window.signOut = async function() {
+      playClickSound();
       try {
         await signOut(auth);
         location.href = "index.html";
@@ -88,6 +95,14 @@
         alert("Erro ao sair: " + error.message);
       }
     };
+
+    function showNotification(message) {
+      const notification = document.createElement("div");
+      notification.className = "notification";
+      notification.innerText = message;
+      document.body.appendChild(notification);
+      setTimeout(() => notification.remove(), 2500);
+    }
   </script>
 </body>
 </html>
