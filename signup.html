@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Criar Conta - Concurseiro Automatizado</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Criar Conta</h1>
+  <input id="name" type="text" placeholder="Nome">
+  <input id="email" type="email" placeholder="E-mail">
+  <input id="password" type="password" placeholder="Senha">
+  <button onclick="signup()">Cadastrar</button>
+  <p id="message"></p>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = { /* Cole sua config do Firebase aqui */ };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    function signup() {
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          user.sendEmailVerification();
+          db.collection("users").doc(user.uid).set({ name, email, status: "inativo" });
+          document.getElementById("message").innerHTML = "Conta criada! Verifique seu e-mail e envie R$ 15 via PIX para [SEU PIX]. Aguarde ativação em até 24h.";
+        })
+        .catch((error) => alert(error.message));
+    }
+  </script>
+</body>
+</html>
