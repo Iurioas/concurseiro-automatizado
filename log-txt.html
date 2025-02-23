@@ -38,18 +38,27 @@
       if (!user) {
         location.href = "login.html";
       } else {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        const logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
-        const logText = logs.map(log => `
-          Etapa ${log.etapa}: ${log.subtopico}
-          - Matéria: ${log.materia}
-          - Dificuldade: ${log.dificuldade}
-          - Tempo Gasto: ${log.tempo_gasto} minutos
-          - Nota de Autoavaliação: ${log.nota_autoavaliacao}
-          - Comentários: ${log.comentarios}
-          - Data de Conclusão: ${new Date(log.data_conclusao).toLocaleString("pt-BR")}
-        `).join("\n");
-        document.getElementById("logContent").innerText = logText;
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            const logs = userDoc.data().logs || [];
+            const logText = logs.map(log => `
+              Etapa ${log.etapa}: ${log.subtopico}
+              - Matéria: ${log.materia}
+              - Dificuldade: ${log.dificuldade}
+              - Tempo Gasto: ${log.tempo_gasto} minutos
+              - Nota de Autoavaliação: ${log.nota_autoavaliacao}
+              - Comentários: ${log.comentarios}
+              - Data de Conclusão: ${new Date(log.data_conclusao).toLocaleString("pt-BR")}
+            `).join("\n");
+            document.getElementById("logContent").innerText = logText;
+          } else {
+            document.getElementById("logContent").innerText = "Nenhum log encontrado.";
+          }
+        } catch (error) {
+          console.error("Erro ao carregar logs:", error);
+          document.getElementById("logContent").innerText = "Erro ao carregar logs.";
+        }
       }
     });
 
