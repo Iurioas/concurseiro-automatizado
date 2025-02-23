@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Conquistas - Concurseiro Automatizado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav>
+    <span>Concurseiro Automatizado</span>
+    <a href="planner.html">Planejador</a>
+    <a href="study.html">Planejado</a>
+    <a href="achievements.html">Conquistas</a>
+    <a href="ranking.html">Ranking</a>
+    <button onclick="signOut()">Sair</button>
+  </nav>
+  <main>
+    <h1>Suas Conquistas</h1>
+    <div id="loading">Carregando...</div>
+    <div id="achievementsList" style="display: none;"></div>
+  </main>
+  <footer>
+    <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
+  </footer>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { playClickSound } from "./sounds.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
+      authDomain: "concurseiro-automatizado.firebaseapp.com",
+      projectId: "concurseiro-automatizado",
+      storageBucket: "concurseiro-automatizado.firebasestorage.app",
+      messagingSenderId: "938840578480",
+      appId: "1:938840578480:web:4e8dd7e2dfdc42d7649e75",
+      measurementId: "G-H72D875STB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const achievementList = [
+      { id: 1, name: "Guardião da Lei", description: "Conclua sua primeira etapa." },
+      { id: 2, name: "Advogado do Saber", description: "Conclua 5 etapas." },
+      { id: 3, name: "Juiz do Conhecimento", description: "Conclua 10 etapas." },
+      { id: 4, name: "Promotor da Justiça", description: "Conclua 20 etapas." },
+      { id: 5, name: "Magistrado Supremo", description: "Conclua 50 etapas." }
+    ];
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        location.href = "login.html";
+        return;
+      }
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const achievements = userDoc.exists() && userDoc.data().achievements ? userDoc.data().achievements : [];
+        renderAchievements(achievements);
+      } catch (error) {
+        document.getElementById("loading").innerText = "Erro ao carregar conquistas: " + error.message;
+      }
+    });
+
+    function renderAchievements(achievements) {
+      document.getElementById("loading").style.display = "none";
+      const list = document.getElementById("achievementsList");
+      list.style.display = "block";
+      list.innerHTML = achievements.length ? achievements.map(a => `
+        <div style="background: #333; padding: 15px; margin: 10px 0; border-radius: 5px;">
+          <strong>${a.name}</strong><br>
+          <span>${achievementList.find(al => al.id === a.id).description}</span><br>
+          <span style="font-size: 12px; color: #bbb;">Conquistado em: ${new Date(a.date).toLocaleString("pt-BR")}</span>
+        </div>
+      `).join("") : "<p>Nenhuma conquista ainda. Continue estudando!</p>";
+    }
+
+    window.signOut = async function() {
+      playClickSound();
+      try {
+        await signOut(auth);
+        location.href = "index.html";
+      } catch (error) {
+        alert("Erro ao sair: " + error.message);
+      }
+    };
+  </script>
+</body>
+</html>
