@@ -26,12 +26,12 @@
   </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { playClickSound } from "./sounds.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
+      apiKey: "AIzxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
       authDomain: "concurseiro-automatizado.firebaseapp.com",
       projectId: "concurseiro-automatizado",
       storageBucket: "concurseiro-automatizado.firebasestorage.app",
@@ -44,24 +44,35 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => console.log("Persistência configurada em log-json."))
+      .catch(error => console.error("Erro ao configurar persistência:", error.message));
+
     onAuthStateChanged(auth, async (user) => {
+      console.log("Estado de autenticação em log-json:", user ? "Autenticado" : "Não autenticado");
       if (!user) {
+        console.log("Redirecionando para login...");
         location.href = "login.html";
         return;
       }
+      console.log("Usuário autenticado:", user.uid);
       try {
+        console.log("Carregando logs JSON...");
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           const logs = userDoc.data().logs || [];
+          console.log("Logs carregados:", logs.length);
           document.getElementById("logContent").innerText = JSON.stringify(logs, null, 2) || "[]";
           document.getElementById("logContent").style.display = "block";
           document.getElementById("loading").style.display = "none";
         } else {
+          console.log("Nenhum log encontrado.");
           document.getElementById("logContent").innerText = "Nenhum log encontrado.";
           document.getElementById("logContent").style.display = "block";
           document.getElementById("loading").style.display = "none";
         }
       } catch (error) {
+        console.error("Erro ao carregar logs:", error.message);
         document.getElementById("logContent").innerText = "Erro ao carregar logs: " + error.message;
         document.getElementById("logContent").style.display = "block";
         document.getElementById("loading").style.display = "none";
@@ -72,8 +83,10 @@
       playClickSound();
       try {
         await signOut(auth);
+        console.log("Logout realizado com sucesso.");
         location.href = "index.html";
       } catch (error) {
+        console.error("Erro ao sair:", error.message);
         alert("Erro ao sair: " + error.message);
       }
     };
