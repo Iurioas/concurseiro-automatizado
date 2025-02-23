@@ -4,8 +4,54 @@ body {
   color: #fff;
   padding: 20px;
   text-align: center;
+  margin: 0; /* Evita margens indesejadas */
 }
-h1 { color: #bb86fc; }
+
+nav {
+  background-color: #6200ee;
+  padding: 10px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000; /* Garante que o menu fique acima do conteúdo */
+}
+
+nav span {
+  font-size: 20px;
+  font-weight: bold;
+  color: #fff;
+}
+
+nav a {
+  color: #fff;
+  text-decoration: none;
+  padding: 10px;
+}
+
+nav a:hover {
+  background-color: #3700b3;
+}
+
+nav button {
+  background-color: #bb86fc;
+  border: none;
+  padding: 10px 20px;
+  color: #fff;
+  cursor: pointer;
+}
+
+nav button:hover {
+  background-color: #3700b3;
+}
+
+h1 {
+  color: #bb86fc;
+  margin-top: 60px; /* Espaço para o menu fixo */
+}
+
 button {
   background-color: #bb86fc;
   border: none;
@@ -14,21 +60,33 @@ button {
   cursor: pointer;
   margin: 5px;
 }
-button:hover { background-color: #3700b3; }
+
+button:hover {
+  background-color: #3700b3;
+}
+
 input, textarea {
   display: block;
   margin: 10px auto;
   padding: 10px;
   width: 300px;
 }
+
 table {
   width: 80%;
   margin: 20px auto;
   border-collapse: collapse;
 }
+
 th, td {
   border: 1px solid #444;
   padding: 10px;
 }
-th { background-color: #6200ee; }
-#logContent { margin-top: 20px; }
+
+th {
+  background-color: #6200ee;
+}
+
+#logContent {
+  margin-top: 20px;
+}
