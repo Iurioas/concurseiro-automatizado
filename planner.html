@@ -6,6 +6,12 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <nav>
+    <span>Concurseiro Automatizado</span>
+    <a href="planner.html">Planejador</a>
+    <a href="study.html">Planejado</a>
+    <button onclick="signOut()">Sair</button>
+  </nav>
   <h1>Planejador</h1>
   <textarea id="raiox" placeholder="Cole o raio-x do seu concurso aqui"></textarea>
   <button onclick="generatePlan()">Gerar Plano</button>
@@ -13,11 +19,11 @@
   <p id="prompt"></p>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
+      apiKey: "AIzxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
       authDomain: "concurseiro-automatizado.firebaseapp.com",
       projectId: "concurseiro-automatizado",
       storageBucket: "concurseiro-automatizado.firebasestorage.app",
@@ -47,7 +53,7 @@
         await setDoc(doc(db, "plans", auth.currentUser.uid), { plan });
         alert("Plano gerado com sucesso! Você será redirecionado para começar seus estudos.");
         document.getElementById("prompt").innerText = "Prompt sugerido para Google AI Studio: 'Organize este raio-x em prioridades como no modelo de Iuri: " + raiox + "'";
-        location.href = "study.html"; // Redireciona para Planejado
+        location.href = "study.html"; // Mantido o redirecionamento automático
       } catch (error) {
         console.error("Erro ao gerar plano:", error.message);
         alert("Erro ao gerar plano: " + error.message);
@@ -59,6 +65,12 @@
         document.getElementById("raiox").value = "";
         deleteDoc(doc(db, "plans", auth.currentUser.uid));
       }
+    };
+
+    window.signOut = function() {
+      signOut(auth).then(() => {
+        location.href = "index.html";
+      }).catch((error) => alert(error.message));
     };
   </script>
 </body>
