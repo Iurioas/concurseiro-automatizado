@@ -38,9 +38,18 @@
       if (!user) {
         location.href = "login.html";
       } else {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        const logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
-        document.getElementById("logContent").innerText = JSON.stringify(logs, null, 2);
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            const logs = userDoc.data().logs || [];
+            document.getElementById("logContent").innerText = JSON.stringify(logs, null, 2);
+          } else {
+            document.getElementById("logContent").innerText = "Nenhum log encontrado.";
+          }
+        } catch (error) {
+          console.error("Erro ao carregar logs:", error);
+          document.getElementById("logContent").innerText = "Erro ao carregar logs.";
+        }
       }
     });
 
