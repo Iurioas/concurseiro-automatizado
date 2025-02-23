@@ -27,12 +27,12 @@
   </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { playClickSound } from "./sounds.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
+      apiKey: "AIzxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
       authDomain: "concurseiro-automatizado.firebaseapp.com",
       projectId: "concurseiro-automatizado",
       storageBucket: "concurseiro-automatizado.firebasestorage.app",
@@ -45,8 +45,18 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    onAuthStateChanged(auth, (user) => {
-      if (!user) location.href = "login.html";
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => console.log("Persistência configurada em planner."))
+      .catch(error => console.error("Erro ao configurar persistência:", error.message));
+
+    onAuthStateChanged(auth, async (user) => {
+      console.log("Estado de autenticação em planner:", user ? "Autenticado" : "Não autenticado");
+      if (!user) {
+        console.log("Redirecionando para login...");
+        location.href = "login.html";
+      } else {
+        console.log("Usuário autenticado:", user.uid);
+      }
     });
 
     window.generatePlan = async function() {
@@ -64,11 +74,14 @@
         };
       });
       try {
+        console.log("Salvando plano...");
         await setDoc(doc(db, "plans", auth.currentUser.uid), { plan });
+        console.log("Plano salvo com sucesso.");
         document.getElementById("prompt").innerText = "Prompt sugerido para Google AI Studio: 'Organize este raio-x em prioridades como no modelo de Iuri: " + raiox + "'";
         showNotification("Plano gerado com sucesso!");
         setTimeout(() => location.href = "study.html", 1000);
       } catch (error) {
+        console.error("Erro ao gerar plano:", error.message);
         alert("Erro ao gerar plano: " + error.message);
       }
     };
@@ -78,9 +91,12 @@
       if (confirm("Tem certeza? O plano atual será substituído.")) {
         document.getElementById("raiox").value = "";
         try {
+          console.log("Deletando plano atual...");
           await deleteDoc(doc(db, "plans", auth.currentUser.uid));
+          console.log("Plano deletado com sucesso.");
           showNotification("Plano anterior removido!");
         } catch (error) {
+          console.error("Erro ao deletar plano:", error.message);
           alert("Erro ao deletar plano: " + error.message);
         }
       }
@@ -90,8 +106,10 @@
       playClickSound();
       try {
         await signOut(auth);
+        console.log("Logout realizado com sucesso.");
         location.href = "index.html";
       } catch (error) {
+        console.error("Erro ao sair:", error.message);
         alert("Erro ao sair: " + error.message);
       }
     };
