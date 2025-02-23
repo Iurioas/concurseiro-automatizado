@@ -9,14 +9,14 @@ body {
   font-family: 'Roboto', Arial, sans-serif;
   background-color: #1a1a1a;
   color: #e0e0e0;
-  line-height: 1.5; /* Reduzido de 1.6 */
+  line-height: 1.5;
   overflow-x: hidden;
 }
 
 /* Navegação */
 nav {
   background: linear-gradient(135deg, #6200ee, #3700b3);
-  padding: 10px 15px; /* Reduzido de 15px 20px */
+  padding: 10px 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -24,11 +24,11 @@ nav {
   top: 0;
   width: 100%;
   z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Reduzido de 10px */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 nav span {
-  font-size: 20px; /* Reduzido de 24px */
+  font-size: 20px;
   font-weight: 700;
   color: #fff;
 }
@@ -36,9 +36,9 @@ nav span {
 nav a {
   color: #fff;
   text-decoration: none;
-  padding: 8px 12px; /* Reduzido de 10px 15px */
+  padding: 8px 12px;
   font-weight: 500;
-  font-size: 14px; /* Adicionado para reduzir texto */
+  font-size: 14px;
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
@@ -51,54 +51,54 @@ nav a:hover {
 nav button {
   background: linear-gradient(135deg, #bb86fc, #9c27b0);
   border: none;
-  padding: 8px 16px; /* Reduzido de 10px 20px */
+  padding: 8px 16px;
   color: #fff;
   cursor: pointer;
   border-radius: 5px;
   font-weight: 500;
-  font-size: 14px; /* Adicionado para reduzir texto */
+  font-size: 14px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 nav button:hover {
   transform: scale(1.05);
-  box-shadow: 0 3px 8px rgba(187, 134, 252, 0.4); /* Reduzido de 4px 10px */
+  box-shadow: 0 3px 8px rgba(187, 134, 252, 0.4);
 }
 
 /* Conteúdo Principal */
 main {
-  max-width: 800px; /* Reduzido de 900px */
-  margin: 70px auto 15px; /* Reduzido de 80px auto 20px */
-  padding: 15px; /* Reduzido de 20px */
+  max-width: 800px;
+  margin: 70px auto 15px;
+  padding: 15px;
   background: #252525;
-  border-radius: 8px; /* Reduzido de 10px */
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2); /* Reduzido de 4px 15px */
+  border-radius: 8px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
   animation: fadeIn 0.5s ease;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(15px); } /* Reduzido de 20px */
+  from { opacity: 0; transform: translateY(15px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 h1 {
   color: #bb86fc;
-  font-size: 24px; /* Reduzido de 28px */
-  margin-bottom: 15px; /* Reduzido de 20px */
+  font-size: 24px;
+  margin-bottom: 15px;
 }
 
 /* Campos de Entrada */
 input, textarea {
   display: block;
   width: 100%;
-  max-width: 350px; /* Reduzido de 400px */
-  margin: 12px auto; /* Reduzido de 15px */
-  padding: 10px; /* Reduzido de 12px */
+  max-width: 350px;
+  margin: 12px auto;
+  padding: 10px;
   background: #333;
   border: 1px solid #444;
-  border-radius: 4px; /* Reduzido de 5px */
+  border-radius: 4px;
   color: #fff;
-  font-size: 14px; /* Reduzido de 16px */
+  font-size: 14px;
   transition: border-color 0.3s ease;
 }
 
@@ -108,7 +108,7 @@ input:focus, textarea:focus {
 }
 
 textarea {
-  height: 120px; /* Reduzido de 150px */
+  height: 120px;
   resize: vertical;
 }
 
@@ -116,18 +116,18 @@ textarea {
 button {
   background: linear-gradient(135deg, #bb86fc, #9c27b0);
   border: none;
-  padding: 10px 20px; /* Reduzido de 12px 25px */
+  padding: 10px 20px;
   color: #fff;
   cursor: pointer;
-  border-radius: 4px; /* Reduzido de 5px */
-  font-size: 14px; /* Reduzido de 16px */
-  margin: 4px; /* Reduzido de 5px */
+  border-radius: 4px;
+  font-size: 14px;
+  margin: 4px;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
 }
 
 button:hover {
   transform: scale(1.05);
-  box-shadow: 0 3px 8px rgba(187, 134, 252, 0.4); /* Reduzido de 4px 10px */
+  box-shadow: 0 3px 8px rgba(187, 134, 252, 0.4);
 }
 
 button:active {
@@ -138,16 +138,16 @@ button:active {
 /* Tabela */
 table {
   width: 100%;
-  margin: 15px 0; /* Reduzido de 20px */
+  margin: 15px 0;
   border-collapse: collapse;
   background: #2c2c2c;
 }
 
 th, td {
   border: 1px solid #444;
-  padding: 10px; /* Reduzido de 12px */
+  padding: 10px;
   text-align: center;
-  font-size: 14px; /* Adicionado para reduzir texto */
+  font-size: 14px;
 }
 
 th {
@@ -163,8 +163,8 @@ td {
 /* Checkbox com Efeito */
 input[type="checkbox"] {
   appearance: none;
-  width: 18px; /* Reduzido de 20px */
-  height: 18px; /* Reduzido de 20px */
+  width: 18px;
+  height: 18px;
   background: #333;
   border: 2px solid #444;
   border-radius: 4px;
@@ -181,7 +181,7 @@ input[type="checkbox"]:checked {
 input[type="checkbox"]:checked:after {
   content: "✔";
   color: #fff;
-  font-size: 12px; /* Reduzido de 14px */
+  font-size: 12px;
   position: absolute;
   top: 50%;
   left: 50%;
@@ -190,9 +190,9 @@ input[type="checkbox"]:checked:after {
 
 /* Loader */
 #loading {
-  font-size: 16px; /* Reduzido de 18px */
+  font-size: 16px;
   color: #bb86fc;
-  margin: 15px 0; /* Reduzido de 20px */
+  margin: 15px 0;
   animation: pulse 1.5s infinite;
 }
 
@@ -205,53 +205,53 @@ input[type="checkbox"]:checked:after {
 /* Conteúdo de Logs e Gráficos */
 #logContent, pre {
   background: #333;
-  padding: 12px; /* Reduzido de 15px */
-  border-radius: 4px; /* Reduzido de 5px */
-  margin-top: 15px; /* Reduzido de 20px */
+  padding: 12px;
+  border-radius: 4px;
+  margin-top: 15px;
   color: #e0e0e0;
   font-family: 'Courier New', monospace;
-  font-size: 14px; /* Adicionado para reduzir texto */
+  font-size: 14px;
 }
 
 .chart-container {
-  margin: 15px 0; /* Reduzido de 20px */
-  padding: 12px; /* Reduzido de 15px */
+  margin: 15px 0;
+  padding: 12px;
   background: #2c2c2c;
-  border-radius: 8px; /* Reduzido de 10px */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* Reduzido de 2px 10px */
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Notificação de Conquista */
 .notification {
   position: fixed;
-  top: 80px; /* Reduzido de 90px */
+  top: 80px;
   left: 50%;
   transform: translateX(-50%);
   background: linear-gradient(135deg, #4caf50, #388e3c);
   color: #fff;
-  padding: 8px 16px; /* Reduzido de 10px 20px */
-  border-radius: 4px; /* Reduzido de 5px */
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3); /* Reduzido de 4px 10px */
+  padding: 8px 16px;
+  border-radius: 4px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
   animation: slideIn 0.5s ease forwards, fadeOut 0.5s ease 2s forwards;
   z-index: 2000;
-  font-size: 14px; /* Adicionado para reduzir texto */
+  font-size: 14px;
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateX(-50%) translateY(-15px); } /* Reduzido de 20px */
+  from { opacity: 0; transform: translateX(-50%) translateY(-15px); }
   to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 @keyframes fadeOut {
-  to { opacity: 0; transform: translateX(-50%) translateY(-15px); } /* Reduzido de 20px */
+  to { opacity: 0; transform: translateX(-50%) translateY(-15px); }
 }
 
 /* Footer */
 footer {
   text-align: center;
-  padding: 15px; /* Reduzido de 20px */
+  padding: 15px;
   color: #888;
-  font-size: 12px; /* Reduzido de 14px */
+  font-size: 12px;
   position: relative;
   bottom: 0;
   width: 100%;
@@ -261,15 +261,15 @@ footer {
 @media (max-width: 768px) {
   nav {
     flex-direction: column;
-    padding: 8px; /* Reduzido de 10px */
+    padding: 8px;
   }
   nav a, nav button {
-    margin: 4px 0; /* Reduzido de 5px */
+    margin: 4px 0;
   }
   main {
-    margin: 60px 8px 8px; /* Reduzido de 70px 10px 10px */
+    margin: 60px 8px 8px;
   }
   table {
-    font-size: 12px; /* Reduzido de 14px */
+    font-size: 12px;
   }
 }
