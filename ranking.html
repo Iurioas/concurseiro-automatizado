@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Ranking - Concurseiro Automatizado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav>
+    <span>Concurseiro Automatizado</span>
+    <a href="planner.html">Planejador</a>
+    <a href="study.html">Planejado</a>
+    <a href="achievements.html">Conquistas</a>
+    <a href="ranking.html">Ranking</a>
+    <button onclick="signOut()">Sair</button>
+  </nav>
+  <main>
+    <h1>Ranking dos Top 10 Concurseiros</h1>
+    <div id="loading">Carregando...</div>
+    <table id="rankingTable" style="display: none;">
+      <thead><tr><th>Posição</th><th>E-mail</th><th>Etapas Concluídas</th><th>Insígnias</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </main>
+  <footer>
+    <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
+  </footer>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { playClickSound } from "./sounds.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
+      authDomain: "concurseiro-automatizado.firebaseapp.com",
+      projectId: "concurseiro-automatizado",
+      storageBucket: "concurseiro-automatizado.firebasestorage.app",
+      messagingSenderId: "938840578480",
+      appId: "1:938840578480:web:4e8dd7e2dfdc42d7649e75",
+      measurementId: "G-H72D875STB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        location.href = "login.html";
+        return;
+      }
+      try {
+        const usersSnapshot = await getDocs(query(collection(db, "users"), orderBy("logs.length", "desc"), limit(10)));
+        const ranking = usersSnapshot.docs.map((doc, index) => ({
+          email: doc.data().email,
+          logs: doc.data().logs ? doc.data().logs.length : 0,
+          achievements: doc.data().achievements ? doc.data().achievements.length : 0
+        }));
+        renderRanking(ranking);
+      } catch (error) {
+        document.getElementById("loading").innerText = "Erro ao carregar ranking: " + error.message;
+      }
+    });
+
+    function renderRanking(ranking) {
+      document.getElementById("loading").style.display = "none";
+      const tbody = document.querySelector("#rankingTable tbody");
+      document.getElementById("rankingTable").style.display = "block";
+      tbody.innerHTML = ranking.map((user, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${user.email}</td>
+          <td>${user.logs}</td>
+          <td>${user.achievements}</td>
+        </tr>
+      `).join("");
+    }
+
+    window.signOut = async function() {
+      playClickSound();
+      try {
+        await signOut(auth);
+        location.href = "index.html";
+      } catch (error) {
+        alert("Erro ao sair: " + error.message);
+      }
+    };
+  </script>
+</body>
+</html>
