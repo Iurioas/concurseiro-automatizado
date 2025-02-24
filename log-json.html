@@ -5,10 +5,42 @@
   <title>Log JSON - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .title-container {
+      text-align: center;
+      padding: 15px 0;
+      background: linear-gradient(135deg, #6200ee, #3700b3);
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1100;
+    }
+    h1#title {
+      font-family: 'Roboto', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      color: #42A5F5;
+      margin: 0;
+    }
+    nav {
+      position: fixed;
+      top: 60px;
+      width: 100%;
+      z-index: 1000;
+    }
+    main {
+      margin-top: 110px;
+    }
+    pre {
+      white-space: pre-wrap;
+    }
+  </style>
 </head>
 <body>
+  <div class="title-container">
+    <h1 id="title">Concurseiro Automatizado</h1>
+  </div>
   <nav>
-    <span>Concurseiro Automatizado</span>
     <a href="planner.html">Planejador</a>
     <a href="study.html">Planejado</a>
     <a href="achievements.html">Conquistas</a>
@@ -16,22 +48,18 @@
     <button onclick="signOut()">Sair</button>
   </nav>
   <main>
-    <h1>Log JSON</h1>
-    <button onclick="location.href='study.html'; playClickSound()">Voltar</button>
-    <div id="loading">Carregando...</div>
-    <pre id="logContent" style="display: none;"></pre>
+    <h1>Log em JSON</h1>
+    <pre id="logContent"></pre>
+    <div id="loading">Carregando logs...</div>
   </main>
-  <footer>
-    <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
-  </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { playClickSound } from "./sounds.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo", // Chave API corrigida
+      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
       authDomain: "concurseiro-automatizado.firebaseapp.com",
       projectId: "concurseiro-automatizado",
       storageBucket: "concurseiro-automatizado.firebasestorage.app",
@@ -44,12 +72,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    setPersistence(auth, browserLocalPersistence)
-      .then(() => console.log("Persistência configurada em log-json."))
-      .catch(error => console.error("Erro ao configurar persistência:", error.message));
-
     onAuthStateChanged(auth, async (user) => {
-      console.log("Estado de autenticação em log-json:", user ? "Autenticado" : "Não autenticado");
       if (!user) {
         console.log("Redirecionando para login...");
         location.href = "login.html";
@@ -57,33 +80,27 @@
       }
       console.log("Usuário autenticado:", user.uid);
       try {
-        console.log("Carregando logs JSON...");
         const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          const logs = userDoc.data().logs || [];
-          console.log("Logs carregados:", logs.length);
-          document.getElementById("logContent").innerText = JSON.stringify(logs, null, 2) || "[]";
-          document.getElementById("logContent").style.display = "block";
-          document.getElementById("loading").style.display = "none";
-        } else {
-          console.log("Nenhum log encontrado.");
-          document.getElementById("logContent").innerText = "Nenhum log encontrado.";
-          document.getElementById("logContent").style.display = "block";
-          document.getElementById("loading").style.display = "none";
-        }
+        const logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
+        renderLogs(logs);
+        document.getElementById("loading").style.display = "none";
       } catch (error) {
         console.error("Erro ao carregar logs:", error.message);
-        document.getElementById("logContent").innerText = "Erro ao carregar logs: " + error.message;
-        document.getElementById("logContent").style.display = "block";
-        document.getElementById("loading").style.display = "none";
+        document.getElementById("loading").innerText = "Erro ao carregar logs: " + error.message;
       }
     });
 
-    window.signOut = async function() {
+    function renderLogs(logs) {
+      const logContent = document.getElementById("logContent");
+      logContent.innerText = JSON.stringify(logs, null, 2) || "[]";
+    }
+
+    window.signOut = async () => {
       playClickSound();
       try {
         await signOut(auth);
-        console.log("Logout realizado com sucesso.");
+        localStorage.clear();
+        console.log("Logout realizado.");
         location.href = "index.html";
       } catch (error) {
         console.error("Erro ao sair:", error.message);
