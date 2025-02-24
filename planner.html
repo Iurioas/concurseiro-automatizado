@@ -27,6 +27,10 @@
     button:hover {
       background: #1e88e5;
     }
+    #planStatus {
+      color: #bb86fc;
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
@@ -43,6 +47,7 @@
     <div class="info-box">
       <p>Nosso plano é baseado na análise de provas anteriores da FGV para Juiz Federal. Cobrimos 80% dos assuntos mais cobrados historicamente, priorizando os de maior relevância em ordem decrescente, para maximizar suas chances de aprovação.</p>
     </div>
+    <div id="planStatus"></div>
     <h2>Escolha seu plano:</h2>
     <button onclick="generatePlan(3, 215)">3 Meses (215 subtópicos, ~6h/dia)</button>
     <button onclick="generatePlan(6, 300)">6 Meses (300 subtópicos, ~4h/dia)</button>
@@ -59,7 +64,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
@@ -134,7 +139,6 @@
       "Benefícios e Serviços do RGPS (Tendência 2025)"
     ].slice(0, 215);
 
-    // Mapeamento explícito de subtópicos para matérias com base no "raiox"
     const subtopicsToSubjects = {
       "Pensão por Morte": "Direito Previdenciário",
       "Aposentadoria Especial": "Direito Previdenciário",
@@ -290,12 +294,26 @@
       "Benefícios e Serviços do RGPS (Tendência 2025)": "Direito Previdenciário"
     };
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       if (!user) {
         console.log("Usuário não autenticado, redirecionando para login...");
         location.href = "login.html";
-      } else {
-        console.log("Usuário autenticado:", user.uid);
+        return;
+      }
+      console.log("Usuário autenticado:", user.uid);
+      try {
+        const planDoc = await getDoc(doc(db, "plans", user.uid));
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const planStatus = document.getElementById("planStatus");
+        if (planDoc.exists()) {
+          const planLength = planDoc.data().plan.length;
+          const currentIndex = userDoc.exists() && userDoc.data().currentIndex !== undefined ? userDoc.data().currentIndex : 0;
+          planStatus.innerHTML = `Você tem um plano vigente com ${planLength} etapas. Progresso: ${currentIndex}/${planLength} concluídas.`;
+        } else {
+          planStatus.innerHTML = "Nenhum plano vigente. Escolha um plano abaixo para começar!";
+        }
+      } catch (error) {
+        console.error("Erro ao verificar plano:", error.message);
       }
     });
 
@@ -308,26 +326,33 @@
       }
 
       try {
-        console.log(`Tentando gerar plano de ${months} meses com ${topics} tópicos...`);
+        const planDoc = await getDoc(doc(db, "plans", user.uid));
+        if (planDoc.exists()) {
+          const planLength = planDoc.data().plan.length;
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          const currentIndex = userDoc.exists() && userDoc.data().currentIndex !== undefined ? userDoc.data().currentIndex : 0;
+          if (!confirm(`Você já tem um plano vigente com ${planLength} etapas (${currentIndex} concluídas). Gerar um novo plano excluirá o progresso atual. Deseja continuar?`)) {
+            return;
+          }
+        }
+
+        console.log(`Gerando plano de ${months} meses com ${topics} tópicos...`);
         const rawPlan = months === 3 ? plan3Months : Array(topics).fill("Subtópico Exemplo");
         const plan = rawPlan.map((subtopic, index) => ({
           priorityNumber: index + 1,
-          subject: subtopicsToSubjects[subtopic] || "Não categorizado", // Fallback apenas para debug
+          subject: subtopicsToSubjects[subtopic] || "Não categorizado",
           subtopic: subtopic,
           completed: false
         }));
         console.log("Plano formatado:", plan.length, "itens");
 
-        await setDoc(doc(db, "plans", user.uid), { plan }, { merge: true });
+        await setDoc(doc(db, "plans", user.uid), { plan }, { merge: false }); // Sobrescreve o plano
+        await updateDoc(doc(db, "users", user.uid), { currentIndex: 0, logs: [], achievements: [] }); // Reseta progresso
         console.log("Plano salvo com sucesso no Firestore na coleção 'plans'!");
 
-        try {
-          document.getElementById("trends").style.display = "block";
-          renderTrendsChart();
-          console.log("Gráfico de tendências exibido.");
-        } catch (chartError) {
-          console.warn("Erro ao renderizar gráfico:", chartError.message);
-        }
+        document.getElementById("planStatus").innerHTML = `Novo plano de ${months} meses com ${topics} etapas gerado com sucesso!`;
+        document.getElementById("trends").style.display = "block";
+        renderTrendsChart();
       } catch (error) {
         console.error("Erro ao gerar plano:", error.message);
         alert("Erro ao gerar plano: " + error.message);
