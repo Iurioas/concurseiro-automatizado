@@ -27,6 +27,7 @@
     <div class="chart-container" style="display: none;"><canvas id="dificuldadeTotalChart"></canvas></div>
     <div class="chart-container" style="display: none;"><canvas id="tempoDificuldadeChart"></canvas></div>
     <div class="chart-container" style="display: none;"><canvas id="dispersaoChart"></canvas></div>
+    <div class="chart-container" style="display: none;"><canvas id="diasEstudadosChart"></canvas></div> <!-- Novo gráfico -->
   </main>
   <footer>
     <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
@@ -38,7 +39,7 @@
     import { playClickSound } from "./sounds.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo", // Chave API corrigida
+      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
       authDomain: "concurseiro-automatizado.firebaseapp.com",
       projectId: "concurseiro-automatizado",
       storageBucket: "concurseiro-automatizado.firebasestorage.app",
@@ -111,6 +112,15 @@
       ];
       const dispersaoDados = logs.map(l => ({ materia: l.materia, tempo: parseInt(l.tempo_gasto), nota: parseInt(l.nota_autoavaliacao) }));
 
+      // Novo gráfico: Dias Estudados
+      const diasEstudados = {};
+      logs.forEach(log => {
+        const data = new Date(log.data_conclusao).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+        diasEstudados[data] = (diasEstudados[data] || 0) + 1;
+      });
+      const diasLabels = Object.keys(diasEstudados).sort();
+      const diasValores = diasLabels.map(data => diasEstudados[data]);
+
       new Chart(document.getElementById("tempoChart"), {
         type: "bar",
         data: {
@@ -179,6 +189,15 @@
           }))
         },
         options: { scales: { x: { title: { display: true, text: "Tempo (min)" } }, y: { title: { display: true, text: "Nota (0-10)" }, beginAtZero: true, max: 10 } }, plugins: { title: { display: true, text: "Tempo vs. Autoavaliação" } } }
+      });
+
+      new Chart(document.getElementById("diasEstudadosChart"), {
+        type: "bar",
+        data: {
+          labels: diasLabels,
+          datasets: [{ label: "Etapas Concluídas", data: diasValores, backgroundColor: "#66bb6a" }]
+        },
+        options: { scales: { y: { beginAtZero: true } }, plugins: { title: { display: true, text: "Dias Estudados" } } }
       });
     }
 
