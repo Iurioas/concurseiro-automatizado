@@ -19,7 +19,7 @@
       font-family: 'Roboto', sans-serif;
       font-weight: 700;
       font-size: 28px;
-      color: #42A5F5;
+      color: #FFD700; /* Dourado suave */
       margin: 0;
     }
     nav {
@@ -33,6 +33,18 @@
     }
     #logContent {
       white-space: pre-wrap;
+    }
+    button {
+      margin: 5px;
+      padding: 10px;
+      background: #2E8B57; /* Verde esmeralda */
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #3CB371; /* Verde mais claro */
     }
   </style>
 </head>
@@ -49,6 +61,7 @@
   </nav>
   <main>
     <h1>Log em Texto</h1>
+    <button onclick="location.href='study.html'">Voltar</button>
     <div id="logContent"></div>
     <div id="loading">Carregando logs...</div>
   </main>
