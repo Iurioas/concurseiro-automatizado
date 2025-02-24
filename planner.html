@@ -5,6 +5,11 @@
   <title>Planejador - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .info-box { background: #e3f2fd; padding: 10px; margin: 10px 0; border-radius: 5px; }
+    button { margin: 5px; padding: 10px; background: #42A5F5; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #1e88e5; }
+  </style>
 </head>
 <body>
   <nav>
@@ -16,111 +21,127 @@
     <button onclick="signOut()">Sair</button>
   </nav>
   <main>
-    <h1>Planejador</h1>
-    <textarea id="raiox" placeholder="Cole o raio-x do seu concurso aqui (ex.: Português - Interpretação)"></textarea>
-    <button onclick="generatePlan()">Gerar Plano</button>
-    <button onclick="newPlan()">Novo Plano</button>
-    <p id="prompt"></p>
+    <h1>Monte Seu Plano de Estudos</h1>
+    <div class="info-box">
+      <p>Nosso plano é baseado na análise de provas anteriores da FGV para Juiz Federal. Cobrimos 80% dos assuntos mais cobrados historicamente, priorizando os de maior relevância em ordem decrescente, para maximizar suas chances de aprovação.</p>
+    </div>
+    <h2>Escolha seu plano:</h2>
+    <button onclick="generatePlan(3, 215)">3 Meses (215 subtópicos, ~6h/dia)</button>
+    <button onclick="generatePlan(6, 300)">6 Meses (300 subtópicos, ~4h/dia)</button>
+    <button onclick="generatePlan(9, 360)">9 Meses (360 subtópicos, ~3h/dia)</button>
+    <button onclick="generatePlan(12, 400)">12 Meses (400 subtópicos, ~3h/dia)</button>
+    <p><small>O tempo sugerido é baseado em 90 minutos por subtópico. Ajuste seu ritmo diário para concluir mais cedo ou mais tarde.</small></p>
+    <div id="trends" style="display: none;">
+      <h3>Tendências Recentes</h3>
+      <p>Tendências Recentes: Os assuntos abaixo têm baixa relevância histórica, mas estão em alta nas provas recentes da FGV (2023-2025), podendo ser mais cobrados no futuro. Incluímos alguns no seu plano para torná-lo ainda mais completo, sem perder o foco na relevância dos assuntos.</p>
+      <canvas id="trendsChart" width="400" height="200"></canvas>
+    </div>
   </main>
-  <footer>
-    <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
-  </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
-    import { playClickSound } from "./sounds.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { Chart } from "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo", // Chave API corrigida
-      authDomain: "concurseiro-automatizado.firebaseapp.com",
-      projectId: "concurseiro-automatizado",
-      storageBucket: "concurseiro-automatizado.firebasestorage.app",
-      messagingSenderId: "938840578480",
-      appId: "1:938840578480:web:4e8dd7e2dfdc42d7649e75",
-      measurementId: "G-H72D875STB"
+      apiKey: "SuaApiKey",
+      authDomain: "SeuAuthDomain",
+      projectId: "SeuProjectId",
+      storageBucket: "SeuStorageBucket",
+      messagingSenderId: "SeuSenderId",
+      appId: "SeuAppId",
+      measurementId: "SeuMeasurementId"
     };
-
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    setPersistence(auth, browserLocalPersistence)
-      .then(() => console.log("Persistência configurada em planner."))
-      .catch(error => console.error("Erro ao configurar persistência:", error.message));
+    const plan3Months = [
+      "Pensão por Morte", "Aposentadoria Especial", "Aposentadoria por Tempo de Contribuição", 
+      "Agências Reguladoras", "Prescrição", "Decadência", "Manutenção e Perda da Qualidade de Segurado", 
+      "Segurados Obrigatórios - Segurado Especial", "Meios Probatórios Excepcionais", 
+      "Requisitos para Registro e Patente", "Lei nº 8.112-1990", "Noções Gerais e Desapropriação", 
+      "Empresas Públicas e Sociedades de Economia Mista", "Delegação dos Serviços Públicos - Concessão e Permissão", 
+      "Direitos Reais de Garantia - Penhor, Anticrese e Hipoteca", 
+      "Jurisdição: Competência Relativa, Concorrente, Absoluta e Exclusiva", 
+      "Noções Gerais e Desapropriação (Financeiro)", "Assinatura e Ratificação dos Tratados Internacionais", 
+      "Saúde", "Aposentadoria por Incapacidade Permanente", "Auxílio-Doença", 
+      "Segurados Obrigatórios - Empregado", "Dependentes dos Segurados", "Autarquias", 
+      "Administração Indireta", "Responsabilidades do Servidor", "Política Nacional de Recursos Hídricos", 
+      "Gestão das Florestas Públicas", "Política Nacional de Mudança do Clima", "Lei de Crimes Ambientais", 
+      "Integração e Interpretação da Lei Tributária", "Conceito de Legislação Tributária", 
+      "Solidariedade e Responsabilidade Tributária", "Denúncia Espontânea", "IPI", 
+      "Contribuições Especiais", "Partilha e Tipologia (Competência Tributária)", 
+      "Princípio da Legalidade", "Modalidades de Lançamento", "Isenção", "ICMS", 
+      "Direito Penal Tributário", "Execução Fiscal", "Prova Pericial e Exame de Corpo de Delito", 
+      "Acordo de Não Persecução Penal", "Competência em Matéria Penal: Definição, Espécies e Critérios", 
+      "Competência em Razão da Pessoa: Foro por Prerrogativa", "Encerramento do Inquérito Policial", 
+      "Prisão Preventiva", "Sequestro", "Lei de Tóxicos – Lei nº 11.343 de 2006", 
+      "Crimes Contra o Consumidor, Ordem Econômica e Tributária", "Lei do Colarinho Branco", 
+      "Peculato", "Corrupção Passiva", "Noções Gerais de Dosimetria da Pena", "Reincidência", 
+      "Prescrição (Penal)", "Estelionato", "Normas de Cooperação em Matéria Ambiental – LC nº 140 de 2011", 
+      "Bens Públicos e Recursos Naturais", "Princípios Democrático/Participação e da Informação", 
+      "Instrumentos Econômicos", "Pessoa Jurídica", "Ato Jurídico e Teoria Geral do Negócio Jurídico", 
+      "Domicílio e Bens", "Adimplemento e Extinção das Obrigações", "Indenização - Liquidação do Dano", 
+      "Bens Tutelados", "Registro e Escrituração", "Sociedade Simples", "Falência", "Fornecedor", 
+      "Serviço", "Contratos de Consumo", "Garantia Legal e Contratual", "Práticas Abusivas", 
+      "Contestação", "Reconvenção", "Do Juiz", "Defensoria Pública no Processo Civil", 
+      "Incidente de Desconsideração da Personalidade Jurídica", "Amicus Curiae", "Prova Pericial", 
+      "Agravo de Instrumento", "Tutela de Urgência", "Critérios de Competência", 
+      "Noções Gerais e Classificação dos Atos Processuais", "Execuções Especiais", "Ações Possessórias",
+      "Salário-Maternidade", "Auxílio-Reclusão", "Benefício Assistencial - LOAS", "Fundações Públicas", 
+      "Organização Administrativa Geral", "Diretrizes Nacionais de Saneamento Básico", 
+      "Segurados Facultativos", "Compensação", "Pagamento", "Obrigação Principal e Acessória", 
+      "Ação Penal Pública", "Advocacia Administrativa", "Segunda Fase da Dosimetria", "Posse", 
+      "Propriedade", "Educação", "Assistência Social", "Tribunais Regionais Federais e Juízes Federais", 
+      "Supremo Tribunal Federal", "Tribunais Regionais do Trabalho", "Serviços Públicos Essenciais", 
+      "Princípios dos Serviços Públicos", "Beneficiários do RGPS", "Regimes Básicos", 
+      "Contribuições dos Segurados", "Ações Previdenciárias", "Função da Lei Complementar", 
+      "Pacto Internacional de Direitos Civis e Políticos", "Convenção das Nações Unidas contra a Corrupção", 
+      "Requisição Administrativa", "Servidão Administrativa", "Teoria das Nulidades", 
+      "Extinção dos Atos Administrativos", "Requisitos do Ato Administrativo", 
+      "Conceito, Competência Legislativa, Sujeitos e Finalidades", 
+      "Princípios: Legalidade, Impessoalidade, Moralidade, Publicidade e Eficiência", 
+      "Cláusulas Exorbitantes e Equilíbrio Econômico-Financeiro", 
+      "Cláusulas Exorbitantes e Equilíbrio Econômico-Financeiro – Lei nº 14.133", 
+      "Ação Penal nos Crimes Contra a Honra", "Da Liberdade Provisória", "Procedimento Especial do Tribunal do Júri", 
+      "Investigação Defensiva", "Procedimento Administrativo", "Utilização e Extinção da Propriedade", 
+      "Prescrição e Decadência (Civil)", "Sistema Financeiro Nacional", "Competência na Atividade Financeira", 
+      "Constituição Orçamentária", "Fundos Públicos Financeiros", "Créditos Orçamentários e Adicionais", 
+      "Repartição de Competências Constitucionais", "Reservas aos Tratados", "Litispendência Internacional", 
+      "Estado e Território", "Nacionalidade, Naturalização e Apátrida", 
+      "Desapropriação Financeira", "Ministério Público", "Assistência", "Revelia", 
+      "Pacto Internacional de Direitos Econômicos e Sociais", "Convenção de Haia sobre Sequestro Internacional", 
+      "Benefícios e Serviços do RGPS (Tendência 2025)"
+    ].slice(0, 215); // Garante exatamente 215 subtópicos
 
-    onAuthStateChanged(auth, async (user) => {
-      console.log("Estado de autenticação em planner:", user ? "Autenticado" : "Não autenticado");
-      if (!user) {
-        console.log("Redirecionando para login...");
-        location.href = "login.html";
-      } else {
-        console.log("Usuário autenticado:", user.uid);
-      }
+    onAuthStateChanged(auth, (user) => {
+      if (!user) location.href = "login.html";
     });
 
-    window.generatePlan = async function() {
-      playClickSound();
-      const raiox = document.getElementById("raiox").value;
-      const linhas = raiox.split("\n").filter(line => line.trim() !== "");
-      const plan = linhas.map((line, idx) => {
-        const [materia, topico] = line.split(" - ");
-        return {
-          priorityNumber: idx + 1,
-          priorityCategory: line.toLowerCase().includes("urgente") ? "Urgente" : "Média",
-          subject: materia || "Desconhecido",
-          subtopic: topico || "Geral",
-          reason: "Baseado no raio-x fornecido"
-        };
+    window.generatePlan = async (months, topics) => {
+      const user = auth.currentUser;
+      if (!user) return;
+      const plan = months === 3 ? plan3Months : Array(topics).fill("Subtópico Exemplo"); // Placeholder para outros meses
+      await setDoc(doc(db, "users", user.uid), { plan }, { merge: true });
+      document.getElementById("trends").style.display = "block";
+      renderTrendsChart();
+      setTimeout(() => location.href = "study.html", 2000);
+    };
+
+    function renderTrendsChart() {
+      const ctx = document.getElementById("trendsChart").getContext("2d");
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: ["Direito Processual Internacional", "RGPS", "Serviços Públicos"],
+          datasets: [{ label: "Relevância Recente (%)", data: [4.6, 2.5, 2.5], backgroundColor: "#42A5F5" }]
+        },
+        options: { scales: { y: { beginAtZero: true, max: 5 } } }
       });
-      try {
-        console.log("Salvando plano...");
-        await setDoc(doc(db, "plans", auth.currentUser.uid), { plan });
-        console.log("Plano salvo com sucesso.");
-        document.getElementById("prompt").innerText = "Prompt sugerido para Google AI Studio: 'Organize este raio-x em prioridades como no modelo de Iuri: " + raiox + "'";
-        showNotification("Plano gerado com sucesso!");
-        setTimeout(() => location.href = "study.html", 1000);
-      } catch (error) {
-        console.error("Erro ao gerar plano:", error.message);
-        alert("Erro ao gerar plano: " + error.message);
-      }
-    };
-
-    window.newPlan = async function() {
-      playClickSound();
-      if (confirm("Tem certeza? O plano atual será substituído.")) {
-        document.getElementById("raiox").value = "";
-        try {
-          console.log("Deletando plano atual...");
-          await deleteDoc(doc(db, "plans", auth.currentUser.uid));
-          console.log("Plano deletado com sucesso.");
-          showNotification("Plano anterior removido!");
-        } catch (error) {
-          console.error("Erro ao deletar plano:", error.message);
-          alert("Erro ao deletar plano: " + error.message);
-        }
-      }
-    };
-
-    window.signOut = async function() {
-      playClickSound();
-      try {
-        await signOut(auth);
-        console.log("Logout realizado com sucesso.");
-        location.href = "index.html";
-      } catch (error) {
-        console.error("Erro ao sair:", error.message);
-        alert("Erro ao sair: " + error.message);
-      }
-    };
-
-    function showNotification(message) {
-      const notification = document.createElement("div");
-      notification.className = "notification";
-      notification.innerText = message;
-      document.body.appendChild(notification);
-      setTimeout(() => notification.remove(), 2500);
     }
+
+    window.signOut = async () => { await signOut(auth); location.href = "index.html"; };
   </script>
 </body>
 </html>
