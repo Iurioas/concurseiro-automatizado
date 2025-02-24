@@ -57,8 +57,8 @@
         const q = query(collection(db, "users"), orderBy("rankingScore", "desc"), limit(10));
         const snapshot = await getDocs(q);
         const ranking = snapshot.docs.map((doc, index) => ({
-          email: doc.data().email,
-          score: doc.data().rankingScore || 0,
+          nick: doc.data().login,
+          score: doc.data().monthlyRankingScore || 0,
           position: index + 1
         }));
         renderRanking(ranking);
