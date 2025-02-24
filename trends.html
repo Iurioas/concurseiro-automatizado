@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Tendências Recentes - Concurseiro Automatizado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="title-container">
+    <h1>Concurseiro Automatizado</h1>
+  </div>
+  <nav>
+    <a href="planner.html">Planejador</a>
+    <a href="study.html">Planejado</a>
+    <a href="achievements.html">Conquistas</a>
+    <a href="ranking.html">Ranking</a>
+    <a href="trends.html">Tendências</a>
+    <button onclick="signOut()">Sair</button>
+  </nav>
+  <main>
+    <h2>Tendências Recentes</h2>
+    <div class="info-box" style="background: #33334D; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(149, 117, 205, 0.3); margin-bottom: 25px;">
+      <p style="font-size: 14px; line-height: 1.8; color: #EDE7F6;">Os assuntos abaixo têm baixa relevância histórica, mas estão em alta nas provas recentes (2023-2025), podendo ser mais cobrados no futuro. Incluímos alguns como abordagem subsidiária no seu plano para garantir uma preparação mais completa.</p>
+    </div>
+    <canvas id="trendsChart" width="400" height="200"></canvas>
+  </main>
+  <footer>
+    <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
+  </footer>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { playClickSound } from "./sounds.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
+      authDomain: "concurseiro-automatizado.firebaseapp.com",
+      projectId: "concurseiro-automatizado",
+      storageBucket: "concurseiro-automatizado.firebasestorage.app",
+      messagingSenderId: "938840578480",
+      appId: "1:938840578480:web:4e8dd7e2dfdc42d7649e75",
+      measurementId: "G-H72D875STB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        location.href = "login.html";
+      }
+      renderTrendsChart();
+    });
+
+    function renderTrendsChart() {
+      const ctx = document.getElementById("trendsChart").getContext("2d");
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: ["Direito Processual Internacional", "RGPS", "Serviços Públicos"],
+          datasets: [{ label: "Relevância Recente (%)", data: [4.6, 2.5, 2.5], backgroundColor: "#9575CD" }]
+        },
+        options: { scales: { y: { beginAtZero: true, max: 5 } } }
+      });
+    }
+
+    window.signOut = async () => {
+      playClickSound();
+      try {
+        await signOut(auth);
+        localStorage.clear();
+        location.href = "index.html";
+      } catch (error) {
+        alert("Erro ao sair: " + error.message);
+      }
+    };
+  </script>
+</body>
+</html>
