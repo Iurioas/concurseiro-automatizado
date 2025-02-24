@@ -204,8 +204,8 @@
 
     window.completeStep = async function(checkbox) {
       playClickSound();
-      const now = Date.now();
-      const timeSinceLast = now - lastCompletionTime;
+      const currentTime = Date.now();
+      const timeSinceLast = currentTime - lastCompletionTime;
       let validForRanking = timeSinceLast >= MINIMUM_TIME_FOR_RANKING;
 
       if (!confirm(`Tem certeza que deseja avançar para a próxima etapa? ${!validForRanking ? "Avanços em menos de 10 minutos não contam para o ranking." : ""}`)) {
@@ -232,9 +232,10 @@
       const validLogs = logs.filter(l => l.validForRanking);
       const totalTime = validLogs.reduce((sum, l) => sum + parseInt(l.tempo_gasto), 0);
       const avgScore = validLogs.reduce((sum, l) => sum + parseInt(l.nota_autoavaliacao), 0) / validLogs.length || 1;
-      const now = new Date();
-      const resetDate = new Date(now.getFullYear(), now.getMonth(), 1, 1, 0, 0); // Dia 1, 01:00h
-      if (now >= resetDate && !localStorage.getItem("rankingReset")) {
+      const resetDate = new Date(currentTime);
+      resetDate.setDate(1);
+      resetDate.setHours(1, 0, 0, 0); // Dia 1, 01:00h do mês atual
+      if (new Date(currentTime) >= resetDate && !localStorage.getItem("rankingReset")) {
         await updateDoc(doc(db, "users", auth.currentUser.uid), { monthlyRankingScore: 0 });
         localStorage.setItem("rankingReset", "true");
       }
@@ -255,8 +256,8 @@
         });
         await updateDoc(doc(db, "plans", auth.currentUser.uid), { plan: planData });
         localStorage.setItem("currentIndex", currentIndex);
-        localStorage.setItem("lastCompletionTime", now);
-        lastCompletionTime = now;
+        localStorage.setItem("lastCompletionTime", currentTime);
+        lastCompletionTime = currentTime;
         playSuccessSound();
         checkAchievements();
         renderPlan();
