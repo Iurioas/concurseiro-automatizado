@@ -5,6 +5,10 @@
   <title>Planejado - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .current-highlight { background-color: #4CAF50; color: white; }
+    .study-table td:nth-child(4) { text-align: center; }
+  </style>
 </head>
 <body>
   <div class="title-container">
@@ -95,7 +99,7 @@
         console.log("Carregando plano e progresso...");
         const planDoc = await getDoc(doc(db, "plans", user.uid));
         console.log("PlanDoc obtido:", planDoc.exists() ? "Existe" : "Não existe");
-        loading.style.display = "none"; // Esconde loading após tentativa
+        loading.style.display = "none";
         if (planDoc.exists()) {
           const planDataRaw = planDoc.data();
           planData = planDataRaw.plan || [];
@@ -177,7 +181,7 @@
       if (currentIndex < planData.length) {
         const currentItem = planData[currentIndex];
         refTbody.innerHTML += `
-          <tr class="current">
+          <tr class="current-highlight">
             <td>${currentItem.priorityNumber}</td>
             <td>${currentItem.subject}</td>
             <td>${currentItem.subtopic}</td>
@@ -216,6 +220,7 @@
       const tempo = prompt("Tempo gasto (minutos):") || "0";
       const dificuldade = prompt("Dificuldade (F/M/D):")?.toUpperCase() || "M";
       const nota = prompt("Nota (0-10):") || "0";
+      const comentario = prompt("Comentário (opcional):") || "";
       const log = {
         etapa: currentIndex + 1,
         subtopico: planData[currentIndex].subtopic,
@@ -223,6 +228,7 @@
         dificuldade: dificuldade === "F" ? "Fácil" : dificuldade === "D" ? "Difícil" : "Médio",
         tempo_gasto: tempo,
         nota_autoavaliacao: nota,
+        comentario: comentario,
         data_conclusao: new Date().toISOString(),
         status: "Concluído",
         validForRanking: validForRanking
