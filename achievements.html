@@ -73,17 +73,13 @@
 
     function renderAchievements(userAchievements) {
       const achievementsList = document.getElementById("achievementsList");
-      const html = achievementList.map(achievement => {
-        const earned = userAchievements.find(a => a.id === achievement.id);
-        return `
-          <div class="achievement-item" style="background: ${earned ? '#4CAF50' : '#33334D'};">
-            <strong>${achievement.name}</strong><br>
-            <span>${achievement.description}</span><br>
-            <span style="font-size: 12px; color: #bbb;">${earned ? "Conquistado em: " + new Date(earned.date).toLocaleString("pt-BR") : "Não conquistado"}</span>
-          </div>
-        `;
-      }).join("");
-      achievementsList.innerHTML = html || "<p>Nenhuma conquista ainda. Continue estudando!</p>";
+      const currentRank = userAchievements.length > 0 ? userAchievements[0].rank : "E";
+      achievementsList.innerHTML = `
+        <div style="background: #4CAF50; padding: 15px; border-radius: 6px; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);">
+          <strong>Ranking: ${currentRank}</strong><br>
+          <span style="font-size: 12px; color: #EDE7F6;">Atualizado em: ${userAchievements.length > 0 ? new Date(userAchievements[0].date).toLocaleString("pt-BR") : "Ainda não iniciado"}</span>
+        </div>
+      `;
     }
 
     window.signOut = async () => {
