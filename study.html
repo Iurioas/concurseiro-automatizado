@@ -69,13 +69,12 @@
 
     const MINIMUM_TIME_FOR_RANKING = 10 * 60 * 1000;
 
-    const achievementList = [
-      { id: 1, name: "Guardião da Lei", condition: logs => logs.length >= 1, description: "Conclua sua primeira etapa." },
-      { id: 2, name: "Advogado do Saber", condition: logs => logs.length >= 5, description: "Conclua 5 etapas." },
-      { id: 3, name: "Juiz do Conhecimento", condition: logs => logs.length >= 10, description: "Conclua 10 etapas." },
-      { id: 4, name: "Promotor da Justiça", condition: logs => logs.length >= 20, description: "Conclua 20 etapas." },
-      { id: 5, name: "Magistrado Supremo", condition: logs => logs.length >= 50, description: "Conclua 50 etapas." }
-    ];
+    const rankList = ["E", "E+", "D", "D+", "C", "C+", "B", "B+", "A", "A+"];
+    const updateRank = (logs) => {
+      const completed = logs.length;
+      const rankIndex = Math.min(Math.floor(completed / 5), rankList.length - 1);
+      return rankList[rankIndex];
+    };
 
     setPersistence(auth, browserLocalPersistence)
       .then(() => console.log("Persistência configurada em study."))
