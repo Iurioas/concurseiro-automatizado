@@ -64,7 +64,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js"; // Adicionado updateDoc
 
     const firebaseConfig = {
       apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
@@ -346,8 +346,8 @@
         }));
         console.log("Plano formatado:", plan.length, "itens");
 
-        await setDoc(doc(db, "plans", user.uid), { plan }, { merge: false }); // Sobrescreve o plano
-        await updateDoc(doc(db, "users", user.uid), { currentIndex: 0, logs: [], achievements: [] }); // Reseta progresso
+        await setDoc(doc(db, "plans", user.uid), { plan }, { merge: false });
+        await updateDoc(doc(db, "users", user.uid), { currentIndex: 0, logs: [], achievements: [] });
         console.log("Plano salvo com sucesso no Firestore na coleção 'plans'!");
 
         document.getElementById("planStatus").innerHTML = `Novo plano de ${months} meses com ${topics} etapas gerado com sucesso!`;
