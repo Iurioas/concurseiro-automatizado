@@ -286,13 +286,12 @@
     }
 
     function checkAchievements() {
-      achievementList.forEach(achievement => {
-        if (!achievements.some(a => a.id === achievement.id) && achievement.condition(logs)) {
-          achievements.push({ id: achievement.id, name: achievement.name, date: new Date().toISOString() });
-          showNotification(`Nova conquista: ${achievement.name}!`);
-          playSuccessSound();
-        }
-      });
+      const currentRank = updateRank(logs);
+      if (!achievements.some(a => a.rank === currentRank)) {
+        achievements = [{ rank: currentRank, date: new Date().toISOString() }];
+        showNotification(`Novo ranking: ${currentRank}!`);
+        playSuccessSound();
+      }
       updateDoc(doc(db, "users", auth.currentUser.uid), { achievements });
     }
   </script>
