@@ -51,18 +51,21 @@
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         console.log("Redirecionando para login...");
-        location.href = "login.html";
+        document.getElementById("loading").innerText = "Você não está autenticado. Redirecionando para login...";
+        setTimeout(() => location.href = "login.html", 1000);
         return;
       }
       console.log("Usuário autenticado:", user.uid);
       try {
-        const q = query(collection(db, "users"), orderBy("rankingScore", "desc"), limit(10));
+        // Alterei a query para ordenar por monthlyRankingScore, já que é um ranking mensal
+        const q = query(collection(db, "users"), orderBy("monthlyRankingScore", "desc"), limit(10));
         const snapshot = await getDocs(q);
         const ranking = snapshot.docs.map((doc, index) => ({
-          nick: doc.data().login || "Usuário sem nick", // Fallback caso login esteja ausente
-          score: doc.data().monthlyRankingScore || 0,
+          nick: doc.data().login || "Usuário sem nick", // Usa o login como nick
+          score: doc.data().monthlyRankingScore || 0, // Usa monthlyRankingScore
           position: index + 1
         }));
+        console.log("Dados do ranking:", ranking); // Log para depuração
         renderRanking(ranking);
         document.getElementById("loading").style.display = "none";
       } catch (error) {
@@ -76,7 +79,7 @@
       tbody.innerHTML = ranking.map(user => `
         <tr>
           <td>${user.position}</td>
-          <td>${user.email}</td>
+          <td>${user.nick}</td> <!-- Alterado de user.email para user.nick -->
           <td>${user.score.toFixed(2)}</td>
         </tr>
       `).join("") || "<tr><td colspan='3'>Nenhum dado de ranking disponível.</td></tr>";
