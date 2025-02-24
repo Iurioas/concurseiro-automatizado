@@ -154,14 +154,32 @@
       try {
         console.log(`Tentando gerar plano de ${months} meses com ${topics} tópicos...`);
         const rawPlan = months === 3 ? plan3Months : Array(topics).fill("Subtópico Exemplo");
-        const plan = rawPlan.map((subtopic, index) => ({
-          priorityNumber: index + 1,
-          priorityCategory: "Alta",
-          subject: "Matéria Exemplo",
-          subtopic: subtopic,
-          reason: "Relevância histórica na FGV",
-          completed: false
-        }));
+        const plan = rawPlan.map((subtopic, index) => {
+          let subject = "Matéria Exemplo"; // Valor padrão
+          if (subtopic.includes("Aposentadoria") || subtopic.includes("Pensão") || subtopic.includes("Auxílio") || subtopic.includes("Salário-Maternidade") || subtopic.includes("LOAS")) {
+            subject = "Direito Previdenciário";
+          } else if (subtopic.includes("Prescrição") || subtopic.includes("Decadência") || subtopic.includes("Posse") || subtopic.includes("Propriedade")) {
+            subject = "Direito Civil";
+          } else if (subtopic.includes("Competência") || subtopic.includes("Prova Pericial") || subtopic.includes("Tutela") || subtopic.includes("Agravo")) {
+            subject = "Direito Processual Civil";
+          } else if (subtopic.includes("Prisão") || subtopic.includes("Peculato") || subtopic.includes("Corrupção") || subtopic.includes("Estelionato")) {
+            subject = "Direito Penal";
+          } else if (subtopic.includes("IPI") || subtopic.includes("ICMS") || subtopic.includes("Tributária")) {
+            subject = "Direito Tributário";
+          } else if (subtopic.includes("Autarquias") || subtopic.includes("Administração") || subtopic.includes("Serviços Públicos")) {
+            subject = "Direito Administrativo";
+          } else if (subtopic.includes("Ambiental") || subtopic.includes("Recursos Hídricos")) {
+            subject = "Direito Ambiental";
+          } else if (subtopic.includes("Tratados") || subtopic.includes("Pacto Internacional")) {
+            subject = "Direito Internacional";
+          }
+          return {
+            priorityNumber: index + 1,
+            subject: subject,
+            subtopic: subtopic,
+            completed: false
+          };
+        });
         console.log("Plano formatado:", plan.length, "itens");
 
         await setDoc(doc(db, "plans", user.uid), { plan }, { merge: true });
