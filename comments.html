@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Comentários - Concurseiro Automatizado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav>
+    <span>Concurseiro Automatizado</span>
+    <a href="planner.html">Planejador</a>
+    <a href="study.html">Planejado</a>
+    <a href="achievements.html">Conquistas</a>
+    <a href="ranking.html">Ranking</a>
+    <button onclick="signOut()">Sair</button>
+  </nav>
+  <main>
+    <h1>Comentários por Etapa</h1>
+    <button onclick="location.href='study.html'; playClickSound()">Voltar</button>
+    <div id="loading">Carregando...</div>
+    <div id="commentsList" style="display: none;"></div>
+  </main>
+  <footer>
+    <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
+  </footer>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { playClickSound } from "./sounds.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
+      authDomain: "concurseiro-automatizado.firebaseapp.com",
+      projectId: "concurseiro-automatizado",
+      storageBucket: "concurseiro-automatizado.firebasestorage.app",
+      messagingSenderId: "938840578480",
+      appId: "1:938840578480:web:4e8dd7e2dfdc42d7649e75",
+      measurementId: "G-H72D875STB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        console.log("Redirecionando para login...");
+        location.href = "login.html";
+        return;
+      }
+      console.log("Usuário autenticado:", user.uid);
+      try {
+        console.log("Carregando logs para comentários...");
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          const logs = userDoc.data().logs || [];
+          console.log("Logs carregados:", logs.length);
+          renderComments(logs);
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("commentsList").style.display = "block";
+        } else {
+          console.log("Nenhum log encontrado.");
+          document.getElementById("loading").innerText = "Nenhum comentário encontrado.";
+        }
+      } catch (error) {
+        console.error("Erro ao carregar logs:", error.message);
+        document.getElementById("loading").innerText = "Erro ao carregar comentários: " + error.message;
+      }
+    });
+
+    function renderComments(logs) {
+      const commentsList = document.getElementById("commentsList");
+      commentsList.innerHTML = logs.map((log, index) => `
+        <div style="background: #333; padding: 12px; margin: 8px 0; border-radius: 4px;">
+          <strong>Etapa ${log.etapa}: ${log.subtopico}</strong><br>
+          <span>Matéria: ${log.materia}</span><br>
+          <span>Comentário: ${log.comentarios || "Nenhum comentário"}</span><br>
+          <span style="font-size: 12px; color: #bbb;">Registrado em: ${new Date(log.data_conclusao).toLocaleString("pt-BR")}</span><br>
+          <button onclick="editComment(${index})">Editar Comentário</button>
+        </div>
+      `).join("") || "<p>Nenhum comentário registrado.</p>";
+    }
+
+    window.editComment = async function(index) {
+      const user = auth.currentUser;
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      const logs = userDoc.data().logs || [];
+      const log = logs[index];
+      const newComment = prompt("Edite o comentário:", log.comentarios || "");
+      if (newComment !== null && confirm("Tem certeza que deseja editar este comentário?")) {
+        logs[index].comentarios = newComment;
+        try {
+          await updateDoc(doc(db, "users", user.uid), { logs });
+          console.log("Comentário editado com sucesso!");
+          renderComments(logs);
+          playClickSound();
+        } catch (error) {
+          console.error("Erro ao editar comentário:", error.message);
+          alert("Erro ao editar comentário: " + error.message);
+        }
+      }
+    };
+
+    window.signOut = async function() {
+      playClickSound();
+      try {
+        await signOut(auth);
+        console.log("Logout realizado com sucesso.");
+        location.href = "index.html";
+      } catch (error) {
+        console.error("Erro ao sair:", error.message);
+        alert("Erro ao sair: " + error.message);
+      }
+    };
+  </script>
+</body>
+</html>
