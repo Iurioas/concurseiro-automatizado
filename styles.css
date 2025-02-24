@@ -1,26 +1,275 @@
-<style>
-  .info-box {
-    background: #2c2c2c; /* Fundo cinza escuro, consistente com o tema */
-    padding: 12px;
-    margin: 15px 0;
-    border-radius: 5px;
-    border: 1px solid #444; /* Bordas sutis para destacar */
-    color: #e0e0e0; /* Texto claro para contraste */
-    font-size: 14px;
-    line-height: 1.6;
+/* Reset e Configurações Gerais */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', Arial, sans-serif;
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* Navegação */
+nav {
+  background: linear-gradient(135deg, #6200ee, #3700b3);
+  padding: 10px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+nav span {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+}
+
+nav a {
+  color: #fff;
+  text-decoration: none;
+  padding: 8px 12px;
+  font-weight: 500;
+  font-size: 14px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+nav a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  transform: scale(1.05);
+}
+
+nav button {
+  background: linear-gradient(135deg, #bb86fc, #9c27b0);
+  border: none;
+  padding: 8px 16px;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 5px;
+  font-weight: 500;
+  font-size: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+nav button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 3px 8px rgba(187, 134, 252, 0.4);
+}
+
+/* Conteúdo Principal */
+main {
+  max-width: 800px;
+  margin: 70px auto 15px;
+  padding: 15px;
+  background: #252525;
+  border-radius: 8px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+h1 {
+  color: #bb86fc;
+  font-size: 24px;
+  margin-bottom: 15px;
+}
+
+/* Campos de Entrada */
+input, textarea {
+  display: block;
+  width: 100%;
+  max-width: 350px;
+  margin: 12px auto;
+  padding: 10px;
+  background: #333;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+input:focus, textarea:focus {
+  border-color: #bb86fc;
+  outline: none;
+}
+
+textarea {
+  height: 120px;
+  resize: vertical;
+}
+
+/* Botões */
+button {
+  background: linear-gradient(135deg, #bb86fc, #9c27b0);
+  border: none;
+  padding: 10px 20px;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+  margin: 4px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 3px 8px rgba(187, 134, 252, 0.4);
+}
+
+button:active {
+  transform: scale(0.95);
+  background: linear-gradient(135deg, #9c27b0, #bb86fc);
+}
+
+/* Tabela */
+table {
+  width: 100%;
+  margin: 15px 0;
+  border-collapse: collapse;
+  background: #2c2c2c;
+}
+
+th, td {
+  border: 1px solid #444;
+  padding: 10px;
+  text-align: center;
+  font-size: 14px;
+}
+
+th {
+  background: #6200ee;
+  color: #fff;
+  font-weight: 600;
+}
+
+td {
+  color: #e0e0e0;
+}
+
+/* Checkbox com Efeito */
+input[type="checkbox"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: #333;
+  border: 2px solid #444;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s ease;
+}
+
+input[type="checkbox"]:checked {
+  background: #bb86fc;
+  border-color: #9c27b0;
+}
+
+input[type="checkbox"]:checked:after {
+  content: "✔";
+  color: #fff;
+  font-size: 12px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Loader */
+#loading {
+  font-size: 16px;
+  color: #bb86fc;
+  margin: 15px 0;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* Conteúdo de Logs e Gráficos */
+#logContent, pre {
+  background: #333;
+  padding: 12px;
+  border-radius: 4px;
+  margin-top: 15px;
+  color: #e0e0e0;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+}
+
+.chart-container {
+  margin: 15px 0;
+  padding: 12px;
+  background: #2c2c2c;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Notificação de Conquista */
+.notification {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 4px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.5s ease forwards, fadeOut 0.5s ease 2s forwards;
+  z-index: 2000;
+  font-size: 14px;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-15px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes fadeOut {
+  to { opacity: 0; transform: translateX(-50%) translateY(-15px); }
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 15px;
+  color: #888;
+  font-size: 12px;
+  position: relative;
+  bottom: 0;
+  width: 100%;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  nav {
+    flex-direction: column;
+    padding: 8px;
   }
-  button {
-    margin: 5px;
-    padding: 10px 15px;
-    background: linear-gradient(135deg, #bb86fc, #9c27b0); /* Gradiente roxo */
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  nav a, nav button {
+    margin: 4px 0;
   }
-  button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 3px 8px rgba(187, 134, 252, 0.4);
+  main {
+    margin: 60px 8px 8px;
   }
-</style>
+  table {
+    font-size: 12px;
+  }
+}
