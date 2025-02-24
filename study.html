@@ -86,6 +86,7 @@
       console.log("Estado de autenticação em study:", user ? "Autenticado" : "Não autenticado");
       if (!user) {
         console.log("Redirecionando para login após 1 segundo...");
+        document.getElementById("loading").innerText = "Você não está autenticado. Redirecionando para login...";
         setTimeout(() => location.href = "login.html", 1000);
         return;
       }
@@ -94,6 +95,7 @@
       try {
         console.log("Carregando plano e progresso...");
         const planDoc = await getDoc(doc(db, "plans", user.uid));
+        console.log("PlanDoc obtido:", planDoc.exists() ? "Existe" : "Não existe");
         if (planDoc.exists()) {
           const planDataRaw = planDoc.data();
           planData = planDataRaw.plan || [];
@@ -112,6 +114,7 @@
             : (localStorage.getItem("currentIndex") ? parseInt(localStorage.getItem("currentIndex")) : 0);
           console.log("CurrentIndex carregado:", currentIndex);
           console.log("Logs carregados:", logs.length);
+          console.log("Plano a ser renderizado:", planData);
           document.getElementById("loading").style.display = "none"; // Esconde loading
           renderPlan();
           checkAchievements();
