@@ -141,15 +141,16 @@ textarea {
 
 /* Botões */
 button {
-  background: #9575CD;
-  border: none;
+  background: linear-gradient(135deg, #9575CD, #4CAF50); /* Gradiente elegante */
+  border: 1px solid #D1C4E9; /* Borda sutil */
   padding: 10px 20px;
   color: #EDE7F6;
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: 8px; /* Bordas mais arredondadas */
   font-size: 14px;
   margin: 5px;
-  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 8px rgba(149, 117, 205, 0.3); /* Sombra inicial */
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
 }
 
 button:hover {
