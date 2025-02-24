@@ -80,11 +80,12 @@
         console.log("E-mail de verificação enviado.");
         await setDoc(doc(db, "users", user.uid), { 
           email, 
-          login, // Salva o login no Firestore
+          login: login, // Garante que o login seja salvo explicitamente
           status: "inativo",
           currentIndex: 0, 
           logs: [], 
-          achievements: [] 
+          achievements: [],
+          monthlyRankingScore: 0
         });
         console.log("Dados salvos no Firestore.");
         document.getElementById("message").innerHTML = "Conta criada! <strong>Verifique seu e-mail</strong> <span style='color: #ffca28;'>(cheque spam/promoções)</span> para ativar sua conta.";
