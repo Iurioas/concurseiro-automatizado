@@ -5,10 +5,36 @@
   <title>Ranking - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .title-container {
+      text-align: center;
+      padding: 15px 0;
+      background: linear-gradient(135deg, #6200ee, #3700b3);
+      width: 100%;
+    }
+    h1#title {
+      font-family: 'Roboto', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      color: #42A5F5;
+      margin: 0;
+    }
+    nav {
+      position: fixed;
+      top: 60px;
+      width: 100%;
+      z-index: 1000;
+    }
+    main {
+      margin-top: 110px;
+    }
+  </style>
 </head>
 <body>
+  <div class="title-container">
+    <h1 id="title">Concurseiro Automatizado</h1>
+  </div>
   <nav>
-    <span>Concurseiro Automatizado</span>
     <a href="planner.html">Planejador</a>
     <a href="study.html">Planejado</a>
     <a href="achievements.html">Conquistas</a>
@@ -16,19 +42,16 @@
     <button onclick="signOut()">Sair</button>
   </nav>
   <main>
-    <h1>Ranking dos Top 10 Concurseiros</h1>
-    <div id="loading">Carregando...</div>
-    <table id="rankingTable" style="display: none;">
-      <thead><tr><th>Posição</th><th>Login</th><th>Pontuação</th><th>Etapas Válidas</th><th>Insígnias</th></tr></thead>
-      <tbody></tbody>
+    <h1>Ranking</h1>
+    <table>
+      <thead><tr><th>Posição</th><th>Email</th><th>Pontuação</th></tr></thead>
+      <tbody id="rankingList"></tbody>
     </table>
+    <div id="loading">Carregando ranking...</div>
   </main>
-  <footer>
-    <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
-  </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { playClickSound } from "./sounds.js";
 
@@ -46,12 +69,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    setPersistence(auth, browserLocalPersistence)
-      .then(() => console.log("Persistência configurada em ranking."))
-      .catch(error => console.error("Erro ao configurar persistência:", error.message));
-
     onAuthStateChanged(auth, async (user) => {
-      console.log("Estado de autenticação em ranking:", user ? "Autenticado" : "Não autenticado");
       if (!user) {
         console.log("Redirecionando para login...");
         location.href = "login.html";
@@ -59,16 +77,15 @@
       }
       console.log("Usuário autenticado:", user.uid);
       try {
-        console.log("Carregando ranking...");
-        const usersSnapshot = await getDocs(query(collection(db, "users"), orderBy("rankingScore", "desc"), limit(10)));
-        const ranking = usersSnapshot.docs.map((doc, index) => ({
-          login: doc.data().login || doc.data().email || "Usuário Sem Login", // Usa login, fallback para email, ou "Usuário Sem Login"
-          rankingScore: doc.data().rankingScore ? doc.data().rankingScore.toFixed(2) : 0,
-          validLogs: doc.data().logs ? doc.data().logs.filter(l => l.validForRanking).length : 0,
-          achievements: doc.data().achievements ? doc.data().achievements.length : 0
+        const q = query(collection(db, "users"), orderBy("rankingScore", "desc"), limit(10));
+        const snapshot = await getDocs(q);
+        const ranking = snapshot.docs.map((doc, index) => ({
+          email: doc.data().email,
+          score: doc.data().rankingScore || 0,
+          position: index + 1
         }));
-        console.log("Ranking carregado:", ranking.length, "usuários.");
         renderRanking(ranking);
+        document.getElementById("loading").style.display = "none";
       } catch (error) {
         console.error("Erro ao carregar ranking:", error.message);
         document.getElementById("loading").innerText = "Erro ao carregar ranking: " + error.message;
@@ -76,25 +93,22 @@
     });
 
     function renderRanking(ranking) {
-      document.getElementById("loading").style.display = "none";
-      const tbody = document.querySelector("#rankingTable tbody");
-      document.getElementById("rankingTable").style.display = "block";
-      tbody.innerHTML = ranking.map((user, index) => `
+      const tbody = document.getElementById("rankingList");
+      tbody.innerHTML = ranking.map(user => `
         <tr>
-          <td>${index + 1}</td>
-          <td>${user.login}</td>
-          <td>${user.rankingScore}</td>
-          <td>${user.validLogs}</td>
-          <td>${user.achievements}</td>
+          <td>${user.position}</td>
+          <td>${user.email}</td>
+          <td>${user.score.toFixed(2)}</td>
         </tr>
-      `).join("");
+      `).join("") || "<tr><td colspan='3'>Nenhum dado de ranking disponível.</td></tr>";
     }
 
-    window.signOut = async function() {
+    window.signOut = async () => {
       playClickSound();
       try {
         await signOut(auth);
-        console.log("Logout realizado com sucesso.");
+        localStorage.clear();
+        console.log("Logout realizado.");
         location.href = "index.html";
       } catch (error) {
         console.error("Erro ao sair:", error.message);
