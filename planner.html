@@ -5,6 +5,8 @@
   <title>Planejador - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <!-- Carrega o Chart.js como script externo -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     .info-box {
       background: #2c2c2c;
@@ -58,7 +60,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
-    import { Chart } from "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
@@ -158,9 +159,14 @@
         await setDoc(doc(db, "users", user.uid), { plan }, { merge: true });
         console.log("Plano salvo com sucesso no Firestore!");
 
-        document.getElementById("trends").style.display = "block";
-        renderTrendsChart();
-        console.log("Gráfico de tendências exibido.");
+        // Tenta exibir o gráfico, mas não trava se falhar
+        try {
+          document.getElementById("trends").style.display = "block";
+          renderTrendsChart();
+          console.log("Gráfico de tendências exibido.");
+        } catch (chartError) {
+          console.warn("Erro ao renderizar gráfico:", chartError.message);
+        }
 
         setTimeout(() => {
           console.log("Redirecionando para study.html...");
