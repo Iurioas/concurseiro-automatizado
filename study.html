@@ -92,8 +92,9 @@
         console.log("Carregando plano e progresso...");
         const planDoc = await getDoc(doc(db, "plans", user.uid));
         if (planDoc.exists()) {
-          planData = planDoc.data().plan;
+          planData = planDoc.data().plan || [];
           console.log("Plano carregado:", planData.length, "etapas.");
+          if (planData.length === 0) throw new Error("Plano vazio!");
           const userDoc = await getDoc(doc(db, "users", user.uid));
           logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
           achievements = userDoc.exists() && userDoc.data().achievements ? userDoc.data().achievements : [];
@@ -112,6 +113,7 @@
       } catch (error) {
         console.error("Erro ao carregar plano:", error.message);
         document.getElementById("loading").innerText = "Erro ao carregar plano: " + error.message;
+        setTimeout(() => location.href = "planner.html", 2000);
       }
     });
 
