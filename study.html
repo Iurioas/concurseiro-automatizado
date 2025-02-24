@@ -6,6 +6,36 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <style>
+    /* Estilo adicional para a tabela referencial */
+    #referenceTable {
+      width: 100%;
+      margin: 15px 0;
+      border-collapse: collapse;
+      background: #2c2c2c;
+      font-size: 13px;
+    }
+    #referenceTable th, #referenceTable td {
+      border: 1px solid #555;
+      padding: 8px;
+      text-align: left;
+    }
+    #referenceTable th {
+      background: #3700b3;
+      color: #fff;
+    }
+    #referenceTable .current {
+      background: #bb86fc;
+      color: #fff;
+      font-weight: bold;
+    }
+    #referenceTable .divider {
+      background: #444;
+      color: #e0e0e0;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
   <nav>
@@ -22,13 +52,8 @@
       <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th><th>Concluído</th></tr></thead>
       <tbody></tbody>
     </table>
-    <h2>Etapas Concluídas</h2>
-    <table id="completedTable">
-      <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th></tr></thead>
-      <tbody></tbody>
-    </table>
-    <h2>Próximas Etapas</h2>
-    <table id="nextStepsTable">
+    <h2>Referência do Plano</h2>
+    <table id="referenceTable">
       <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th></tr></thead>
       <tbody></tbody>
     </table>
@@ -122,11 +147,9 @@
     function renderPlan() {
       document.getElementById("loading").style.display = "none";
       const tbody = document.querySelector("#studyTable tbody");
-      const completedTbody = document.querySelector("#completedTable tbody");
-      const nextTbody = document.querySelector("#nextStepsTable tbody");
+      const refTbody = document.querySelector("#referenceTable tbody");
       tbody.innerHTML = "";
-      completedTbody.innerHTML = "";
-      nextTbody.innerHTML = "";
+      refTbody.innerHTML = "";
 
       if (planData.length === 0) {
         tbody.innerHTML = "<tr><td colspan='4'>Nenhum plano carregado.</td></tr>";
@@ -149,27 +172,46 @@
         playSuccessSound();
       }
 
+      // Tabela referencial
       const completedSteps = planData.slice(0, currentIndex);
-      completedSteps.forEach(item => {
-        completedTbody.innerHTML += `
-          <tr>
-            <td>${item.priorityNumber}</td>
-            <td>${item.subject}</td>
-            <td>${item.subtopic}</td>
+      if (completedSteps.length > 0) {
+        refTbody.innerHTML += `<tr class="divider"><td colspan="3">Etapas Concluídas</td></tr>`;
+        completedSteps.forEach(item => {
+          refTbody.innerHTML += `
+            <tr>
+              <td>${item.priorityNumber}</td>
+              <td>${item.subject}</td>
+              <td>${item.subtopic}</td>
+            </tr>
+          `;
+        });
+      }
+
+      refTbody.innerHTML += `<tr class="divider"><td colspan="3">Etapa Atual</td></tr>`;
+      if (currentIndex < planData.length) {
+        const currentItem = planData[currentIndex];
+        refTbody.innerHTML += `
+          <tr class="current">
+            <td>${currentItem.priorityNumber}</td>
+            <td>${currentItem.subject}</td>
+            <td>${currentItem.subtopic}</td>
           </tr>
         `;
-      });
+      }
 
       const nextSteps = planData.slice(currentIndex + 1, currentIndex + 11);
-      nextSteps.forEach(item => {
-        nextTbody.innerHTML += `
-          <tr>
-            <td>${item.priorityNumber}</td>
-            <td>${item.subject}</td>
-            <td>${item.subtopic}</td>
-          </tr>
-        `;
-      });
+      if (nextSteps.length > 0) {
+        refTbody.innerHTML += `<tr class="divider"><td colspan="3">Próximas Etapas</td></tr>`;
+        nextSteps.forEach(item => {
+          refTbody.innerHTML += `
+            <tr>
+              <td>${item.priorityNumber}</td>
+              <td>${item.subject}</td>
+              <td>${item.subtopic}</td>
+            </tr>
+          `;
+        });
+      }
 
       document.getElementById("backButton").style.display = currentIndex > 0 ? "block" : "none";
     }
@@ -234,8 +276,8 @@
       playClickSound();
       if (confirm("Tem certeza que deseja retroceder? Isso apagará o log da etapa atual.")) {
         if (currentIndex > 0) {
-          logs = logs.filter(log => log.etapa !== currentIndex + 1); // Remove o log da etapa atual
-          planData[currentIndex].completed = false; // Reverte a conclusão
+          logs = logs.filter(log => log.etapa !== currentIndex + 1);
+          planData[currentIndex].completed = false;
           currentIndex--;
           localStorage.setItem("currentIndex", currentIndex);
           try {
