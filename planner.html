@@ -9,26 +9,22 @@
     .info-box {
       background: #2c2c2c;
       padding: 12px;
-      margin: 15px 0;
+      margin: 10px 0;
       border-radius: 5px;
-      border: 1px solid #444;
       color: #e0e0e0;
-      font-size: 14px;
-      line-height: 1.6;
+      border: 1px solid #444;
     }
     button {
       margin: 5px;
-      padding: 10px 15px;
-      background: linear-gradient(135deg, #bb86fc, #9c27b0);
-      color: #fff;
+      padding: 10px;
+      background: #42A5F5;
+      color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     button:hover {
-      transform: scale(1.05);
-      box-shadow: 0 3px 8px rgba(187, 134, 252, 0.4);
+      background: #1e88e5;
     }
   </style>
 </head>
@@ -73,6 +69,7 @@
       appId: "1:938840578480:web:4e8dd7e2dfdc42d7649e75",
       measurementId: "G-H72D875STB"
     };
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -154,13 +151,17 @@
       }
 
       try {
-        console.log(`Gerando plano de ${months} meses com ${topics} tópicos...`);
+        console.log(`Tentando gerar plano de ${months} meses com ${topics} tópicos...`);
         const plan = months === 3 ? plan3Months : Array(topics).fill("Subtópico Exemplo");
+        console.log("Plano selecionado:", plan.length, "itens");
+
         await setDoc(doc(db, "users", user.uid), { plan }, { merge: true });
-        console.log("Plano salvo com sucesso!");
-        
+        console.log("Plano salvo com sucesso no Firestore!");
+
         document.getElementById("trends").style.display = "block";
         renderTrendsChart();
+        console.log("Gráfico de tendências exibido.");
+
         setTimeout(() => {
           console.log("Redirecionando para study.html...");
           location.href = "study.html";
