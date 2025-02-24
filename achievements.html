@@ -5,10 +5,36 @@
   <title>Conquistas - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .title-container {
+      text-align: center;
+      padding: 15px 0;
+      background: linear-gradient(135deg, #6200ee, #3700b3);
+      width: 100%;
+    }
+    h1#title {
+      font-family: 'Roboto', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      color: #42A5F5;
+      margin: 0;
+    }
+    nav {
+      position: fixed;
+      top: 60px;
+      width: 100%;
+      z-index: 1000;
+    }
+    main {
+      margin-top: 110px;
+    }
+  </style>
 </head>
 <body>
+  <div class="title-container">
+    <h1 id="title">Concurseiro Automatizado</h1>
+  </div>
   <nav>
-    <span>Concurseiro Automatizado</span>
     <a href="planner.html">Planejador</a>
     <a href="study.html">Planejado</a>
     <a href="achievements.html">Conquistas</a>
@@ -16,21 +42,18 @@
     <button onclick="signOut()">Sair</button>
   </nav>
   <main>
-    <h1>Suas Conquistas</h1>
-    <div id="loading">Carregando...</div>
-    <div id="achievementsList" style="display: none;"></div>
+    <h1>Conquistas</h1>
+    <div id="achievementsList"></div>
+    <div id="loading">Carregando conquistas...</div>
   </main>
-  <footer>
-    <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
-  </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { playClickSound } from "./sounds.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo", // Chave API corrigida
+      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
       authDomain: "concurseiro-automatizado.firebaseapp.com",
       projectId: "concurseiro-automatizado",
       storageBucket: "concurseiro-automatizado.firebasestorage.app",
@@ -51,12 +74,7 @@
       { id: 5, name: "Magistrado Supremo", description: "Conclua 50 etapas." }
     ];
 
-    setPersistence(auth, browserLocalPersistence)
-      .then(() => console.log("Persistência configurada em achievements."))
-      .catch(error => console.error("Erro ao configurar persistência:", error.message));
-
     onAuthStateChanged(auth, async (user) => {
-      console.log("Estado de autenticação em achievements:", user ? "Autenticado" : "Não autenticado");
       if (!user) {
         console.log("Redirecionando para login...");
         location.href = "login.html";
@@ -64,35 +82,37 @@
       }
       console.log("Usuário autenticado:", user.uid);
       try {
-        console.log("Carregando conquistas...");
         const userDoc = await getDoc(doc(db, "users", user.uid));
-        const achievements = userDoc.exists() && userDoc.data().achievements ? userDoc.data().achievements : [];
-        console.log("Conquistas carregadas:", achievements.length);
-        renderAchievements(achievements);
+        let userAchievements = userDoc.exists() && userDoc.data().achievements ? userDoc.data().achievements : [];
+        renderAchievements(userAchievements);
+        document.getElementById("loading").style.display = "none";
       } catch (error) {
         console.error("Erro ao carregar conquistas:", error.message);
         document.getElementById("loading").innerText = "Erro ao carregar conquistas: " + error.message;
       }
     });
 
-    function renderAchievements(achievements) {
-      document.getElementById("loading").style.display = "none";
-      const list = document.getElementById("achievementsList");
-      list.style.display = "block";
-      list.innerHTML = achievements.length ? achievements.map(a => `
-        <div style="background: #333; padding: 12px; margin: 8px 0; border-radius: 4px;">
-          <strong>${a.name}</strong><br>
-          <span>${achievementList.find(al => al.id === a.id).description}</span><br>
-          <span style="font-size: 12px; color: #bbb;">Conquistado em: ${new Date(a.date).toLocaleString("pt-BR")}</span>
-        </div>
-      `).join("") : "<p>Nenhuma conquista ainda. Continue estudando!</p>";
+    function renderAchievements(userAchievements) {
+      const achievementsList = document.getElementById("achievementsList");
+      const html = achievementList.map(achievement => {
+        const earned = userAchievements.find(a => a.id === achievement.id);
+        return `
+          <div style="background: ${earned ? '#4caf50' : '#333'}; padding: 12px; margin: 8px 0; border-radius: 4px;">
+            <strong>${achievement.name}</strong><br>
+            <span>${achievement.description}</span><br>
+            <span style="font-size: 12px; color: #bbb;">${earned ? "Conquistado em: " + new Date(earned.date).toLocaleString("pt-BR") : "Não conquistado"}</span>
+          </div>
+        `;
+      }).join("");
+      achievementsList.innerHTML = html || "<p>Nenhuma conquista ainda. Continue estudando!</p>";
     }
 
-    window.signOut = async function() {
+    window.signOut = async () => {
       playClickSound();
       try {
         await signOut(auth);
-        console.log("Logout realizado com sucesso.");
+        localStorage.clear();
+        console.log("Logout realizado.");
         location.href = "index.html";
       } catch (error) {
         console.error("Erro ao sair:", error.message);
