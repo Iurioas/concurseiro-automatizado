@@ -53,13 +53,13 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    let currentIndex = 0; // Inicializa como 0, será atualizado pelo Firestore ou localStorage
+    let currentIndex = 0;
     let planData = [];
     let logs = [];
     let achievements = [];
     let lastCompletionTime = localStorage.getItem("lastCompletionTime") ? parseInt(localStorage.getItem("lastCompletionTime")) : 0;
 
-    const MINIMUM_TIME_FOR_RANKING = 10 * 60 * 1000; // 10 minutos em milissegundos
+    const MINIMUM_TIME_FOR_RANKING = 10 * 60 * 1000;
 
     const achievementList = [
       { id: 1, name: "Guardião da Lei", condition: logs => logs.length >= 1, description: "Conclua sua primeira etapa." },
@@ -90,7 +90,6 @@
           const userDoc = await getDoc(doc(db, "users", user.uid));
           logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
           achievements = userDoc.exists() && userDoc.data().achievements ? userDoc.data().achievements : [];
-          // Recupera o currentIndex do Firestore, com fallback para localStorage ou 0
           currentIndex = userDoc.exists() && userDoc.data().currentIndex !== undefined 
             ? userDoc.data().currentIndex 
             : (localStorage.getItem("currentIndex") ? parseInt(localStorage.getItem("currentIndex")) : 0);
@@ -113,14 +112,23 @@
       document.getElementById("loading").style.display = "none";
       const tbody = document.querySelector("#studyTable tbody");
       tbody.innerHTML = "";
-      if (currentIndex < planData.length) {
-        const item = planData[currentIndex];
-        tbody.innerHTML = `<tr><td>${item.priorityNumber}</td><td>${item.priorityCategory}</td><td>${item.subject}</td><td>${item.subtopic}</td><td><input type="checkbox" onchange="completeStep()"></td><td>${item.reason}</td></tr>`;
-      } else {
-        tbody.innerHTML = "<tr><td colspan='6'>Todas as etapas concluídas!</td></tr>";
-        showNotification("Plano concluído! Parabéns!");
-        playSuccessSound();
+      if (planData.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='6'>Nenhum plano carregado.</td></tr>";
+        return;
       }
+      planData.forEach((item, index) => {
+        const isCurrent = index === currentIndex;
+        tbody.innerHTML += `
+          <tr>
+            <td>${item.priorityNumber}</td>
+            <td>${item.priorityCategory}</td>
+            <td>${item.subject}</td>
+            <td>${item.subtopic}</td>
+            <td><input type="checkbox" ${item.completed ? "checked" : ""} ${isCurrent ? "onchange='completeStep()'" : "disabled"}></td>
+            <td>${item.reason}</td>
+          </tr>
+        `;
+      });
       document.getElementById("backButton").style.display = currentIndex > 0 ? "block" : "none";
     }
 
@@ -157,7 +165,8 @@
       const avgScore = validLogs.reduce((sum, l) => sum + parseInt(l.nota_autoavaliacao), 0) / validLogs.length || 1;
       const rankingScore = validLogs.length * (totalTime / validLogs.length) * avgScore;
 
-      currentIndex++; // Avança para a próxima etapa
+      planData[currentIndex].completed = true;
+      currentIndex++;
 
       try {
         console.log("Salvando log, conquistas e progresso...");
@@ -165,9 +174,10 @@
           logs, 
           achievements, 
           rankingScore, 
-          currentIndex // Salva o progresso no Firestore
+          currentIndex 
         });
-        localStorage.setItem("currentIndex", currentIndex); // Salva no localStorage como backup
+        await updateDoc(doc(db, "plans", auth.currentUser.uid), { plan: planData });
+        localStorage.setItem("currentIndex", currentIndex);
         localStorage.setItem("lastCompletionTime", now);
         lastCompletionTime = now;
         playSuccessSound();
