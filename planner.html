@@ -5,41 +5,46 @@
   <title>Planejador - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <div class="title-container">
     <h1>Concurseiro Automatizado</h1>
   </div>
   <nav>
+    <a href="dashboard.html">Área do Aluno</a>
     <a href="planner.html">Planejador</a>
     <a href="study.html">Planejado</a>
+    <a href="trends.html">Tendências</a>
     <a href="achievements.html">Conquistas</a>
     <a href="ranking.html">Ranking</a>
     <button onclick="signOut()">Sair</button>
   </nav>
   <main>
-    <h2>Monte Seu Plano de Estudos</h2>
-    <div class="info-box" style="background: #33334D; padding: 15px; border-radius: 6px; box-shadow: 0 2px 8px rgba(149, 117, 205, 0.2);">
-      <p>Nosso plano é baseado na análise de provas anteriores das bancas correspondentes. Cobrimos 80% dos assuntos mais cobrados historicamente, priorizando os de maior relevância em ordem decrescente, para maximizar suas chances de aprovação. Além disso, incluímos alguns assuntos em tendência, a fim de garantir uma visão futura ao plano. O tempo sugerido é baseado em 90 minutos por subtópico, mas você pode ajustar seu ritmo diário.</p>
+    <h2 style="text-align: center; margin-bottom: 20px;">Monte Seu Plano de Estudos</h2>
+    <div class="info-box" style="background: #33334D; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(149, 117, 205, 0.3); border: 1px solid #444466; margin-bottom: 25px;">
+      <p style="font-size: 14px; line-height: 1.8; color: #EDE7F6;">Nosso plano é baseado na análise de provas anteriores das bancas correspondentes. Cobrimos 80% dos assuntos mais cobrados historicamente, priorizando os de maior relevância em ordem decrescente, para maximizar suas chances de aprovação. Além disso, incluímos alguns assuntos em tendência, a fim de garantir uma visão futura ao plano. O tempo sugerido é baseado em 90 minutos por subtópico, mas você pode ajustar seu ritmo diário.</p>
     </div>
-    <div id="planStatus"></div>
-    <h3>Escolha seu concurso e plano:</h3>
-    <div class="contest-group" style="margin: 20px 0;">
-      <h4 style="color: #D1C4E9;">Juiz Federal (FGV)</h4>
-      <div class="button-group">
+    <div id="planStatus" style="text-align: center; margin-bottom: 20px;"></div>
+    <h3 style="text-align: center; margin-bottom: 15px;">Escolha seu concurso e plano:</h3>
+    <div class="contest-group" style="background: #2A2A40; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); margin: 20px auto; max-width: 600px;">
+      <h4 style="color: #D1C4E9; text-align: center; margin-bottom: 15px;">Juiz Federal (FGV)</h4>
+      <div class="button-group" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 10px;">
         <button onclick="generatePlan(3, 215)">3 Meses (215 subtópicos, ~6h/dia)</button>
         <button onclick="generatePlan(6, 300)">6 Meses (300 subtópicos, ~4h/dia)</button>
         <button onclick="generatePlan(9, 360)">9 Meses (360 subtópicos, ~3h/dia)</button>
         <button onclick="generatePlan(12, 400)">12 Meses (400 subtópicos, ~3h/dia)</button>
       </div>
     </div>
-    
+    <p style="text-align: center; margin-top: 20px;"><a href="trends.html" style="color: #9575CD;">Ver Tendências Recentes</a></p>
   </main>
+  <footer>
+    <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
+  </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { playClickSound } from "./sounds.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
@@ -270,20 +275,22 @@
     };
 
     onAuthStateChanged(auth, async (user) => {
+      console.log("Estado de autenticação em planner:", user ? "Autenticado" : "Não autenticado");
+      const planStatus = document.getElementById("planStatus");
       if (!user) {
-        console.log("Usuário não autenticado, redirecionando para login...");
-        location.href = "login.html";
+        console.log("Redirecionando para login após 1 segundo...");
+        planStatus.innerText = "Você não está autenticado. Redirecionando para login...";
+        setTimeout(() => location.href = "login.html", 1000);
         return;
       }
       console.log("Usuário autenticado:", user.uid);
       try {
         const planDoc = await getDoc(doc(db, "plans", user.uid));
         const userDoc = await getDoc(doc(db, "users", user.uid));
-        const planStatus = document.getElementById("planStatus");
         if (planDoc.exists()) {
           const planLength = planDoc.data().plan.length;
+          const months = planDoc.data().months || (planLength === 215 ? 3 : planLength === 300 ? 6 : planLength === 360 ? 9 : planLength === 400 ? 12 : "Desconhecido");
           const currentIndex = userDoc.exists() && userDoc.data().currentIndex !== undefined ? userDoc.data().currentIndex : 0;
-          const months = planLength === 215 ? 3 : planLength === 300 ? 6 : planLength === 360 ? 9 : planLength === 400 ? 12 : "Erro: Tamanho inválido";
           console.log("Plano detectado com", planLength, "etapas.");
           planStatus.innerHTML = `<span style="background: #4CAF50; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);">Plano vigente: Juiz Federal (FGV) - ${months} meses (${planLength} etapas). Progresso: ${currentIndex}/${planLength} concluídas.</span>`;
         } else {
@@ -291,6 +298,7 @@
         }
       } catch (error) {
         console.error("Erro ao verificar plano:", error.message);
+        planStatus.innerText = "Erro ao verificar plano: " + error.message;
       }
     });
 
@@ -301,12 +309,13 @@
         location.href = "login.html";
         return;
       }
-
+      playClickSound();
       try {
         const planDoc = await getDoc(doc(db, "plans", user.uid));
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const planStatus = document.getElementById("planStatus");
         if (planDoc.exists()) {
           const planLength = planDoc.data().plan.length;
-          const userDoc = await getDoc(doc(db, "users", user.uid));
           const currentIndex = userDoc.exists() && userDoc.data().currentIndex !== undefined ? userDoc.data().currentIndex : 0;
           if (!confirm(`Você já tem um plano vigente com ${planLength} etapas (${currentIndex} concluídas). Gerar um novo plano excluirá o progresso atual. Deseja continuar?`)) {
             return;
@@ -314,7 +323,8 @@
         }
 
         console.log(`Gerando plano de ${months} meses com ${topics} tópicos...`);
-        const rawPlan = months === 3 ? plan3Months : Array(topics).fill("Subtópico Exemplo");
+        const rawPlan = months === 3 ? plan3Months.slice(0, 215) : Array(topics).fill("Subtópico Exemplo");
+        if (rawPlan.length !== topics) throw new Error(`Erro: O plano gerado tem ${rawPlan.length} etapas, mas deveria ter ${topics}!`);
         const plan = rawPlan.map((subtopic, index) => ({
           priorityNumber: index + 1,
           subject: subtopicsToSubjects[subtopic] || "Não categorizado",
@@ -323,35 +333,25 @@
         }));
         console.log("Plano formatado:", plan.length, "itens");
 
-        await setDoc(doc(db, "plans", user.uid), { plan }, { merge: false });
+        await setDoc(doc(db, "plans", user.uid), { plan, topics, months }, { merge: false });
         await updateDoc(doc(db, "users", user.uid), { currentIndex: 0, logs: [], achievements: [] });
         console.log("Plano salvo com sucesso no Firestore na coleção 'plans'!");
 
-        document.getElementById("planStatus").innerHTML = `Novo plano de ${months} meses com ${topics} etapas gerado com sucesso!`;
-        location.href = "trends.html";
+        planStatus.innerHTML = `Novo plano de ${months} meses com ${topics} etapas gerado com sucesso!`;
+        setTimeout(() => location.href = "study.html", 1000); // Delay para garantir salvamento
       } catch (error) {
         console.error("Erro ao gerar plano:", error.message);
         alert("Erro ao gerar plano: " + error.message);
       }
     };
 
-    
-      const ctx = document.getElementById("trendsChart").getContext("2d");
-      new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels: ["Direito Processual Internacional", "RGPS", "Serviços Públicos"],
-          datasets: [{ label: "Relevância Recente (%)", data: [4.6, 2.5, 2.5], backgroundColor: "#9575CD" }]
-        },
-        options: { scales: { y: { beginAtZero: true, max: 5 } } }
-      });
-    }
-
-    window.signOut = async () => { 
+    window.signOut = async () => {
+      playClickSound();
       try {
-        await signOut(auth); 
+        await signOut(auth);
+        localStorage.clear();
         console.log("Logout realizado.");
-        location.href = "index.html"; 
+        location.href = "index.html";
       } catch (error) {
         console.error("Erro ao sair:", error.message);
         alert("Erro ao sair: " + error.message);
