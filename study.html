@@ -99,12 +99,6 @@
           const planDataRaw = planDoc.data();
           planData = planDataRaw.plan || [];
           console.log("Plano carregado:", planData.length, "etapas, meses:", planDataRaw.months, "topics:", planDataRaw.topics);
-          if (planData.length === 0) {
-            console.log("Plano vazio detectado!");
-            loading.innerText = "Plano vazio. Crie um novo plano no Planejador.";
-            setTimeout(() => location.href = "planner.html", 2000);
-            return;
-          }
           const userDoc = await getDoc(doc(db, "users", user.uid));
           logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
           achievements = userDoc.exists() && userDoc.data().achievements ? userDoc.data().achievements : [];
@@ -114,9 +108,16 @@
           console.log("CurrentIndex carregado:", currentIndex);
           console.log("Logs carregados:", logs.length);
           console.log("Plano a ser renderizado:", planData);
-          loading.style.display = "none"; // Esconde loading
-          renderPlan();
-          checkAchievements();
+          loading.style.display = "none"; // Esconde loading antes de verificar o plano
+          if (planData.length === 0) {
+            console.log("Plano vazio detectado!");
+            loading.innerText = "Plano vazio. Crie um novo plano no Planejador.";
+            loading.style.display = "block"; // Mostra novamente para exibir mensagem
+            setTimeout(() => location.href = "planner.html", 2000);
+          } else {
+            renderPlan();
+            checkAchievements();
+          }
         } else {
           console.log("Nenhum plano encontrado.");
           loading.innerText = "Nenhum plano encontrado. Crie um plano no Planejador.";
