@@ -1,8 +1,9 @@
 export const playClickSound = () => {
   try {
+    console.log("Tentando tocar som de clique...");
     const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-modern-click-box-check-1120.mp3');
     audio.volume = 0.3;
-    audio.play().catch(error => console.error("Erro ao tocar som de clique:", error));
+    audio.play().then(() => console.log("Som de clique tocado com sucesso!")).catch(error => console.error("Erro ao tocar som de clique:", error));
   } catch (error) {
     console.error("Erro ao carregar som de clique:", error);
   }
