@@ -74,6 +74,29 @@
 
     window.deleteAccount = async function() {
       playClickSound();
+      if (confirm("Tem certeza que deseja deletar sua conta? Isso removerá todos os seus dados permanentemente.")) {
+        try {
+          const user = auth.currentUser;
+          if (user) {
+            await deleteDoc(doc(db, "users", user.uid)); // Deleta do Firestore (users)
+            await deleteDoc(doc(db, "plans", user.uid)); // Deleta do Firestore (plans)
+            await user.delete(); // Deleta do Authentication
+            localStorage.clear();
+            console.log("Conta deletada com sucesso.");
+            alert("Conta deletada com sucesso!");
+            location.href = "index.html";
+          } else {
+            alert("Você precisa estar logado para deletar a conta.");
+          }
+        } catch (error) {
+          console.error("Erro ao deletar conta:", error.message);
+          alert("Erro ao deletar conta: " + error.message);
+        }
+      }
+    };
+
+    window.deleteAccount = async function() {
+      playClickSound();
       if (confirm("Tem certeza que deseja deletar sua conta? Isso é irreversível.")) {
         try {
           const user = auth.currentUser;
