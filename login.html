@@ -53,13 +53,20 @@
         const user = userCredential.user;
         console.log("Usuário logado:", user.uid);
         const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists() && userDoc.data().status === "ativo") {
-          console.log("Conta ativa, redirecionando para dashboard...");
-          playClickSound();
-          location.href = "dashboard.html";
+        if (userDoc.exists()) {
+          const status = userDoc.data().status;
+          console.log("Status da conta:", status);
+          if (status === "ativo") {
+            console.log("Conta ativa, redirecionando para dashboard...");
+            playClickSound();
+            location.href = "dashboard.html";
+          } else {
+            document.getElementById("message").innerText = "Conta aguardando ativação. Status atual: " + status;
+            console.log("Conta inativa. Status:", status);
+          }
         } else {
-          document.getElementById("message").innerText = "Conta aguardando ativação.";
-          console.log("Conta inativa.");
+          document.getElementById("message").innerText = "Usuário não encontrado no Firestore.";
+          console.log("Documento do usuário não existe.");
         }
       } catch (error) {
         console.error("Erro ao logar:", error.message);
