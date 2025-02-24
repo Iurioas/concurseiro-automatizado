@@ -90,10 +90,12 @@
         return;
       }
       console.log("Usuário autenticado:", user.uid);
+      loading.style.display = "block";
       try {
         console.log("Carregando plano e progresso...");
         const planDoc = await getDoc(doc(db, "plans", user.uid));
         console.log("PlanDoc obtido:", planDoc.exists() ? "Existe" : "Não existe");
+        loading.style.display = "none"; // Esconde loading após tentativa
         if (planDoc.exists()) {
           const planDataRaw = planDoc.data();
           planData = planDataRaw.plan || [];
@@ -101,6 +103,7 @@
           if (planData.length === 0) {
             console.log("Plano vazio detectado!");
             loading.innerText = "Plano vazio. Crie um novo plano no Planejador.";
+            loading.style.display = "block";
             setTimeout(() => location.href = "planner.html", 2000);
             return;
           }
@@ -113,17 +116,18 @@
           console.log("CurrentIndex carregado:", currentIndex);
           console.log("Logs carregados:", logs.length);
           console.log("Plano a ser renderizado:", planData);
-          loading.style.display = "none"; // Esconde loading
           renderPlan();
           checkAchievements();
         } else {
           console.log("Nenhum plano encontrado.");
           loading.innerText = "Nenhum plano encontrado. Crie um plano no Planejador.";
+          loading.style.display = "block";
           setTimeout(() => location.href = "planner.html", 2000);
         }
       } catch (error) {
         console.error("Erro ao carregar plano:", error.message);
         loading.innerText = "Erro ao carregar plano: " + error.message;
+        loading.style.display = "block";
         setTimeout(() => location.href = "planner.html", 2000);
       }
     });
