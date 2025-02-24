@@ -234,6 +234,7 @@
           logs, 
           achievements, 
           rankingScore, 
+          monthlyRankingScore,
           currentIndex 
         });
         await updateDoc(doc(db, "plans", auth.currentUser.uid), { plan: planData });
