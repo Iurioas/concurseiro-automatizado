@@ -18,6 +18,7 @@
   <main>
     <h1>Área do Concurseiro</h1>
     <p>Bem-vindo! Escolha uma opção no menu acima para começar.</p>
+    <div id="loading">Carregando...</div>
   </main>
   <footer>
     <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
@@ -28,7 +29,7 @@
     import { playClickSound } from "./sounds.js";
 
     const firebaseConfig = {
-      apiKey: "AIzxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
       authDomain: "concurseiro-automatizado.firebaseapp.com",
       projectId: "concurseiro-automatizado",
       storageBucket: "concurseiro-automatizado.firebasestorage.app",
@@ -47,11 +48,12 @@
     onAuthStateChanged(auth, async (user) => {
       console.log("Estado de autenticação em dashboard:", user ? "Autenticado" : "Não autenticado");
       if (!user) {
-        console.log("Redirecionando para login...");
-        location.href = "login.html";
-      } else {
-        console.log("Usuário autenticado:", user.uid);
+        console.log("Redirecionando para login após 1 segundo...");
+        setTimeout(() => location.href = "login.html", 1000); // Atraso de 1s para evitar redirecionamento instantâneo
+        return;
       }
+      console.log("Usuário autenticado:", user.uid);
+      document.getElementById("loading").style.display = "none"; // Esconde o loader quando autenticado
     });
 
     window.signOut = async function() {
