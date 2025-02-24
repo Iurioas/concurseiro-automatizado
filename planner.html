@@ -7,6 +7,25 @@
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
+    .title-container {
+      text-align: center;
+      padding: 15px 0;
+      background: linear-gradient(135deg, #6200ee, #3700b3);
+      width: 100%;
+    }
+    h1 {
+      font-family: 'Roboto', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      color: #42A5F5;
+      margin: 0;
+    }
+    nav {
+      position: fixed;
+      top: 60px;
+      width: 100%;
+      z-index: 1000;
+    }
     .info-box {
       background: #2c2c2c;
       padding: 12px;
@@ -31,11 +50,16 @@
       color: #bb86fc;
       margin: 10px 0;
     }
+    main {
+      margin-top: 110px;
+    }
   </style>
 </head>
 <body>
+  <div class="title-container">
+    <h1>Concurseiro Automatizado</h1>
+  </div>
   <nav>
-    <span>Concurseiro Automatizado</span>
     <a href="planner.html">Planejador</a>
     <a href="study.html">Planejado</a>
     <a href="achievements.html">Conquistas</a>
@@ -43,12 +67,12 @@
     <button onclick="signOut()">Sair</button>
   </nav>
   <main>
-    <h1>Monte Seu Plano de Estudos</h1>
+    <h2>Monte Seu Plano de Estudos</h2>
     <div class="info-box">
       <p>Nosso plano é baseado na análise de provas anteriores da FGV para Juiz Federal. Cobrimos 80% dos assuntos mais cobrados historicamente, priorizando os de maior relevância em ordem decrescente, para maximizar suas chances de aprovação.</p>
     </div>
     <div id="planStatus"></div>
-    <h2>Escolha seu plano:</h2>
+    <h3>Escolha seu plano:</h3>
     <button onclick="generatePlan(3, 215)">3 Meses (215 subtópicos, ~6h/dia)</button>
     <button onclick="generatePlan(6, 300)">6 Meses (300 subtópicos, ~4h/dia)</button>
     <button onclick="generatePlan(9, 360)">9 Meses (360 subtópicos, ~3h/dia)</button>
@@ -64,7 +88,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js"; // Adicionado updateDoc
+    import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
@@ -81,61 +105,61 @@
     const db = getFirestore(app);
 
     const plan3Months = [
-      "Pensão por Morte", "Aposentadoria Especial", "Aposentadoria por Tempo de Contribuição", 
-      "Agências Reguladoras", "Prescrição", "Decadência", "Manutenção e Perda da Qualidade de Segurado", 
-      "Segurados Obrigatórios - Segurado Especial", "Meios Probatórios Excepcionais", 
-      "Requisitos para Registro e Patente", "Lei nº 8.112-1990", "Noções Gerais e Desapropriação", 
-      "Empresas Públicas e Sociedades de Economia Mista", "Delegação dos Serviços Públicos - Concessão e Permissão", 
-      "Direitos Reais de Garantia - Penhor, Anticrese e Hipoteca", 
-      "Jurisdição: Competência Relativa, Concorrente, Absoluta e Exclusiva", 
-      "Noções Gerais e Desapropriação (Financeiro)", "Assinatura e Ratificação dos Tratados Internacionais", 
-      "Saúde", "Aposentadoria por Incapacidade Permanente", "Auxílio-Doença", 
-      "Segurados Obrigatórios - Empregado", "Dependentes dos Segurados", "Autarquias", 
-      "Administração Indireta", "Responsabilidades do Servidor", "Política Nacional de Recursos Hídricos", 
-      "Gestão das Florestas Públicas", "Política Nacional de Mudança do Clima", "Lei de Crimes Ambientais", 
-      "Integração e Interpretação da Lei Tributária", "Conceito de Legislação Tributária", 
-      "Solidariedade e Responsabilidade Tributária", "Denúncia Espontânea", "IPI", 
-      "Contribuições Especiais", "Partilha e Tipologia (Competência Tributária)", 
-      "Princípio da Legalidade", "Modalidades de Lançamento", "Isenção", "ICMS", 
-      "Direito Penal Tributário", "Execução Fiscal", "Prova Pericial e Exame de Corpo de Delito", 
-      "Acordo de Não Persecução Penal", "Competência em Matéria Penal: Definição, Espécies e Critérios", 
-      "Competência em Razão da Pessoa: Foro por Prerrogativa", "Encerramento do Inquérito Policial", 
-      "Prisão Preventiva", "Sequestro", "Lei de Tóxicos – Lei nº 11.343 de 2006", 
-      "Crimes Contra o Consumidor, Ordem Econômica e Tributária", "Lei do Colarinho Branco", 
-      "Peculato", "Corrupção Passiva", "Noções Gerais de Dosimetria da Pena", "Reincidência", 
-      "Prescrição (Penal)", "Estelionato", "Normas de Cooperação em Matéria Ambiental – LC nº 140 de 2011", 
-      "Bens Públicos e Recursos Naturais", "Princípios Democrático/Participação e da Informação", 
-      "Instrumentos Econômicos", "Pessoa Jurídica", "Ato Jurídico e Teoria Geral do Negócio Jurídico", 
-      "Domicílio e Bens", "Adimplemento e Extinção das Obrigações", "Indenização - Liquidação do Dano", 
-      "Bens Tutelados", "Registro e Escrituração", "Sociedade Simples", "Falência", "Fornecedor", 
-      "Serviço", "Contratos de Consumo", "Garantia Legal e Contratual", "Práticas Abusivas", 
-      "Contestação", "Reconvenção", "Do Juiz", "Defensoria Pública no Processo Civil", 
-      "Incidente de Desconsideração da Personalidade Jurídica", "Amicus Curiae", "Prova Pericial", 
-      "Agravo de Instrumento", "Tutela de Urgência", "Critérios de Competência", 
+      "Pensão por Morte", "Aposentadoria Especial", "Aposentadoria por Tempo de Contribuição",
+      "Agências Reguladoras", "Prescrição", "Decadência", "Manutenção e Perda da Qualidade de Segurado",
+      "Segurados Obrigatórios - Segurado Especial", "Meios Probatórios Excepcionais",
+      "Requisitos para Registro e Patente", "Lei nº 8.112-1990", "Noções Gerais e Desapropriação",
+      "Empresas Públicas e Sociedades de Economia Mista", "Delegação dos Serviços Públicos - Concessão e Permissão",
+      "Direitos Reais de Garantia - Penhor, Anticrese e Hipoteca",
+      "Jurisdição: Competência Relativa, Concorrente, Absoluta e Exclusiva",
+      "Noções Gerais e Desapropriação (Financeiro)", "Assinatura e Ratificação dos Tratados Internacionais",
+      "Saúde", "Aposentadoria por Incapacidade Permanente", "Auxílio-Doença",
+      "Segurados Obrigatórios - Empregado", "Dependentes dos Segurados", "Autarquias",
+      "Administração Indireta", "Responsabilidades do Servidor", "Política Nacional de Recursos Hídricos",
+      "Gestão das Florestas Públicas", "Política Nacional de Mudança do Clima", "Lei de Crimes Ambientais",
+      "Integração e Interpretação da Lei Tributária", "Conceito de Legislação Tributária",
+      "Solidariedade e Responsabilidade Tributária", "Denúncia Espontânea", "IPI",
+      "Contribuições Especiais", "Partilha e Tipologia (Competência Tributária)",
+      "Princípio da Legalidade", "Modalidades de Lançamento", "Isenção", "ICMS",
+      "Direito Penal Tributário", "Execução Fiscal", "Prova Pericial e Exame de Corpo de Delito",
+      "Acordo de Não Persecução Penal", "Competência em Matéria Penal: Definição, Espécies e Critérios",
+      "Competência em Razão da Pessoa: Foro por Prerrogativa", "Encerramento do Inquérito Policial",
+      "Prisão Preventiva", "Sequestro", "Lei de Tóxicos – Lei nº 11.343 de 2006",
+      "Crimes Contra o Consumidor, Ordem Econômica e Tributária", "Lei do Colarinho Branco",
+      "Peculato", "Corrupção Passiva", "Noções Gerais de Dosimetria da Pena", "Reincidência",
+      "Prescrição (Penal)", "Estelionato", "Normas de Cooperação em Matéria Ambiental – LC nº 140 de 2011",
+      "Bens Públicos e Recursos Naturais", "Princípios Democrático/Participação e da Informação",
+      "Instrumentos Econômicos", "Pessoa Jurídica", "Ato Jurídico e Teoria Geral do Negócio Jurídico",
+      "Domicílio e Bens", "Adimplemento e Extinção das Obrigações", "Indenização - Liquidação do Dano",
+      "Bens Tutelados", "Registro e Escrituração", "Sociedade Simples", "Falência", "Fornecedor",
+      "Serviço", "Contratos de Consumo", "Garantia Legal e Contratual", "Práticas Abusivas",
+      "Contestação", "Reconvenção", "Do Juiz", "Defensoria Pública no Processo Civil",
+      "Incidente de Desconsideração da Personalidade Jurídica", "Amicus Curiae", "Prova Pericial",
+      "Agravo de Instrumento", "Tutela de Urgência", "Critérios de Competência",
       "Noções Gerais e Classificação dos Atos Processuais", "Execuções Especiais", "Ações Possessórias",
-      "Salário-Maternidade", "Auxílio-Reclusão", "Benefício Assistencial - LOAS", "Fundações Públicas", 
-      "Organização Administrativa Geral", "Diretrizes Nacionais de Saneamento Básico", 
-      "Segurados Facultativos", "Compensação", "Pagamento", "Obrigação Principal e Acessória", 
-      "Ação Penal Pública", "Advocacia Administrativa", "Segunda Fase da Dosimetria", "Posse", 
-      "Propriedade", "Educação", "Assistência Social", "Tribunais Regionais Federais e Juízes Federais", 
-      "Supremo Tribunal Federal", "Tribunais Regionais do Trabalho", "Serviços Públicos Essenciais", 
-      "Princípios dos Serviços Públicos", "Beneficiários do RGPS", "Regimes Básicos", 
-      "Contribuições dos Segurados", "Ações Previdenciárias", "Função da Lei Complementar", 
-      "Pacto Internacional de Direitos Civis e Políticos", "Convenção das Nações Unidas contra a Corrupção", 
-      "Requisição Administrativa", "Servidão Administrativa", "Teoria das Nulidades", 
-      "Extinção dos Atos Administrativos", "Requisitos do Ato Administrativo", 
-      "Conceito, Competência Legislativa, Sujeitos e Finalidades", 
-      "Princípios: Legalidade, Impessoalidade, Moralidade, Publicidade e Eficiência", 
-      "Cláusulas Exorbitantes e Equilíbrio Econômico-Financeiro", 
-      "Cláusulas Exorbitantes e Equilíbrio Econômico-Financeiro – Lei nº 14.133", 
-      "Ação Penal nos Crimes Contra a Honra", "Da Liberdade Provisória", "Procedimento Especial do Tribunal do Júri", 
-      "Investigação Defensiva", "Procedimento Administrativo", "Utilização e Extinção da Propriedade", 
-      "Prescrição e Decadência (Civil)", "Sistema Financeiro Nacional", "Competência na Atividade Financeira", 
-      "Constituição Orçamentária", "Fundos Públicos Financeiros", "Créditos Orçamentários e Adicionais", 
-      "Repartição de Competências Constitucionais", "Reservas aos Tratados", "Litispendência Internacional", 
-      "Estado e Território", "Nacionalidade, Naturalização e Apátrida", 
-      "Desapropriação Financeira", "Ministério Público", "Assistência", "Revelia", 
-      "Pacto Internacional de Direitos Econômicos e Sociais", "Convenção de Haia sobre Sequestro Internacional", 
+      "Salário-Maternidade", "Auxílio-Reclusão", "Benefício Assistencial - LOAS", "Fundações Públicas",
+      "Organização Administrativa Geral", "Diretrizes Nacionais de Saneamento Básico",
+      "Segurados Facultativos", "Compensação", "Pagamento", "Obrigação Principal e Acessória",
+      "Ação Penal Pública", "Advocacia Administrativa", "Segunda Fase da Dosimetria", "Posse",
+      "Propriedade", "Educação", "Assistência Social", "Tribunais Regionais Federais e Juízes Federais",
+      "Supremo Tribunal Federal", "Tribunais Regionais do Trabalho", "Serviços Públicos Essenciais",
+      "Princípios dos Serviços Públicos", "Beneficiários do RGPS", "Regimes Básicos",
+      "Contribuições dos Segurados", "Ações Previdenciárias", "Função da Lei Complementar",
+      "Pacto Internacional de Direitos Civis e Políticos", "Convenção das Nações Unidas contra a Corrupção",
+      "Requisição Administrativa", "Servidão Administrativa", "Teoria das Nulidades",
+      "Extinção dos Atos Administrativos", "Requisitos do Ato Administrativo",
+      "Conceito, Competência Legislativa, Sujeitos e Finalidades",
+      "Princípios: Legalidade, Impessoalidade, Moralidade, Publicidade e Eficiência",
+      "Cláusulas Exorbitantes e Equilíbrio Econômico-Financeiro",
+      "Cláusulas Exorbitantes e Equilíbrio Econômico-Financeiro – Lei nº 14.133",
+      "Ação Penal nos Crimes Contra a Honra", "Da Liberdade Provisória", "Procedimento Especial do Tribunal do Júri",
+      "Investigação Defensiva", "Procedimento Administrativo", "Utilização e Extinção da Propriedade",
+      "Prescrição e Decadência (Civil)", "Sistema Financeiro Nacional", "Competência na Atividade Financeira",
+      "Constituição Orçamentária", "Fundos Públicos Financeiros", "Créditos Orçamentários e Adicionais",
+      "Repartição de Competências Constitucionais", "Reservas aos Tratados", "Litispendência Internacional",
+      "Estado e Território", "Nacionalidade, Naturalização e Apátrida",
+      "Desapropriação Financeira", "Ministério Público", "Assistência", "Revelia",
+      "Pacto Internacional de Direitos Econômicos e Sociais", "Convenção de Haia sobre Sequestro Internacional",
       "Benefícios e Serviços do RGPS (Tendência 2025)"
     ].slice(0, 215);
 
