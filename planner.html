@@ -1,1 +1,442 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Planejador - Concurseiro Automatizado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="title-container">
+    <h1>Concurseiro Automatizado</h1>
+  </div>
+  <nav>
+    <a href="dashboard.html">Área do Aluno</a>
+    <a href="planner.html">Planejador</a>
+    <a href="study.html">Planejado</a>
+    <a href="trends.html">Tendências</a>
+    <a href="achievements.html">Conquistas</a>
+    <a href="ranking.html">Ranking</a>
+    <button onclick="signOut()">Sair</button>
+  </nav>
+  <main>
+    <h2 style="text-align: center; margin-bottom: 20px;">Monte Seu Plano de Estudos</h2>
+    <div class="info-box" style="background: #33334D; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(149, 117, 205, 0.3); border: 1px solid #444466; margin-bottom: 25px;">
+      <p style="font-size: 14px; line-height: 1.8; color: #EDE7F6;">Nosso plano é baseado na análise de provas anteriores das bancas correspondentes. Cobrimos 80% dos assuntos mais cobrados historicamente, priorizando os de maior relevância em ordem decrescente, para maximizar suas chances de aprovação. Além disso, incluímos alguns assuntos em tendência, a fim de garantir uma visão futura ao plano. O tempo sugerido é baseado em 90 minutos por subtópico, mas você pode ajustar seu ritmo diário.</p>
+    </div>
+    <div id="planStatus" style="text-align: center; margin-bottom: 20px;"></div>
+    <h3 style="text-align: center; margin-bottom: 15px;">Escolha seu concurso e plano:</h3>
+    <div class="contest-group" style="background: #2A2A40; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); margin: 20px auto; max-width: 600px;">
+      <h4 style="color: #D1C4E9; text-align: center; margin-bottom: 15px;">Juiz Federal (FGV)</h4>
+      <div class="button-group" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 10px;">
+        <button onclick="generatePlan(3, 215)">3 Meses (215 subtópicos, ~6h/dia)</button>
+        <button onclick="generatePlan(6, 300)">6 Meses (300 subtópicos, ~4h/dia)</button>
+        <button onclick="generatePlan(9, 360)">9 Meses (360 subtópicos, ~3h/dia)</button>
+        <button onclick="generatePlan(12, 400)">12 Meses (400 subtópicos, ~3h/dia)</button>
+      </div>
+    </div>
+    <p style="text-align: center; margin-top: 20px;"><a href="trends.html" style="color: #9575CD;">Ver Tendências Recentes</a></p>
+  </main>
+  <footer>
+    <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
+  </footer>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { playClickSound } from "./sounds.js";
 
+    const firebaseConfig = {
+      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
+      authDomain: "concurseiro-automatizado.firebaseapp.com",
+      projectId: "concurseiro-automatizado",
+      storageBucket: "concurseiro-automatizado.firebasestorage.app",
+      messagingSenderId: "938840578480",
+      appId: "1:938840578480:web:4e8dd7e2dfdc42d7649e75",
+      measurementId: "G-H72D875STB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const plan3Months = [
+      "Pensão por Morte", "Aposentadoria Especial", "Aposentadoria por Tempo de Contribuição",
+      "Agências Reguladoras", "Prescrição", "Decadência", "Manutenção e Perda da Qualidade de Segurado",
+      "Segurados Obrigatórios - Segurado Especial", "Meios Probatórios Excepcionais",
+      "Requisitos para Registro e Patente", "Lei nº 8.112-1990", "Noções Gerais e Desapropriação",
+      "Empresas Públicas e Sociedades de Economia Mista", "Delegação dos Serviços Públicos - Concessão e Permissão",
+      "Direitos Reais de Garantia - Penhor, Anticrese e Hipoteca",
+      "Jurisdição: Competência Relativa, Concorrente, Absoluta e Exclusiva",
+      "Noções Gerais e Desapropriação (Financeiro)", "Assinatura e Ratificação dos Tratados Internacionais",
+      "Saúde", "Aposentadoria por Incapacidade Permanente", "Auxílio-Doença",
+      "Segurados Obrigatórios - Empregado", "Dependentes dos Segurados", "Autarquias",
+      "Administração Indireta", "Responsabilidades do Servidor", "Política Nacional de Recursos Hídricos",
+      "Gestão das Florestas Públicas", "Política Nacional de Mudança do Clima", "Lei de Crimes Ambientais",
+      "Integração e Interpretação da Lei Tributária", "Conceito de Legislação Tributária",
+      "Solidariedade e Responsabilidade Tributária", "Denúncia Espontânea", "IPI",
+      "Contribuições Especiais", "Partilha e Tipologia (Competência Tributária)",
+      "Princípio da Legalidade", "Modalidades de Lançamento", "Isenção", "ICMS",
+      "Direito Penal Tributário", "Execução Fiscal", "Prova Pericial e Exame de Corpo de Delito",
+      "Acordo de Não Persecução Penal", "Competência em Matéria Penal: Definição, Espécies e Critérios",
+      "Competência em Razão da Pessoa: Foro por Prerrogativa", "Encerramento do Inquérito Policial",
+      "Prisão Preventiva", "Sequestro", "Lei de Tóxicos – Lei nº 11.343 de 2006",
+      "Crimes Contra o Consumidor, Ordem Econômica e Tributária", "Lei do Colarinho Branco",
+      "Peculato", "Corrupção Passiva", "Noções Gerais de Dosimetria da Pena", "Reincidência",
+      "Prescrição (Penal)", "Estelionato", "Normas de Cooperação em Matéria Ambiental – LC nº 140 de 2011",
+      "Bens Públicos e Recursos Naturais", "Princípios Democrático/Participação e da Informação",
+      "Instrumentos Econômicos", "Pessoa Jurídica", "Ato Jurídico e Teoria Geral do Negócio Jurídico",
+      "Domicílio e Bens", "Adimplemento e Extinção das Obrigações", "Indenização - Liquidação do Dano",
+      "Bens Tutelados", "Registro e Escrituração", "Sociedade Simples", "Falência", "Fornecedor",
+      "Serviço", "Contratos de Consumo", "Garantia Legal e Contratual", "Práticas Abusivas",
+      "Contestação", "Reconvenção", "Do Juiz", "Defensoria Pública no Processo Civil",
+      "Incidente de Desconsideração da Personalidade Jurídica", "Amicus Curiae", "Prova Pericial",
+      "Agravo de Instrumento", "Tutela de Urgência", "Critérios de Competência",
+      "Noções Gerais e Classificação dos Atos Processuais", "Execuções Especiais", "Ações Possessórias",
+      "Salário-Maternidade", "Auxílio-Reclusão", "Benefício Assistencial - LOAS", "Fundações Públicas",
+      "Organização Administrativa Geral", "Diretrizes Nacionais de Saneamento Básico",
+      "Segurados Facultativos", "Compensação", "Pagamento", "Obrigação Principal e Acessória",
+      "Ação Penal Pública", "Advocacia Administrativa", "Segunda Fase da Dosimetria", "Posse",
+      "Propriedade", "Educação", "Assistência Social", "Tribunais Regionais Federais e Juízes Federais",
+      "Supremo Tribunal Federal", "Tribunais Regionais do Trabalho", "Serviços Públicos Essenciais",
+      "Princípios dos Serviços Públicos", "Beneficiários do RGPS", "Regimes Básicos",
+      "Contribuições dos Segurados", "Ações Previdenciárias", "Função da Lei Complementar",
+      "Pacto Internacional de Direitos Civis e Políticos", "Convenção das Nações Unidas contra a Corrupção",
+      "Requisição Administrativa", "Servidão Administrativa", "Teoria das Nulidades",
+      "Extinção dos Atos Administrativos", "Requisitos do Ato Administrativo",
+      "Conceito, Competência Legislativa, Sujeitos e Finalidades",
+      "Princípios: Legalidade, Impessoalidade, Moralidade, Publicidade e Eficiência",
+      "Cláusulas Exorbitantes e Equilíbrio Econômico-Financeiro",
+      "Cláusulas Exorbitantes e Equilíbrio Econômico-Financeiro – Lei nº 14.133",
+      "Ação Penal nos Crimes Contra a Honra", "Da Liberdade Provisória", "Procedimento Especial do Tribunal do Júri",
+      "Investigação Defensiva", "Procedimento Administrativo", "Utilização e Extinção da Propriedade",
+      "Prescrição e Decadência (Civil)", "Sistema Financeiro Nacional", "Competência na Atividade Financeira",
+      "Constituição Orçamentária", "Fundos Públicos Financeiros", "Créditos Orçamentários e Adicionais",
+      "Repartição de Competências Constitucionais", "Reservas aos Tratados", "Litispendência Internacional",
+      "Estado e Território", "Nacionalidade, Naturalização e Apátrida",
+      "Desapropriação Financeira", "Ministério Público", "Assistência", "Revelia",
+      "Pacto Internacional de Direitos Econômicos e Sociais", "Convenção de Haia sobre Sequestro Internacional",
+      "Benefícios e Serviços do RGPS (Tendência 2025)",
+      "Controle de Constitucionalidade", "Hermenêutica Constitucional", "Princípios Fundamentais",
+      "Direitos e Garantias Fundamentais", "Ação Direta de Inconstitucionalidade",
+      "Mandado de Segurança", "Habeas Corpus", "Habeas Data", "Mandado de Injunção",
+      "Ação Popular", "Organização dos Poderes", "Separação de Poderes",
+      "Poder Legislativo", "Processo Legislativo", "Poder Executivo",
+      "Poder Judiciário", "Funções Essenciais à Justiça", "Defensoria Pública",
+      "Advocacia-Geral da União", "Sistema Tributário Nacional", "Impostos da União",
+      "Impostos dos Estados", "Impostos dos Municípios", "Repartição das Receitas Tributárias",
+      "Princípios Orçamentários", "Lei de Responsabilidade Fiscal", "Intervenção Federal",
+      "Estado de Defesa e Estado de Sítio", "Forças Armadas", "Segurança Pública",
+      "Ordem Social", "Cultura", "Desporto", "Ciência e Tecnologia",
+      "Comunicação Social", "Meio Ambiente", "Família", "Criança e Adolescente",
+      "Idoso", "Índios", "Direito Urbanístico", "Política Agrícola",
+      "Reforma Agrária", "Sistema Nacional de Cultura", "Direito à Memória e à Verdade",
+      "Tratados Internacionais de Direitos Humanos", "Cooperação Internacional",
+      "Extradition", "Refúgio e Asilo Político", "Conflitos de Jurisdição Internacional",
+      "Direito Internacional Humanitário", "Crimes Internacionais", "Tribunal Penal Internacional",
+      "Arbitragem Internacional", "Direito do Mar", "Direito Aeronáutico Internacional",
+      "Direito Espacial", "Proteção Internacional de Dados", "Cybercrimes",
+      "Direito Penal Internacional"
+    ];
+
+    const subtopicsToSubjects = {
+      "Pensão por Morte": "Direito Previdenciário",
+      "Aposentadoria Especial": "Direito Previdenciário",
+      "Aposentadoria por Tempo de Contribuição": "Direito Previdenciário",
+      "Agências Reguladoras": "Direito Administrativo",
+      "Prescrição": "Direito Tributário",
+      "Decadência": "Direito Tributário",
+      "Manutenção e Perda da Qualidade de Segurado": "Direito Previdenciário",
+      "Segurados Obrigatórios - Segurado Especial": "Direito Previdenciário",
+      "Meios Probatórios Excepcionais": "Direito Processual Penal",
+      "Requisitos para Registro e Patente": "Direito Empresarial (Comercial)",
+      "Lei nº 8.112-1990": "Direito Administrativo",
+      "Noções Gerais e Desapropriação": "Direito Administrativo",
+      "Empresas Públicas e Sociedades de Economia Mista": "Direito Administrativo",
+      "Delegação dos Serviços Públicos - Concessão e Permissão": "Direito Administrativo",
+      "Direitos Reais de Garantia - Penhor, Anticrese e Hipoteca": "Direito Civil",
+      "Jurisdição: Competência Relativa, Concorrente, Absoluta e Exclusiva": "Direito Processual Internacional",
+      "Noções Gerais e Desapropriação (Financeiro)": "Direito Financeiro",
+      "Assinatura e Ratificação dos Tratados Internacionais": "Direito Internacional Público",
+      "Saúde": "Direito Constitucional",
+      "Aposentadoria por Incapacidade Permanente": "Direito Previdenciário",
+      "Auxílio-Doença": "Direito Previdenciário",
+      "Segurados Obrigatórios - Empregado": "Direito Previdenciário",
+      "Dependentes dos Segurados": "Direito Previdenciário",
+      "Autarquias": "Direito Administrativo",
+      "Administração Indireta": "Direito Administrativo",
+      "Responsabilidades do Servidor": "Direito Administrativo",
+      "Política Nacional de Recursos Hídricos": "Direito Ambiental",
+      "Gestão das Florestas Públicas": "Direito Ambiental",
+      "Política Nacional de Mudança do Clima": "Direito Ambiental",
+      "Lei de Crimes Ambientais": "Direito Ambiental",
+      "Integração e Interpretação da Lei Tributária": "Direito Tributário",
+      "Conceito de Legislação Tributária": "Direito Tributário",
+      "Solidariedade e Responsabilidade Tributária": "Direito Tributário",
+      "Denúncia Espontânea": "Direito Tributário",
+      "IPI": "Direito Tributário",
+      "Contribuições Especiais": "Direito Tributário",
+      "Partilha e Tipologia (Competência Tributária)": "Direito Tributário",
+      "Princípio da Legalidade": "Direito Tributário",
+      "Modalidades de Lançamento": "Direito Tributário",
+      "Isenção": "Direito Tributário",
+      "ICMS": "Direito Tributário",
+      "Direito Penal Tributário": "Direito Tributário",
+      "Execução Fiscal": "Direito Tributário",
+      "Prova Pericial e Exame de Corpo de Delito": "Direito Processual Penal",
+      "Acordo de Não Persecução Penal": "Direito Processual Penal",
+      "Competência em Matéria Penal: Definição, Espécies e Critérios": "Direito Processual Penal",
+      "Competência em Razão da Pessoa: Foro por Prerrogativa": "Direito Processual Penal",
+      "Encerramento do Inquérito Policial": "Direito Processual Penal",
+      "Prisão Preventiva": "Direito Processual Penal",
+      "Sequestro": "Direito Processual Penal",
+      "Lei de Tóxicos – Lei nº 11.343 de 2006": "Direito Penal",
+      "Crimes Contra o Consumidor, Ordem Econômica e Tributária": "Direito Penal",
+      "Lei do Colarinho Branco": "Direito Penal",
+      "Peculato": "Direito Penal",
+      "Corrupção Passiva": "Direito Penal",
+      "Noções Gerais de Dosimetria da Pena": "Direito Penal",
+      "Reincidência": "Direito Penal",
+      "Prescrição (Penal)": "Direito Penal",
+      "Estelionato": "Direito Penal",
+      "Normas de Cooperação em Matéria Ambiental – LC nº 140 de 2011": "Direito Ambiental",
+      "Bens Públicos e Recursos Naturais": "Direito Ambiental",
+      "Princípios Democrático/Participação e da Informação": "Direito Ambiental",
+      "Instrumentos Econômicos": "Direito Ambiental",
+      "Pessoa Jurídica": "Direito Civil",
+      "Ato Jurídico e Teoria Geral do Negócio Jurídico": "Direito Civil",
+      "Domicílio e Bens": "Direito Civil",
+      "Adimplemento e Extinção das Obrigações": "Direito Civil",
+      "Indenização - Liquidação do Dano": "Direito Civil",
+      "Bens Tutelados": "Direito Empresarial (Comercial)",
+      "Registro e Escrituração": "Direito Empresarial (Comercial)",
+      "Sociedade Simples": "Direito Empresarial (Comercial)",
+      "Falência": "Direito Empresarial (Comercial)",
+      "Fornecedor": "Direito do Consumidor",
+      "Serviço": "Direito do Consumidor",
+      "Contratos de Consumo": "Direito do Consumidor",
+      "Garantia Legal e Contratual": "Direito do Consumidor",
+      "Práticas Abusivas": "Direito do Consumidor",
+      "Contestação": "Direito Processual Civil",
+      "Reconvenção": "Direito Processual Civil",
+      "Do Juiz": "Direito Processual Civil",
+      "Defensoria Pública no Processo Civil": "Direito Processual Civil",
+      "Incidente de Desconsideração da Personalidade Jurídica": "Direito Processual Civil",
+      "Amicus Curiae": "Direito Processual Civil",
+      "Prova Pericial": "Direito Processual Civil",
+      "Agravo de Instrumento": "Direito Processual Civil",
+      "Tutela de Urgência": "Direito Processual Civil",
+      "Critérios de Competência": "Direito Processual Civil",
+      "Noções Gerais e Classificação dos Atos Processuais": "Direito Processual Civil",
+      "Execuções Especiais": "Direito Processual Civil",
+      "Ações Possessórias": "Direito Processual Civil",
+      "Salário-Maternidade": "Direito Previdenciário",
+      "Auxílio-Reclusão": "Direito Previdenciário",
+      "Benefício Assistencial - LOAS": "Direito Previdenciário",
+      "Fundações Públicas": "Direito Administrativo",
+      "Organização Administrativa Geral": "Direito Administrativo",
+      "Diretrizes Nacionais de Saneamento Básico": "Direito Ambiental",
+      "Segurados Facultativos": "Direito Previdenciário",
+      "Compensação": "Direito Civil",
+      "Pagamento": "Direito Civil",
+      "Obrigação Principal e Acessória": "Direito Tributário",
+      "Ação Penal Pública": "Direito Processual Penal",
+      "Advocacia Administrativa": "Direito Penal",
+      "Segunda Fase da Dosimetria": "Direito Penal",
+      "Posse": "Direito Civil",
+      "Propriedade": "Direito Civil",
+      "Educação": "Direito Constitucional",
+      "Assistência Social": "Serviço Social",
+      "Tribunais Regionais Federais e Juízes Federais": "Direito Constitucional",
+      "Supremo Tribunal Federal": "Direito Constitucional",
+      "Tribunais Regionais do Trabalho": "Direito Constitucional",
+      "Serviços Públicos Essenciais": "Direito Administrativo",
+      "Princípios dos Serviços Públicos": "Direito Administrativo",
+      "Beneficiários do RGPS": "Direito Previdenciário",
+      "Regimes Básicos": "Direito Previdenciário",
+      "Contribuições dos Segurados": "Direito Previdenciário",
+      "Ações Previdenciárias": "Direito Previdenciário",
+      "Função da Lei Complementar": "Direito Tributário",
+      "Pacto Internacional de Direitos Civis e Políticos": "Direito Constitucional",
+      "Convenção das Nações Unidas contra a Corrupção": "Direito Constitucional",
+      "Requisição Administrativa": "Direito Administrativo",
+      "Servidão Administrativa": "Direito Administrativo",
+      "Teoria das Nulidades": "Direito Administrativo",
+      "Extinção dos Atos Administrativos": "Direito Administrativo",
+      "Requisitos do Ato Administrativo": "Direito Administrativo",
+      "Conceito, Competência Legislativa, Sujeitos e Finalidades": "Direito Administrativo",
+      "Princípios: Legalidade, Impessoalidade, Moralidade, Publicidade e Eficiência": "Direito Administrativo",
+      "Cláusulas Exorbitantes e Equilíbrio Econômico-Financeiro": "Direito Administrativo",
+      "Cláusulas Exorbitantes e Equilíbrio Econômico-Financeiro – Lei nº 14.133": "Direito Administrativo",
+      "Ação Penal nos Crimes Contra a Honra": "Direito Processual Penal",
+      "Da Liberdade Provisória": "Direito Processual Penal",
+      "Procedimento Especial do Tribunal do Júri": "Direito Processual Penal",
+      "Investigação Defensiva": "Direito Processual Penal",
+      "Procedimento Administrativo": "Direito Empresarial (Comercial)",
+      "Utilização e Extinção da Propriedade": "Direito Empresarial (Comercial)",
+      "Prescrição e Decadência (Civil)": "Direito Civil",
+      "Sistema Financeiro Nacional": "Direito Financeiro",
+      "Competência na Atividade Financeira": "Direito Financeiro",
+      "Constituição Orçamentária": "Direito Financeiro",
+      "Fundos Públicos Financeiros": "Direito Financeiro",
+      "Créditos Orçamentários e Adicionais": "Direito Financeiro",
+      "Repartição de Competências Constitucionais": "Direito Constitucional",
+      "Reservas aos Tratados": "Direito Internacional Público",
+      "Litispendência Internacional": "Direito Internacional Privado",
+      "Estado e Território": "Direito Internacional Público",
+      "Nacionalidade, Naturalização e Apátrida": "Direito Internacional Público",
+      "Desapropriação Financeira": "Direito Financeiro",
+      "Ministério Público": "Direito Constitucional",
+      "Assistência": "Serviço Social",
+      "Revelia": "Direito Processual Civil",
+      "Pacto Internacional de Direitos Econômicos e Sociais": "Direito Constitucional",
+      "Convenção de Haia sobre Sequestro Internacional": "Direito Constitucional",
+      "Benefícios e Serviços do RGPS (Tendência 2025)": "Direito Previdenciário",
+      "Controle de Constitucionalidade": "Direito Constitucional",
+      "Hermenêutica Constitucional": "Direito Constitucional",
+      "Princípios Fundamentais": "Direito Constitucional",
+      "Direitos e Garantias Fundamentais": "Direito Constitucional",
+      "Ação Direta de Inconstitucionalidade": "Direito Constitucional",
+      "Mandado de Segurança": "Direito Constitucional",
+      "Habeas Corpus": "Direito Constitucional",
+      "Habeas Data": "Direito Constitucional",
+      "Mandado de Injunção": "Direito Constitucional",
+      "Ação Popular": "Direito Constitucional",
+      "Organização dos Poderes": "Direito Constitucional",
+      "Separação de Poderes": "Direito Constitucional",
+      "Poder Legislativo": "Direito Constitucional",
+      "Processo Legislativo": "Direito Constitucional",
+      "Poder Executivo": "Direito Constitucional",
+      "Poder Judiciário": "Direito Constitucional",
+      "Funções Essenciais à Justiça": "Direito Constitucional",
+      "Defensoria Pública": "Direito Constitucional",
+      "Advocacia-Geral da União": "Direito Constitucional",
+      "Sistema Tributário Nacional": "Direito Tributário",
+      "Impostos da União": "Direito Tributário",
+      "Impostos dos Estados": "Direito Tributário",
+      "Impostos dos Municípios": "Direito Tributário",
+      "Repartição das Receitas Tributárias": "Direito Tributário",
+      "Princípios Orçamentários": "Direito Financeiro",
+      "Lei de Responsabilidade Fiscal": "Direito Financeiro",
+      "Intervenção Federal": "Direito Constitucional",
+      "Estado de Defesa e Estado de Sítio": "Direito Constitucional",
+      "Forças Armadas": "Direito Constitucional",
+      "Segurança Pública": "Direito Constitucional",
+      "Ordem Social": "Direito Constitucional",
+      "Cultura": "Direito Constitucional",
+      "Desporto": "Direito Constitucional",
+      "Ciência e Tecnologia": "Direito Constitucional",
+      "Comunicação Social": "Direito Constitucional",
+      "Meio Ambiente": "Direito Constitucional",
+      "Família": "Direito Constitucional",
+      "Criança e Adolescente": "Direito Constitucional",
+      "Idoso": "Direito Constitucional",
+      "Índios": "Direito Constitucional",
+      "Direito Urbanístico": "Direito Constitucional",
+      "Política Agrícola": "Direito Constitucional",
+      "Reforma Agrária": "Direito Constitucional",
+      "Sistema Nacional de Cultura": "Direito Constitucional",
+      "Direito à Memória e à Verdade": "Direito Constitucional",
+      "Tratados Internacionais de Direitos Humanos": "Direito Internacional Público",
+      "Cooperação Internacional": "Direito Internacional Público",
+      "Extradition": "Direito Internacional Público",
+      "Refúgio e Asilo Político": "Direito Internacional Público",
+      "Conflitos de Jurisdição Internacional": "Direito Internacional Público",
+      "Direito Internacional Humanitário": "Direito Internacional Público",
+      "Crimes Internacionais": "Direito Internacional Público",
+      "Tribunal Penal Internacional": "Direito Internacional Público",
+      "Arbitragem Internacional": "Direito Internacional Público",
+      "Direito do Mar": "Direito Internacional Público",
+      "Direito Aeronáutico Internacional": "Direito Internacional Público",
+      "Direito Espacial": "Direito Internacional Público",
+      "Proteção Internacional de Dados": "Direito Internacional Público",
+      "Cybercrimes": "Direito Penal",
+      "Direito Penal Internacional": "Direito Penal"
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+      console.log("Estado de autenticação em planner:", user ? "Autenticado" : "Não autenticado");
+      const planStatus = document.getElementById("planStatus");
+      if (!user) {
+        console.log("Redirecionando para login após 1 segundo...");
+        planStatus.innerText = "Você não está autenticado. Redirecionando para login...";
+        setTimeout(() => location.href = "login.html", 1000);
+        return;
+      }
+      console.log("Usuário autenticado:", user.uid);
+      try {
+        const planDoc = await getDoc(doc(db, "plans", user.uid));
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (planDoc.exists()) {
+          const planLength = planDoc.data().plan.length;
+          const months = planDoc.data().months || (planLength === 215 ? 3 : planLength === 300 ? 6 : planLength === 360 ? 9 : planLength === 400 ? 12 : "Desconhecido");
+          const currentIndex = userDoc.exists() && userDoc.data().currentIndex !== undefined ? userDoc.data().currentIndex : 0;
+          console.log("Plano detectado com", planLength, "etapas.");
+          planStatus.innerHTML = `<span style="background: #4CAF50; padding: 5px 10px; border-radius: 4px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);">Plano vigente: Juiz Federal (FGV) - ${months} meses (${planLength} etapas). Progresso: ${currentIndex}/${planLength} concluídas.</span>`;
+        } else {
+          planStatus.innerHTML = "<span style='color: #8888A0;'>Nenhum plano vigente. Escolha um plano abaixo para começar!</span>";
+        }
+      } catch (error) {
+        console.error("Erro ao verificar plano:", error.message);
+        planStatus.innerText = "Erro ao verificar plano: " + error.message;
+      }
+    });
+
+    window.generatePlan = async (months, topics) => {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Você precisa estar logado para gerar um plano!");
+        location.href = "login.html";
+        return;
+      }
+      playClickSound();
+      try {
+        const planDoc = await getDoc(doc(db, "plans", user.uid));
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const planStatus = document.getElementById("planStatus");
+        if (planDoc.exists()) {
+          const planLength = planDoc.data().plan.length;
+          const currentIndex = userDoc.exists() && userDoc.data().currentIndex !== undefined ? userDoc.data().currentIndex : 0;
+          if (!confirm(`Você já tem um plano vigente com ${planLength} etapas (${currentIndex} concluídas). Gerar um novo plano excluirá o progresso atual. Deseja continuar?`)) {
+            return;
+          }
+        }
+
+        console.log(`Gerando plano de ${months} meses com ${topics} tópicos...`);
+        const rawPlan = months === 3 ? plan3Months.slice(0, 215) : Array(topics).fill("Subtópico Exemplo");
+        console.log("Tamanho do rawPlan:", rawPlan.length);
+        const plan = rawPlan.map((subtopic, index) => ({
+          priorityNumber: index + 1,
+          subject: subtopicsToSubjects[subtopic] || "Não categorizado",
+          subtopic: subtopic,
+          completed: false
+        }));
+        console.log("Plano formatado:", plan.length, "itens");
+
+        await setDoc(doc(db, "plans", user.uid), { plan, topics, months }, { merge: false });
+        await updateDoc(doc(db, "users", user.uid), { currentIndex: 0, logs: [], achievements: [] });
+        console.log("Plano salvo com sucesso no Firestore na coleção 'plans'!");
+
+        planStatus.innerHTML = `Novo plano de ${months} meses com ${topics} etapas gerado com sucesso!`;
+        setTimeout(() => location.href = "study.html", 1000); // Delay para garantir salvamento
+      } catch (error) {
+        console.error("Erro ao gerar plano:", error.message);
+        alert("Erro ao gerar plano: " + error.message);
+      }
+    };
+
+    window.signOut = async () => {
+      playClickSound();
+      try {
+        await signOut(auth);
+        localStorage.clear();
+        console.log("Logout realizado.");
+        location.href = "index.html";
+      } catch (error) {
+        console.error("Erro ao sair:", error.message);
+        alert("Erro ao sair: " + error.message);
+      }
+    };
+  </script>
+</body>
+</html>
