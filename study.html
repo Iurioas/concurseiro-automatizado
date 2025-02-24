@@ -95,7 +95,12 @@
         if (planDoc.exists()) {
           planData = planDoc.data().plan || [];
           console.log("Plano carregado:", planData.length, "etapas.");
-          if (planData.length === 0) throw new Error("Plano vazio!");
+          if (planData.length === 0) {
+            console.log("Plano vazio detectado!");
+            document.getElementById("loading").innerText = "Plano vazio. Crie um novo plano no Planejador.";
+            setTimeout(() => location.href = "planner.html", 2000);
+            return;
+          }
           const userDoc = await getDoc(doc(db, "users", user.uid));
           logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
           achievements = userDoc.exists() && userDoc.data().achievements ? userDoc.data().achievements : [];
