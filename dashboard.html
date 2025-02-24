@@ -11,17 +11,19 @@
     <h1>Concurseiro Automatizado</h1>
   </div>
   <nav>
+    <a href="dashboard.html">Área do Aluno</a>
     <a href="planner.html">Planejador</a>
     <a href="study.html">Planejado</a>
+    <a href="trends.html">Tendências</a>
     <a href="achievements.html">Conquistas</a>
     <a href="ranking.html">Ranking</a>
     <button onclick="signOut()">Sair</button>
-    <button onclick="deleteAccount()">Deletar Conta</button>
+    <button onclick="deleteAccount()" style="background: #FF4444; margin-left: 10px;">Deletar Conta</button>
   </nav>
   <main>
     <h2 style="text-align: center; margin-bottom: 20px;">Área do Aluno</h2>
     <p style="text-align: center;">Bem-vindo! Escolha uma opção no menu acima para gerenciar seus estudos.</p>
-    <div id="loading">Carregando...</div>
+    <div id="loading" style="text-align: center; margin: 20px;">Carregando...</div>
   </main>
   <footer>
     <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
@@ -29,7 +31,6 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-    import { getFirestore, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { getFirestore, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { playClickSound } from "./sounds.js";
 
@@ -45,6 +46,7 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
     setPersistence(auth, browserLocalPersistence)
       .then(() => console.log("Persistência configurada em dashboard."))
@@ -52,14 +54,15 @@
 
     onAuthStateChanged(auth, (user) => {
       console.log("Estado de autenticação em dashboard:", user ? "Autenticado" : "Não autenticado");
+      const loading = document.getElementById("loading");
       if (!user) {
         console.log("Redirecionando para login após 1 segundo...");
+        loading.innerText = "Você não está autenticado. Redirecionando para login...";
         setTimeout(() => location.href = "login.html", 1000);
         return;
       }
       console.log("Usuário autenticado:", user.uid);
-      document.getElementById("loading").style.display = "none";
-      // Aqui você pode adicionar mais lógica no futuro, como mostrar infos do aluno
+      loading.style.display = "none"; // Esconde o loading após autenticação
     });
 
     window.signOut = async function() {
@@ -91,23 +94,6 @@
           } else {
             alert("Você precisa estar logado para deletar a conta.");
           }
-        } catch (error) {
-          console.error("Erro ao deletar conta:", error.message);
-          alert("Erro ao deletar conta: " + error.message);
-        }
-      }
-    };
-
-    window.deleteAccount = async function() {
-      playClickSound();
-      if (confirm("Tem certeza que deseja deletar sua conta? Isso é irreversível.")) {
-        try {
-          const user = auth.currentUser;
-          await deleteDoc(doc(db, "users", user.uid)); // Deleta do Firestore
-          await user.delete(); // Deleta do Authentication
-          localStorage.clear();
-          console.log("Conta deletada com sucesso.");
-          location.href = "index.html";
         } catch (error) {
           console.error("Erro ao deletar conta:", error.message);
           alert("Erro ao deletar conta: " + error.message);
