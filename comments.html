@@ -5,45 +5,6 @@
   <title>Comentários - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <style>
-    .title-container {
-      text-align: center;
-      padding: 15px 0;
-      background: linear-gradient(135deg, #6200ee, #3700b3);
-      position: fixed;
-      top: 0;
-      width: 100%;
-      z-index: 1100;
-    }
-    h1#title {
-      font-family: 'Roboto', sans-serif;
-      font-weight: 700;
-      font-size: 28px;
-      color: #FFD700;
-      margin: 0;
-    }
-    nav {
-      position: fixed;
-      top: 60px;
-      width: 100%;
-      z-index: 1000;
-    }
-    main {
-      margin-top: 110px;
-    }
-    button {
-      margin: 5px;
-      padding: 10px;
-      background: #2E8B57;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #3CB371;
-    }
-  </style>
 </head>
 <body>
   <div class="title-container">
@@ -114,7 +75,7 @@
     function renderComments(logs) {
       const commentsList = document.getElementById("commentsList");
       commentsList.innerHTML = logs.map((log, index) => `
-        <div style="background: #333; padding: 12px; margin: 8px 0; border-radius: 4px;">
+        <div style="background: #33334D; padding: 12px; margin: 8px 0; border-radius: 4px;">
           <strong>Etapa ${log.etapa}: ${log.subtopico}</strong><br>
           <span>Matéria: ${log.materia}</span><br>
           <span>Comentário: ${log.comentarios || "Nenhum comentário"}</span><br>
