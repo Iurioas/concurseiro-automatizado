@@ -95,6 +95,7 @@
         console.log("Carregando plano e progresso...");
         const planDoc = await getDoc(doc(db, "plans", user.uid));
         console.log("PlanDoc obtido:", planDoc.exists() ? "Existe" : "Não existe");
+        loading.style.display = "none"; // Esconde loading antes de verificar
         if (planDoc.exists()) {
           const planDataRaw = planDoc.data();
           planData = planDataRaw.plan || [];
@@ -108,11 +109,10 @@
           console.log("CurrentIndex carregado:", currentIndex);
           console.log("Logs carregados:", logs.length);
           console.log("Plano a ser renderizado:", planData);
-          loading.style.display = "none"; // Esconde loading antes de verificar o plano
           if (planData.length === 0) {
             console.log("Plano vazio detectado!");
             loading.innerText = "Plano vazio. Crie um novo plano no Planejador.";
-            loading.style.display = "block"; // Mostra novamente para exibir mensagem
+            loading.style.display = "block"; // Mostra novamente para mensagem
             setTimeout(() => location.href = "planner.html", 2000);
           } else {
             renderPlan();
@@ -121,11 +121,13 @@
         } else {
           console.log("Nenhum plano encontrado.");
           loading.innerText = "Nenhum plano encontrado. Crie um plano no Planejador.";
+          loading.style.display = "block"; // Mostra novamente para mensagem
           setTimeout(() => location.href = "planner.html", 2000);
         }
       } catch (error) {
         console.error("Erro ao carregar plano:", error.message);
         loading.innerText = "Erro ao carregar plano: " + error.message;
+        loading.style.display = "block"; // Mostra novamente para mensagem
         setTimeout(() => location.href = "planner.html", 2000);
       }
     });
@@ -230,9 +232,9 @@
       const validLogs = logs.filter(l => l.validForRanking);
       const totalTime = validLogs.reduce((sum, l) => sum + parseInt(l.tempo_gasto), 0);
       const avgScore = validLogs.reduce((sum, l) => sum + parseInt(l.nota_autoavaliacao), 0) / validLogs.length || 1;
-      const now = new Date();
-      const resetDate = new Date(now.getFullYear(), now.getMonth(), 1, 1, 0, 0); // Dia 1, 01:00h
-      if (now >= resetDate && !localStorage.getItem("rankingReset")) {
+      const now_date = new Date();
+      const resetDate = new Date(now_date.getFullYear(), now_date.getMonth(), 1, 1, 0, 0); // Dia 1, 01:00h
+      if (now_date >= resetDate && !localStorage.getItem("rankingReset")) {
         await updateDoc(doc(db, "users", auth.currentUser.uid), { monthlyRankingScore: 0 });
         localStorage.setItem("rankingReset", "true");
       }
@@ -311,7 +313,7 @@
       const currentRank = updateRank(logs);
       if (!achievements.some(a => a.rank === currentRank)) {
         achievements = [{ rank: currentRank, date: new Date().toISOString() }];
-        showNotification(`Novo ranking: ${currentRank}!`);
+        showNotification(\`Novo ranking: \${currentRank}!\`);
         playSuccessSound();
       }
       updateDoc(doc(db, "users", auth.currentUser.uid), { achievements }).catch(error => console.error("Erro ao atualizar conquistas:", error.message));
