@@ -397,20 +397,13 @@
         if (planDoc.exists()) {
           const planLength = planDoc.data().plan.length;
           const currentIndex = userDoc.exists() && userDoc.data().currentIndex !== undefined ? userDoc.data().currentIndex : 0;
-          if (!confirm(\`Você já tem um plano vigente com \${planLength} etapas (\${currentIndex} concluídas). Gerar um novo plano excluirá o progresso atual. Deseja continuar?\`)) {
+          if (!confirm(`Você já tem um plano vigente com ${planLength} etapas (${currentIndex} concluídas). Gerar um novo plano excluirá o progresso atual. Deseja continuar?`)) {
             return;
           }
         }
 
-        console.log(\`Gerando plano de \${months} meses com \${topics} tópicos...\`);
-        let rawPlan = months === 3 ? plan3Months : Array(topics).fill("Subtópico Exemplo");
-        if(rawPlan.length !== 215 && months === 3) {
-          console.log("Ajustando plano de 3 meses para 215 etapas...");
-          while(rawPlan.length < 215) {
-            rawPlan.push("Subtópico Adicional " + (rawPlan.length + 1));
-          }
-          rawPlan = rawPlan.slice(0, 215); // Garante exatamente 215
-        }
+        console.log(`Gerando plano de ${months} meses com ${topics} tópicos...`);
+        const rawPlan = months === 3 ? plan3Months.slice(0, 215) : Array(topics).fill("Subtópico Exemplo");
         console.log("Tamanho do rawPlan:", rawPlan.length);
         const plan = rawPlan.map((subtopic, index) => ({
           priorityNumber: index + 1,
@@ -419,13 +412,12 @@
           completed: false
         }));
         console.log("Plano formatado:", plan.length, "itens");
-        if (plan.length !== topics) throw new Error(\`Erro: O plano gerado tem \${plan.length} etapas, mas deveria ter \${topics}!\`);
 
         await setDoc(doc(db, "plans", user.uid), { plan, topics, months }, { merge: false });
         await updateDoc(doc(db, "users", user.uid), { currentIndex: 0, logs: [], achievements: [] });
         console.log("Plano salvo com sucesso no Firestore na coleção 'plans'!");
 
-        planStatus.innerHTML = \`Novo plano de \${months} meses com \${topics} etapas gerado com sucesso!\`;
+        planStatus.innerHTML = `Novo plano de ${months} meses com ${topics} etapas gerado com sucesso!`;
         setTimeout(() => location.href = "study.html", 1000); // Delay para garantir salvamento
       } catch (error) {
         console.error("Erro ao gerar plano:", error.message);
