@@ -117,8 +117,8 @@ h3 {
 input, textarea {
   display: block;
   width: 100%;
-  max-width: 400px;
-  margin: 15px auto;
+  max-width: 300px; /* Reduz largura para consistência */
+  margin: 15px 0; /* Remove margem automática para alinhar com Flexbox */
   padding: 12px;
   background: #33334D;
   border: 1px solid #444466;
