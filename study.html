@@ -22,6 +22,11 @@
       <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th><th>Concluído</th></tr></thead>
       <tbody></tbody>
     </table>
+    <h2>Etapas Concluídas</h2>
+    <table id="completedTable">
+      <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th></tr></thead>
+      <tbody></tbody>
+    </table>
     <h2>Próximas Etapas</h2>
     <table id="nextStepsTable">
       <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th></tr></thead>
@@ -31,6 +36,7 @@
     <div>
       <button onclick="location.href='log-txt.html'; playClickSound()">Log Texto</button>
       <button onclick="location.href='log-json.html'; playClickSound()">Log JSON</button>
+      <button onclick="location.href='comments.html'; playClickSound()">Comentários</button>
       <p style="font-size: 14px; color: #bbb;">(Copie o JSON para usar em conversores de gráficos)</p>
       <button onclick="location.href='graficos.html'; playClickSound()">Gráficos</button>
     </div>
@@ -116,8 +122,10 @@
     function renderPlan() {
       document.getElementById("loading").style.display = "none";
       const tbody = document.querySelector("#studyTable tbody");
+      const completedTbody = document.querySelector("#completedTable tbody");
       const nextTbody = document.querySelector("#nextStepsTable tbody");
       tbody.innerHTML = "";
+      completedTbody.innerHTML = "";
       nextTbody.innerHTML = "";
 
       if (planData.length === 0) {
@@ -140,6 +148,17 @@
         showNotification("Plano concluído! Parabéns!");
         playSuccessSound();
       }
+
+      const completedSteps = planData.slice(0, currentIndex);
+      completedSteps.forEach(item => {
+        completedTbody.innerHTML += `
+          <tr>
+            <td>${item.priorityNumber}</td>
+            <td>${item.subject}</td>
+            <td>${item.subtopic}</td>
+          </tr>
+        `;
+      });
 
       const nextSteps = planData.slice(currentIndex + 1, currentIndex + 11);
       nextSteps.forEach(item => {
@@ -168,7 +187,6 @@
       const tempo = prompt("Tempo gasto (minutos):") || "0";
       const dificuldade = prompt("Dificuldade (F/M/D):")?.toUpperCase() || "M";
       const nota = prompt("Nota (0-10):") || "0";
-      const comentarios = prompt("Comentários:") || "Sem comentários";
       const log = {
         etapa: currentIndex + 1,
         subtopico: planData[currentIndex].subtopic,
@@ -176,7 +194,6 @@
         dificuldade: dificuldade === "F" ? "Fácil" : dificuldade === "D" ? "Difícil" : "Médio",
         tempo_gasto: tempo,
         nota_autoavaliacao: nota,
-        comentarios,
         data_conclusao: new Date().toISOString(),
         status: "Concluído",
         validForRanking: validForRanking
@@ -213,16 +230,23 @@
       }
     };
 
-    window.retrocederEtapa = function() {
+    window.retrocederEtapa = async function() {
       playClickSound();
-      if (confirm("Tem certeza que deseja retroceder?")) {
+      if (confirm("Tem certeza que deseja retroceder? Isso apagará o log da etapa atual.")) {
         if (currentIndex > 0) {
+          logs = logs.filter(log => log.etapa !== currentIndex + 1); // Remove o log da etapa atual
+          planData[currentIndex].completed = false; // Reverte a conclusão
           currentIndex--;
           localStorage.setItem("currentIndex", currentIndex);
-          updateDoc(doc(db, "users", auth.currentUser.uid), { currentIndex })
-            .then(() => console.log("Progresso retrocedido e salvo. CurrentIndex:", currentIndex))
-            .catch(error => console.error("Erro ao salvar progresso ao retroceder:", error.message));
-          renderPlan();
+          try {
+            await updateDoc(doc(db, "users", auth.currentUser.uid), { logs, currentIndex });
+            await updateDoc(doc(db, "plans", auth.currentUser.uid), { plan: planData });
+            console.log("Progresso retrocedido e log apagado. CurrentIndex:", currentIndex);
+            renderPlan();
+          } catch (error) {
+            console.error("Erro ao retroceder:", error.message);
+            alert("Erro ao retroceder: " + error.message);
+          }
         }
       }
     };
