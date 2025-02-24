@@ -327,8 +327,7 @@
         console.log("Plano salvo com sucesso no Firestore na coleção 'plans'!");
 
         document.getElementById("planStatus").innerHTML = `Novo plano de ${months} meses com ${topics} etapas gerado com sucesso!`;
-        document.getElementById("trends").style.display = "block";
-        renderTrendsChart();
+        location.href = "trends.html";
       } catch (error) {
         console.error("Erro ao gerar plano:", error.message);
         alert("Erro ao gerar plano: " + error.message);
