@@ -52,7 +52,7 @@
         console.log("E-mail de verificação enviado.");
         await setDoc(doc(db, "users", user.uid), { email, status: "inativo" });
         console.log("Dados salvos no Firestore.");
-        document.getElementById("message").innerHTML = "Conta criada! <strong>Verifique seu e-mail</strong> <span style='color: #ffca28;'>(cheque spam/promoções)</span>. Envie R$ 15 via PIX para [SEU PIX] e aguarde ativação.";
+        document.getElementById("message").innerHTML = "Conta criada! <strong>Verifique seu e-mail</strong> <span style='color: #ffca28;'>(cheque spam/promoções)</span> para ativar sua conta.";
         const checkEmailVerified = setInterval(async () => {
           await user.reload();
           if (user.emailVerified) {
