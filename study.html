@@ -41,7 +41,7 @@
     import { playClickSound, playSuccessSound } from "./sounds.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo", // Chave API corrigida
+      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
       authDomain: "concurseiro-automatizado.firebaseapp.com",
       projectId: "concurseiro-automatizado",
       storageBucket: "concurseiro-automatizado.firebasestorage.app",
@@ -53,7 +53,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    let currentIndex = localStorage.getItem("currentIndex") ? parseInt(localStorage.getItem("currentIndex")) : 0;
+    let currentIndex = 0; // Inicializa como 0, será atualizado pelo Firestore ou localStorage
     let planData = [];
     let logs = [];
     let achievements = [];
@@ -82,7 +82,7 @@
       }
       console.log("Usuário autenticado:", user.uid);
       try {
-        console.log("Carregando plano...");
+        console.log("Carregando plano e progresso...");
         const planDoc = await getDoc(doc(db, "plans", user.uid));
         if (planDoc.exists()) {
           planData = planDoc.data().plan;
@@ -90,6 +90,11 @@
           const userDoc = await getDoc(doc(db, "users", user.uid));
           logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
           achievements = userDoc.exists() && userDoc.data().achievements ? userDoc.data().achievements : [];
+          // Recupera o currentIndex do Firestore, com fallback para localStorage ou 0
+          currentIndex = userDoc.exists() && userDoc.data().currentIndex !== undefined 
+            ? userDoc.data().currentIndex 
+            : (localStorage.getItem("currentIndex") ? parseInt(localStorage.getItem("currentIndex")) : 0);
+          console.log("CurrentIndex carregado:", currentIndex);
           console.log("Logs carregados:", logs.length);
           renderPlan();
           checkAchievements();
@@ -152,17 +157,23 @@
       const avgScore = validLogs.reduce((sum, l) => sum + parseInt(l.nota_autoavaliacao), 0) / validLogs.length || 1;
       const rankingScore = validLogs.length * (totalTime / validLogs.length) * avgScore;
 
+      currentIndex++; // Avança para a próxima etapa
+
       try {
-        console.log("Salvando log e atualizando conquistas...");
-        await updateDoc(doc(db, "users", auth.currentUser.uid), { logs, achievements, rankingScore });
-        currentIndex++;
+        console.log("Salvando log, conquistas e progresso...");
+        await updateDoc(doc(db, "users", auth.currentUser.uid), { 
+          logs, 
+          achievements, 
+          rankingScore, 
+          currentIndex // Salva o progresso no Firestore
+        });
+        localStorage.setItem("currentIndex", currentIndex); // Salva no localStorage como backup
+        localStorage.setItem("lastCompletionTime", now);
         lastCompletionTime = now;
-        localStorage.setItem("currentIndex", currentIndex);
-        localStorage.setItem("lastCompletionTime", lastCompletionTime);
         playSuccessSound();
         checkAchievements();
         renderPlan();
-        console.log("Etapa concluída com sucesso.");
+        console.log("Etapa concluída com sucesso. CurrentIndex:", currentIndex);
       } catch (error) {
         console.error("Erro ao salvar log:", error.message);
         alert("Erro ao salvar log: " + error.message);
@@ -175,6 +186,9 @@
         if (currentIndex > 0) {
           currentIndex--;
           localStorage.setItem("currentIndex", currentIndex);
+          updateDoc(doc(db, "users", auth.currentUser.uid), { currentIndex })
+            .then(() => console.log("Progresso retrocedido e salvo. CurrentIndex:", currentIndex))
+            .catch(error => console.error("Erro ao salvar progresso ao retroceder:", error.message));
           renderPlan();
         }
       }
