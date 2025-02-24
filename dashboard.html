@@ -70,6 +70,23 @@
         alert("Erro ao sair: " + error.message);
       }
     };
+
+    window.deleteAccount = async function() {
+      playClickSound();
+      if (confirm("Tem certeza que deseja deletar sua conta? Isso é irreversível.")) {
+        try {
+          const user = auth.currentUser;
+          await deleteDoc(doc(db, "users", user.uid)); // Deleta do Firestore
+          await user.delete(); // Deleta do Authentication
+          localStorage.clear();
+          console.log("Conta deletada com sucesso.");
+          location.href = "index.html";
+        } catch (error) {
+          console.error("Erro ao deletar conta:", error.message);
+          alert("Erro ao deletar conta: " + error.message);
+        }
+      }
+    };
   </script>
 </body>
 </html>
