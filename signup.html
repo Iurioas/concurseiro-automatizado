@@ -56,8 +56,8 @@
       console.log("Iniciando cadastro para:", email, "Login:", login);
 
       // Validação do login
-      if (!login || login.length < 3) {
-        document.getElementById("message").innerText = "O login deve ter pelo menos 3 caracteres.";
+      if (!login || login.length < 3 || login.includes(" ") || /\b(bosta|merda|caralho|puta|fdp|filho da puta)\b/i.test(login)) {
+        document.getElementById("message").innerText = "O nick deve ter pelo menos 3 caracteres, sem espaços ou palavras ofensivas.";
         signupBtn.disabled = false;
         signupBtn.innerText = "Cadastrar";
         return;
