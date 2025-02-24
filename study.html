@@ -6,65 +6,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-  <style>
-    .title-container {
-      text-align: center;
-      padding: 15px 0;
-      background: linear-gradient(135deg, #6200ee, #3700b3);
-      position: fixed;
-      top: 0;
-      width: 100%;
-      z-index: 1100;
-    }
-    h1#title {
-      font-family: 'Roboto', sans-serif;
-      font-weight: 700;
-      font-size: 28px;
-      color: #42A5F5;
-      margin: 0;
-    }
-    nav {
-      position: fixed;
-      top: 60px;
-      width: 100%;
-      z-index: 1000;
-    }
-    #statusTable {
-      width: 100%;
-      margin: 15px 0;
-      border-collapse: collapse;
-      background: #2c2c2c;
-      font-size: 13px;
-    }
-    #statusTable th, #statusTable td {
-      border: 1px solid #555;
-      padding: 8px;
-      text-align: center;
-    }
-    #statusTable th {
-      background: #3700b3;
-      color: #fff;
-    }
-    #statusTable .current {
-      background: #bb86fc;
-      color: #fff;
-      font-weight: bold;
-    }
-    #statusTable .divider {
-      background: #444;
-      color: #e0e0e0;
-      font-weight: bold;
-      text-align: center;
-    }
-    h2#statusTitle {
-      font-size: 18px;
-      color: #bb86fc;
-      margin-bottom: 10px;
-    }
-    main {
-      margin-top: 110px;
-    }
-  </style>
 </head>
 <body>
   <div class="title-container">
@@ -79,23 +20,23 @@
   </nav>
   <main>
     <h1>Planejado</h1>
-    <table id="studyTable">
+    <table class="study-table" id="studyTable">
       <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th><th>Concluído</th></tr></thead>
       <tbody></tbody>
     </table>
     <h2 id="statusTitle">Status</h2>
-    <table id="statusTable">
+    <table class="status-table" id="statusTable">
       <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th></tr></thead>
       <tbody></tbody>
     </table>
     <button id="backButton" style="display:none" onclick="retrocederEtapa()">Retroceder</button>
-    <div>
+    <div class="button-group">
       <button onclick="location.href='log-txt.html'; playClickSound()">Log Texto</button>
       <button onclick="location.href='log-json.html'; playClickSound()">Log JSON</button>
       <button onclick="location.href='comments.html'; playClickSound()">Comentários</button>
-      <p style="font-size: 14px; color: #bbb;">(Copie o JSON para usar em conversores de gráficos)</p>
       <button onclick="location.href='graficos.html'; playClickSound()">Gráficos</button>
     </div>
+    <p style="font-size: 14px; color: #8888A0; text-align: center;">(Copie o JSON para usar em conversores de gráficos)</p>
     <div id="loading">Carregando plano...</div>
   </main>
   <footer>
