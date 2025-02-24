@@ -20,18 +20,20 @@
   </nav>
   <main>
     <h2>Monte Seu Plano de Estudos</h2>
-    <div class="info-box">
-      <p>Nosso plano é baseado na análise de provas anteriores da FGV para Juiz Federal. Cobrimos 80% dos assuntos mais cobrados historicamente, priorizando os de maior relevância em ordem decrescente, para maximizar suas chances de aprovação.</p>
+    <div class="info-box" style="background: #33334D; padding: 15px; border-radius: 6px; box-shadow: 0 2px 8px rgba(149, 117, 205, 0.2);">
+      <p>Nosso plano é baseado na análise de provas anteriores das bancas correspondentes. Cobrimos 80% dos assuntos mais cobrados historicamente, priorizando os de maior relevância em ordem decrescente, para maximizar suas chances de aprovação. Além disso, incluímos alguns assuntos em tendência, a fim de garantir uma visão futura ao plano. O tempo sugerido é baseado em 90 minutos por subtópico, mas você pode ajustar seu ritmo diário.</p>
     </div>
     <div id="planStatus"></div>
-    <h3>Escolha seu plano:</h3>
-    <div class="button-group">
-      <button onclick="generatePlan(3, 215)">3 Meses (215 subtópicos, ~6h/dia)</button>
-      <button onclick="generatePlan(6, 300)">6 Meses (300 subtópicos, ~4h/dia)</button>
-      <button onclick="generatePlan(9, 360)">9 Meses (360 subtópicos, ~3h/dia)</button>
-      <button onclick="generatePlan(12, 400)">12 Meses (400 subtópicos, ~3h/dia)</button>
+    <h3>Escolha seu concurso e plano:</h3>
+    <div class="contest-group" style="margin: 20px 0;">
+      <h4 style="color: #D1C4E9;">Juiz Federal (FGV)</h4>
+      <div class="button-group">
+        <button onclick="generatePlan(3, 215)">3 Meses (215 subtópicos, ~6h/dia)</button>
+        <button onclick="generatePlan(6, 300)">6 Meses (300 subtópicos, ~4h/dia)</button>
+        <button onclick="generatePlan(9, 360)">9 Meses (360 subtópicos, ~3h/dia)</button>
+        <button onclick="generatePlan(12, 400)">12 Meses (400 subtópicos, ~3h/dia)</button>
+      </div>
     </div>
-    <p style="font-size: 14px; color: #8888A0; text-align: center;">O tempo sugerido é baseado em 90 minutos por subtópico. Ajuste seu ritmo diário para concluir mais cedo ou mais tarde.</p>
     <div id="trends" style="display: none;">
       <h3>Tendências Recentes</h3>
       <p>Tendências Recentes: Os assuntos abaixo têm baixa relevância histórica, mas estão em alta nas provas recentes da FGV (2023-2025), podendo ser mais cobrados no futuro. Incluímos alguns no seu plano para torná-lo ainda mais completo, sem perder o foco na relevância dos assuntos.</p>
