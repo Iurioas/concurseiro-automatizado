@@ -20,7 +20,7 @@
       font-family: 'Roboto', sans-serif;
       font-weight: 700;
       font-size: 28px;
-      color: #42A5F5;
+      color: #FFD700;
       margin: 0;
     }
     nav {
@@ -35,6 +35,18 @@
     canvas {
       max-width: 600px;
       margin: 20px auto;
+    }
+    button {
+      margin: 5px;
+      padding: 10px;
+      background: #2E8B57;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #3CB371;
     }
   </style>
 </head>
@@ -51,6 +63,7 @@
   </nav>
   <main>
     <h1>Gráficos de Progresso</h1>
+    <button onclick="location.href='study.html'">Voltar</button>
     <canvas id="progressChart"></canvas>
     <div id="loading">Carregando gráficos...</div>
   </main>
@@ -106,7 +119,7 @@
             {
               label: "Tempo Gasto (min)",
               data: tempos,
-              backgroundColor: "#42A5F5",
+              backgroundColor: "#2E8B57",
               yAxisID: "y"
             },
             {
