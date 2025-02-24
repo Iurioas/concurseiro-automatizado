@@ -90,12 +90,14 @@
         return;
       }
       console.log("Usuário autenticado:", user.uid);
+      document.getElementById("loading").style.display = "block"; // Mostra loading
       try {
         console.log("Carregando plano e progresso...");
         const planDoc = await getDoc(doc(db, "plans", user.uid));
         if (planDoc.exists()) {
-          planData = planDoc.data().plan || [];
-          console.log("Plano carregado:", planData.length, "etapas.");
+          const planDataRaw = planDoc.data();
+          planData = planDataRaw.plan || [];
+          console.log("Plano carregado:", planData.length, "etapas, meses:", planDataRaw.months, "topics:", planDataRaw.topics);
           if (planData.length === 0) {
             console.log("Plano vazio detectado!");
             document.getElementById("loading").innerText = "Plano vazio. Crie um novo plano no Planejador.";
@@ -110,6 +112,7 @@
             : (localStorage.getItem("currentIndex") ? parseInt(localStorage.getItem("currentIndex")) : 0);
           console.log("CurrentIndex carregado:", currentIndex);
           console.log("Logs carregados:", logs.length);
+          document.getElementById("loading").style.display = "none"; // Esconde loading
           renderPlan();
           checkAchievements();
         } else {
