@@ -7,6 +7,25 @@
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   <style>
+    .title-container {
+      text-align: center;
+      padding: 15px 0;
+      background: linear-gradient(135deg, #6200ee, #3700b3);
+      width: 100%;
+    }
+    h1#title {
+      font-family: 'Roboto', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      color: #42A5F5;
+      margin: 0;
+    }
+    nav {
+      position: fixed;
+      top: 60px;
+      width: 100%;
+      z-index: 1000;
+    }
     #statusTable {
       width: 100%;
       margin: 15px 0;
@@ -17,7 +36,7 @@
     #statusTable th, #statusTable td {
       border: 1px solid #555;
       padding: 8px;
-      text-align: center; /* Centraliza o conteúdo */
+      text-align: center;
     }
     #statusTable th {
       background: #3700b3;
@@ -35,15 +54,20 @@
       text-align: center;
     }
     h2#statusTitle {
-      font-size: 18px; /* Menor que o h1 padrão (24px) */
+      font-size: 18px;
       color: #bb86fc;
       margin-bottom: 10px;
+    }
+    main {
+      margin-top: 110px;
     }
   </style>
 </head>
 <body>
+  <div class="title-container">
+    <h1 id="title">Concurseiro Automatizado</h1>
+  </div>
   <nav>
-    <span>Concurseiro Automatizado</span>
     <a href="planner.html">Planejador</a>
     <a href="study.html">Planejado</a>
     <a href="achievements.html">Conquistas</a>
@@ -116,8 +140,8 @@
     onAuthStateChanged(auth, async (user) => {
       console.log("Estado de autenticação em study:", user ? "Autenticado" : "Não autenticado");
       if (!user) {
-        console.log("Redirecionando para login...");
-        location.href = "login.html";
+        console.log("Redirecionando para login após 1 segundo...");
+        setTimeout(() => location.href = "login.html", 1000);
         return;
       }
       console.log("Usuário autenticado:", user.uid);
@@ -226,7 +250,7 @@
       let validForRanking = timeSinceLast >= MINIMUM_TIME_FOR_RANKING;
 
       if (!confirm(`Tem certeza que deseja avançar para a próxima etapa? ${!validForRanking ? "Avanços em menos de 10 minutos não contam para o ranking." : ""}`)) {
-        checkbox.checked = false; // Desmarca o checkbox se cancelar
+        checkbox.checked = false;
         return;
       }
 
@@ -301,8 +325,7 @@
       playClickSound();
       try {
         await signOut(auth);
-        localStorage.removeItem("currentIndex");
-        localStorage.removeItem("lastCompletionTime");
+        localStorage.clear();
         console.log("Logout realizado com sucesso.");
         location.href = "index.html";
       } catch (error) {
