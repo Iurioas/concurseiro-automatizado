@@ -19,7 +19,12 @@
   <main>
     <h1>Planejado</h1>
     <table id="studyTable">
-      <thead><tr><th>Prioridade</th><th>Categoria</th><th>Matéria</th><th>Subtópico</th><th>Concluído</th><th>Motivo</th></tr></thead>
+      <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th><th>Concluído</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <h2>Próximas Etapas</h2>
+    <table id="nextStepsTable">
+      <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th></tr></thead>
       <tbody></tbody>
     </table>
     <button id="backButton" style="display:none" onclick="retrocederEtapa()">Retroceder</button>
@@ -111,24 +116,42 @@
     function renderPlan() {
       document.getElementById("loading").style.display = "none";
       const tbody = document.querySelector("#studyTable tbody");
+      const nextTbody = document.querySelector("#nextStepsTable tbody");
       tbody.innerHTML = "";
+      nextTbody.innerHTML = "";
+
       if (planData.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='6'>Nenhum plano carregado.</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='4'>Nenhum plano carregado.</td></tr>";
         return;
       }
-      planData.forEach((item, index) => {
-        const isCurrent = index === currentIndex;
-        tbody.innerHTML += `
+
+      if (currentIndex < planData.length) {
+        const currentItem = planData[currentIndex];
+        tbody.innerHTML = `
+          <tr>
+            <td>${currentItem.priorityNumber}</td>
+            <td>${currentItem.subject}</td>
+            <td>${currentItem.subtopic}</td>
+            <td><input type="checkbox" ${currentItem.completed ? "checked" : ""} onchange="completeStep()"></td>
+          </tr>
+        `;
+      } else {
+        tbody.innerHTML = "<tr><td colspan='4'>Todas as etapas concluídas!</td></tr>";
+        showNotification("Plano concluído! Parabéns!");
+        playSuccessSound();
+      }
+
+      const nextSteps = planData.slice(currentIndex + 1, currentIndex + 11);
+      nextSteps.forEach(item => {
+        nextTbody.innerHTML += `
           <tr>
             <td>${item.priorityNumber}</td>
-            <td>${item.priorityCategory}</td>
             <td>${item.subject}</td>
             <td>${item.subtopic}</td>
-            <td><input type="checkbox" ${item.completed ? "checked" : ""} ${isCurrent ? "onchange='completeStep()'" : "disabled"}></td>
-            <td>${item.reason}</td>
           </tr>
         `;
       });
+
       document.getElementById("backButton").style.display = currentIndex > 0 ? "block" : "none";
     }
 
