@@ -5,7 +5,6 @@
   <title>Planejado - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 </head>
 <body>
   <div class="title-container">
@@ -69,8 +68,7 @@
     let achievements = [];
     let lastCompletionTime = localStorage.getItem("lastCompletionTime") ? parseInt(localStorage.getItem("lastCompletionTime")) : 0;
 
-    const MINIMUM_TIME_FOR_RANKING = 10 * 60 * 1000;
-
+    const MINIMUM_TIME_FOR_RANKING = 10 * 60 * 1000; // 10 minutos em milissegundos
     const rankList = ["E", "E+", "D", "D+", "C", "C+", "B", "B+", "A", "A+"];
     const updateRank = (logs) => {
       const completed = logs.length;
@@ -84,14 +82,15 @@
 
     onAuthStateChanged(auth, async (user) => {
       console.log("Estado de autenticação em study:", user ? "Autenticado" : "Não autenticado");
+      const loading = document.getElementById("loading");
       if (!user) {
         console.log("Redirecionando para login após 1 segundo...");
-        document.getElementById("loading").innerText = "Você não está autenticado. Redirecionando para login...";
+        loading.innerText = "Você não está autenticado. Redirecionando para login...";
         setTimeout(() => location.href = "login.html", 1000);
         return;
       }
       console.log("Usuário autenticado:", user.uid);
-      document.getElementById("loading").style.display = "block"; // Mostra loading
+      loading.style.display = "block"; // Mostra loading
       try {
         console.log("Carregando plano e progresso...");
         const planDoc = await getDoc(doc(db, "plans", user.uid));
@@ -102,7 +101,7 @@
           console.log("Plano carregado:", planData.length, "etapas, meses:", planDataRaw.months, "topics:", planDataRaw.topics);
           if (planData.length === 0) {
             console.log("Plano vazio detectado!");
-            document.getElementById("loading").innerText = "Plano vazio. Crie um novo plano no Planejador.";
+            loading.innerText = "Plano vazio. Crie um novo plano no Planejador.";
             setTimeout(() => location.href = "planner.html", 2000);
             return;
           }
@@ -115,23 +114,22 @@
           console.log("CurrentIndex carregado:", currentIndex);
           console.log("Logs carregados:", logs.length);
           console.log("Plano a ser renderizado:", planData);
-          document.getElementById("loading").style.display = "none"; // Esconde loading
+          loading.style.display = "none"; // Esconde loading
           renderPlan();
           checkAchievements();
         } else {
           console.log("Nenhum plano encontrado.");
-          document.getElementById("loading").innerText = "Nenhum plano encontrado. Crie um plano no Planejador.";
+          loading.innerText = "Nenhum plano encontrado. Crie um plano no Planejador.";
           setTimeout(() => location.href = "planner.html", 2000);
         }
       } catch (error) {
         console.error("Erro ao carregar plano:", error.message);
-        document.getElementById("loading").innerText = "Erro ao carregar plano: " + error.message;
+        loading.innerText = "Erro ao carregar plano: " + error.message;
         setTimeout(() => location.href = "planner.html", 2000);
       }
     });
 
     function renderPlan() {
-      document.getElementById("loading").style.display = "none";
       const tbody = document.querySelector("#studyTable tbody");
       const refTbody = document.querySelector("#statusTable tbody");
       tbody.innerHTML = "";
@@ -315,7 +313,7 @@
         showNotification(`Novo ranking: ${currentRank}!`);
         playSuccessSound();
       }
-      updateDoc(doc(db, "users", auth.currentUser.uid), { achievements });
+      updateDoc(doc(db, "users", auth.currentUser.uid), { achievements }).catch(error => console.error("Erro ao atualizar conquistas:", error.message));
     }
   </script>
 </body>
