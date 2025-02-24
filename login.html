@@ -1,12 +1,21 @@
-<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <title>Login - Concurseiro Automatizado</title>
   <title>Ranking - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div class="login-container">
+    <h1>Login</h1>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Senha">
+    <div class="button-group">
+      <button id="loginButton">Entrar</button>
+      <button onclick="location.href='signup.html'">Criar Conta</button>
+      <button onclick="location.href='index.html'">Voltar</button>
+    </div>
   <div class="title-container">
     <h1 id="title">Concurseiro Automatizado</h1>
   </div>
@@ -30,24 +39,20 @@
   </main>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { playClickSound } from "./sounds.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
-      authDomain: "concurseiro-automatizado.firebaseapp.com",
-      projectId: "concurseiro-automatizado",
-      storageBucket: "concurseiro-automatizado.firebasestorage.app",
-      messagingSenderId: "938840578480",
-      appId: "1:938840578480:web:4e8dd7e2dfdc42d7649e75",
-      measurementId: "G-H72D875STB"
-    };
-
-    const app = initializeApp(firebaseConfig);
+@@ -37,23 +48,55 @@ <h1>Login</h1>
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => console.log("Persistência configurada em login."))
+      .catch(error => console.error("Erro ao configurar persistência:", error.message));
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         console.log("Redirecionando para login...");
@@ -85,17 +90,26 @@
       `).join("") || "<tr><td colspan='3'>Nenhum dado de ranking disponível.</td></tr>";
     }
 
+    document.getElementById("loginButton").addEventListener("click", async () => {
     window.signOut = async () => {
       playClickSound();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
       try {
+        await signInWithEmailAndPassword(auth, email, password);
+        console.log("Login bem-sucedido!");
+        location.href = "dashboard.html";
         await signOut(auth);
         localStorage.clear();
         console.log("Logout realizado.");
         location.href = "index.html";
       } catch (error) {
+        console.error("Erro ao logar:", error.message);
+        alert("Erro ao fazer login: " + error.message);
         console.error("Erro ao sair:", error.message);
         alert("Erro ao sair: " + error.message);
       }
+    });
     };
   </script>
 </body>
