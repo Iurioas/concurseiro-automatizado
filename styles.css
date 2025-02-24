@@ -154,10 +154,10 @@ button {
 }
 
 button:hover {
-  background: #D1C4E9;
+  background: linear-gradient(135deg, #7E57C2, #66BB6A); /* Gradiente mais vibrante */
   color: #1E1E2F;
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(149, 117, 205, 0.3);
+  transform: translateY(-2px) scale(1.05); /* Efeito de "levantar" */
+  box-shadow: 0 6px 16px rgba(149, 117, 205, 0.5); /* Sombra mais forte */
 }
 
 button:disabled {
