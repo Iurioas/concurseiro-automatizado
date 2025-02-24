@@ -6,57 +6,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <style>
-    .title-container {
-      text-align: center;
-      padding: 15px 0;
-      background: linear-gradient(135deg, #6200ee, #3700b3);
-      position: fixed;
-      top: 0;
-      width: 100%;
-      z-index: 1100;
-    }
-    h1 {
-      font-family: 'Roboto', sans-serif;
-      font-weight: 700;
-      font-size: 28px;
-      color: #42A5F5;
-      margin: 0;
-    }
-    nav {
-      position: fixed;
-      top: 60px;
-      width: 100%;
-      z-index: 1000;
-    }
-    .info-box {
-      background: #2c2c2c;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 5px;
-      color: #e0e0e0;
-      border: 1px solid #444;
-    }
-    button {
-      margin: 5px;
-      padding: 10px;
-      background: #42A5F5;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #1e88e5;
-    }
-    #planStatus {
-      color: #bb86fc;
-      margin: 10px 0;
-    }
-    main {
-      margin-top: 110px;
-    }
-  </style>
 </head>
 <body>
   <div class="title-container">
@@ -76,11 +25,13 @@
     </div>
     <div id="planStatus"></div>
     <h3>Escolha seu plano:</h3>
-    <button onclick="generatePlan(3, 215)">3 Meses (215 subtópicos, ~6h/dia)</button>
-    <button onclick="generatePlan(6, 300)">6 Meses (300 subtópicos, ~4h/dia)</button>
-    <button onclick="generatePlan(9, 360)">9 Meses (360 subtópicos, ~3h/dia)</button>
-    <button onclick="generatePlan(12, 400)">12 Meses (400 subtópicos, ~3h/dia)</button>
-    <p><small>O tempo sugerido é baseado em 90 minutos por subtópico. Ajuste seu ritmo diário para concluir mais cedo ou mais tarde.</small></p>
+    <div class="button-group">
+      <button onclick="generatePlan(3, 215)">3 Meses (215 subtópicos, ~6h/dia)</button>
+      <button onclick="generatePlan(6, 300)">6 Meses (300 subtópicos, ~4h/dia)</button>
+      <button onclick="generatePlan(9, 360)">9 Meses (360 subtópicos, ~3h/dia)</button>
+      <button onclick="generatePlan(12, 400)">12 Meses (400 subtópicos, ~3h/dia)</button>
+    </div>
+    <p style="font-size: 14px; color: #8888A0; text-align: center;">O tempo sugerido é baseado em 90 minutos por subtópico. Ajuste seu ritmo diário para concluir mais cedo ou mais tarde.</p>
     <div id="trends" style="display: none;">
       <h3>Tendências Recentes</h3>
       <p>Tendências Recentes: Os assuntos abaixo têm baixa relevância histórica, mas estão em alta nas provas recentes da FGV (2023-2025), podendo ser mais cobrados no futuro. Incluímos alguns no seu plano para torná-lo ainda mais completo, sem perder o foco na relevância dos assuntos.</p>
@@ -392,7 +343,7 @@
         type: "bar",
         data: {
           labels: ["Direito Processual Internacional", "RGPS", "Serviços Públicos"],
-          datasets: [{ label: "Relevância Recente (%)", data: [4.6, 2.5, 2.5], backgroundColor: "#42A5F5" }]
+          datasets: [{ label: "Relevância Recente (%)", data: [4.6, 2.5, 2.5], backgroundColor: "#9575CD" }]
         },
         options: { scales: { y: { beginAtZero: true, max: 5 } } }
       });
