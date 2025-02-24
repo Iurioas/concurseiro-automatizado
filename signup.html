@@ -5,24 +5,80 @@
   <title>Criar Conta - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .login-container {
+      max-width: 400px;
+      margin: 100px auto;
+      padding: 20px;
+      background: #252525;
+      border-radius: 8px;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+    }
+    .login-container h1 {
+      color: #bb86fc;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .login-container input {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      background: #333;
+      border: 1px solid #444;
+      border-radius: 4px;
+      color: #fff;
+    }
+    .login-container .button-group {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+    .login-container button {
+      flex: 1;
+      margin: 0 5px;
+      padding: 10px;
+      background: #2E8B57; /* Verde esmeralda */
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .login-container button:hover {
+      background: #3CB371; /* Verde mais claro */
+    }
+    .login-container button:disabled {
+      background: #555;
+      cursor: not-allowed;
+    }
+    #message {
+      margin-top: 10px;
+      text-align: center;
+      color: #e0e0e0;
+    }
+  </style>
 </head>
 <body>
-  <main>
+  <div class="login-container">
     <h1>Criar Conta</h1>
     <input id="login" type="text" placeholder="Login (nickname)" required>
     <input id="email" type="email" placeholder="E-mail" required>
     <input id="password" type="password" placeholder="Senha (mín. 8 caracteres, letras e números)" required>
-    <button id="signupBtn" onclick="signup()">Cadastrar</button>
-    <button onclick="location.href='index.html'">Voltar</button>
+    <div class="button-group">
+      <button id="signupBtn">Cadastrar</button>
+      <button onclick="location.href='login.html'">Voltar ao Login</button>
+    </div>
     <p id="message"></p>
-  </main>
+  </div>
   <footer>
     <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
   </footer>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, sendEmailVerification, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { playClickSound } from "./sounds.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
@@ -38,7 +94,12 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    window.signup = async function() {
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => console.log("Persistência configurada em signup."))
+      .catch(error => console.error("Erro ao configurar persistência:", error.message));
+
+    document.getElementById("signupBtn").addEventListener("click", async () => {
+      playClickSound();
       const login = document.getElementById("login").value.trim();
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value;
@@ -73,7 +134,10 @@
         await setDoc(doc(db, "users", user.uid), { 
           email, 
           login, // Salva o login no Firestore
-          status: "inativo" 
+          status: "inativo",
+          currentIndex: 0, 
+          logs: [], 
+          achievements: [] 
         });
         console.log("Dados salvos no Firestore.");
         document.getElementById("message").innerHTML = "Conta criada! <strong>Verifique seu e-mail</strong> <span style='color: #ffca28;'>(cheque spam/promoções)</span> para ativar sua conta.";
@@ -106,7 +170,7 @@
         signupBtn.disabled = false;
         signupBtn.innerText = "Cadastrar";
       }
-    };
+    });
   </script>
 </body>
 </html>
