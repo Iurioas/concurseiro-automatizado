@@ -3,21 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <title>Área do Concurseiro</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <style>
-    h1 {
-      font-family: 'Montserrat', sans-serif;
-      font-size: 28px;
+    .title-container {
       text-align: center;
-      margin-bottom: 20px;
-      color: #bb86fc;
+      padding: 20px 0;
+      background: linear-gradient(135deg, #6200ee, #3700b3); /* Gradiente do nav para consistência */
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1100; /* Acima do nav */
+    }
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 32px;
+      color: #42A5F5; /* Azul dos botões */
+      margin: 0;
+    }
+    nav {
+      top: 70px; /* Ajustado para ficar abaixo do título */
+    }
+    main {
+      margin-top: 120px; /* Ajustado para evitar sobreposição */
     }
   </style>
 </head>
 <body>
+  <div class="title-container">
+    <h1>Concurseiro Automatizado</h1>
+  </div>
   <nav>
-    <span>Concurseiro Automatizado</span>
     <a href="planner.html">Planejador</a>
     <a href="study.html">Planejado</a>
     <a href="achievements.html">Conquistas</a>
@@ -25,7 +41,6 @@
     <button onclick="signOut()">Sair</button>
   </nav>
   <main>
-    <h1>Concurseiro Automatizado</h1>
     <p>Bem-vindo! Escolha uma opção no menu acima para começar.</p>
     <div id="loading">Carregando...</div>
   </main>
