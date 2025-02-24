@@ -7,33 +7,37 @@
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   <style>
-    /* Estilo adicional para a tabela referencial */
-    #referenceTable {
+    #statusTable {
       width: 100%;
       margin: 15px 0;
       border-collapse: collapse;
       background: #2c2c2c;
       font-size: 13px;
     }
-    #referenceTable th, #referenceTable td {
+    #statusTable th, #statusTable td {
       border: 1px solid #555;
       padding: 8px;
-      text-align: left;
+      text-align: center; /* Centraliza o conteúdo */
     }
-    #referenceTable th {
+    #statusTable th {
       background: #3700b3;
       color: #fff;
     }
-    #referenceTable .current {
+    #statusTable .current {
       background: #bb86fc;
       color: #fff;
       font-weight: bold;
     }
-    #referenceTable .divider {
+    #statusTable .divider {
       background: #444;
       color: #e0e0e0;
       font-weight: bold;
       text-align: center;
+    }
+    h2#statusTitle {
+      font-size: 18px; /* Menor que o h1 padrão (24px) */
+      color: #bb86fc;
+      margin-bottom: 10px;
     }
   </style>
 </head>
@@ -52,8 +56,8 @@
       <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th><th>Concluído</th></tr></thead>
       <tbody></tbody>
     </table>
-    <h2>Referência do Plano</h2>
-    <table id="referenceTable">
+    <h2 id="statusTitle">Status</h2>
+    <table id="statusTable">
       <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th></tr></thead>
       <tbody></tbody>
     </table>
@@ -147,7 +151,7 @@
     function renderPlan() {
       document.getElementById("loading").style.display = "none";
       const tbody = document.querySelector("#studyTable tbody");
-      const refTbody = document.querySelector("#referenceTable tbody");
+      const refTbody = document.querySelector("#statusTable tbody");
       tbody.innerHTML = "";
       refTbody.innerHTML = "";
 
@@ -163,7 +167,7 @@
             <td>${currentItem.priorityNumber}</td>
             <td>${currentItem.subject}</td>
             <td>${currentItem.subtopic}</td>
-            <td><input type="checkbox" ${currentItem.completed ? "checked" : ""} onchange="completeStep()"></td>
+            <td><input type="checkbox" ${currentItem.completed ? "checked" : ""} onchange="completeStep(this)"></td>
           </tr>
         `;
       } else {
@@ -172,7 +176,6 @@
         playSuccessSound();
       }
 
-      // Tabela referencial
       const completedSteps = planData.slice(0, currentIndex);
       if (completedSteps.length > 0) {
         refTbody.innerHTML += `<tr class="divider"><td colspan="3">Etapas Concluídas</td></tr>`;
@@ -216,13 +219,14 @@
       document.getElementById("backButton").style.display = currentIndex > 0 ? "block" : "none";
     }
 
-    window.completeStep = async function() {
+    window.completeStep = async function(checkbox) {
       playClickSound();
       const now = Date.now();
       const timeSinceLast = now - lastCompletionTime;
       let validForRanking = timeSinceLast >= MINIMUM_TIME_FOR_RANKING;
 
       if (!confirm(`Tem certeza que deseja avançar para a próxima etapa? ${!validForRanking ? "Avanços em menos de 10 minutos não contam para o ranking." : ""}`)) {
+        checkbox.checked = false; // Desmarca o checkbox se cancelar
         return;
       }
 
