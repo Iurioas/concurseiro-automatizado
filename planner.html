@@ -5,7 +5,6 @@
   <title>Planejador - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <!-- Carrega o Chart.js como script externo -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     .info-box {
@@ -54,6 +53,7 @@
       <h3>Tendências Recentes</h3>
       <p>Tendências Recentes: Os assuntos abaixo têm baixa relevância histórica, mas estão em alta nas provas recentes da FGV (2023-2025), podendo ser mais cobrados no futuro. Incluímos alguns no seu plano para torná-lo ainda mais completo, sem perder o foco na relevância dos assuntos.</p>
       <canvas id="trendsChart" width="400" height="200"></canvas>
+      <button onclick="location.href='study.html'">Ver Plano</button>
     </div>
   </main>
   <script type="module">
@@ -153,13 +153,20 @@
 
       try {
         console.log(`Tentando gerar plano de ${months} meses com ${topics} tópicos...`);
-        const plan = months === 3 ? plan3Months : Array(topics).fill("Subtópico Exemplo");
-        console.log("Plano selecionado:", plan.length, "itens");
+        const rawPlan = months === 3 ? plan3Months : Array(topics).fill("Subtópico Exemplo");
+        const plan = rawPlan.map((subtopic, index) => ({
+          priorityNumber: index + 1,
+          priorityCategory: "Alta",
+          subject: "Matéria Exemplo",
+          subtopic: subtopic,
+          reason: "Relevância histórica na FGV",
+          completed: false
+        }));
+        console.log("Plano formatado:", plan.length, "itens");
 
-        await setDoc(doc(db, "users", user.uid), { plan }, { merge: true });
-        console.log("Plano salvo com sucesso no Firestore!");
+        await setDoc(doc(db, "plans", user.uid), { plan }, { merge: true });
+        console.log("Plano salvo com sucesso no Firestore na coleção 'plans'!");
 
-        // Tenta exibir o gráfico, mas não trava se falhar
         try {
           document.getElementById("trends").style.display = "block";
           renderTrendsChart();
@@ -167,11 +174,6 @@
         } catch (chartError) {
           console.warn("Erro ao renderizar gráfico:", chartError.message);
         }
-
-        setTimeout(() => {
-          console.log("Redirecionando para study.html...");
-          location.href = "study.html";
-        }, 2000);
       } catch (error) {
         console.error("Erro ao gerar plano:", error.message);
         alert("Erro ao gerar plano: " + error.message);
