@@ -216,6 +216,13 @@
       const validLogs = logs.filter(l => l.validForRanking);
       const totalTime = validLogs.reduce((sum, l) => sum + parseInt(l.tempo_gasto), 0);
       const avgScore = validLogs.reduce((sum, l) => sum + parseInt(l.nota_autoavaliacao), 0) / validLogs.length || 1;
+      const now = new Date();
+      const resetDate = new Date(now.getFullYear(), now.getMonth(), 1, 1, 0, 0); // Dia 1, 01:00h
+      if (now >= resetDate && !localStorage.getItem("rankingReset")) {
+        await updateDoc(doc(db, "users", auth.currentUser.uid), { monthlyRankingScore: 0 });
+        localStorage.setItem("rankingReset", "true");
+      }
+      const monthlyRankingScore = validLogs.filter(log => new Date(log.data_conclusao) >= resetDate).reduce((sum, l) => sum + parseInt(l.tempo_gasto) * parseInt(l.nota_autoavaliacao), 0);
       const rankingScore = validLogs.length * (totalTime / validLogs.length) * avgScore;
 
       planData[currentIndex].completed = true;
