@@ -62,7 +62,7 @@
         console.log("Carregando ranking...");
         const usersSnapshot = await getDocs(query(collection(db, "users"), orderBy("rankingScore", "desc"), limit(10)));
         const ranking = usersSnapshot.docs.map((doc, index) => ({
-          login: doc.data().login, // Usa o login em vez do e-mail
+          login: doc.data().login || doc.data().email || "Usuário Sem Login", // Usa login, fallback para email, ou "Usuário Sem Login"
           rankingScore: doc.data().rankingScore ? doc.data().rankingScore.toFixed(2) : 0,
           validLogs: doc.data().logs ? doc.data().logs.filter(l => l.validForRanking).length : 0,
           achievements: doc.data().achievements ? doc.data().achievements.length : 0
