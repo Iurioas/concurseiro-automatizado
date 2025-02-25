@@ -32,6 +32,8 @@
     <div class="chart-container"><canvas id="progressTimeChart"></canvas></div>
     <div class="chart-container"><canvas id="timePerSubjectChart"></canvas></div>
     <div class="chart-container"><canvas id="overallProgressChart"></canvas></div>
+    <div class="chart-container"><canvas id="avgDifficultyPerSubjectChart"></canvas></div> <!-- Novo gráfico -->
+    <div class="chart-container"><canvas id="avgScorePerSubjectChart"></canvas></div> <!-- Novo gráfico -->
     <div id="loading">Carregando gráficos...</div>
   </main>
   <script type="module">
@@ -56,28 +58,16 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        console.log("Usuário não autenticado. Redirecionando para login...");
-        document.getElementById("loading").innerText = "Você não está autenticado. Redirecionando para login...";
-        setTimeout(() => location.href = "login.html", 1000);
+        console.log("Redirecionando para login...");
+        location.href = "login.html";
         return;
       }
       console.log("Usuário autenticado:", user.uid);
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         const planDoc = await getDoc(doc(db, "plans", user.uid));
-        
         const logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
-        console.log("Logs carregados:", logs.length, "registros", logs);
-        
         const totalSteps = planDoc.exists() && planDoc.data().plan ? planDoc.data().plan.length : 0;
-        console.log("Total de etapas do plano:", totalSteps);
-        
-        if (logs.length === 0) {
-          console.warn("Nenhum log encontrado. Exibindo mensagem de ausência de dados.");
-          document.getElementById("loading").innerText = "Nenhum dado de estudo registrado ainda. Conclua etapas no Planejado para ver gráficos!";
-          return;
-        }
-
         renderCharts(logs, totalSteps);
         document.getElementById("loading").style.display = "none";
       } catch (error) {
@@ -87,8 +77,6 @@
     });
 
     function renderCharts(logs, totalSteps) {
-      console.log("Iniciando renderização dos gráficos...");
-
       // Gráfico 1: Tempo Gasto e Nota por Etapa (Barras)
       const progressCtx = document.getElementById("progressChart").getContext("2d");
       new Chart(progressCtx, {
@@ -98,13 +86,13 @@
           datasets: [
             {
               label: "Tempo Gasto (min)",
-              data: logs.map(log => parseInt(log.tempo_gasto) || 0),
+              data: logs.map(log => parseInt(log.tempo_gasto)),
               backgroundColor: "#9575CD",
               yAxisID: "y"
             },
             {
               label: "Nota Autoavaliação",
-              data: logs.map(log => parseInt(log.nota_autoavaliacao) || 0),
+              data: logs.map(log => parseInt(log.nota_autoavaliacao)),
               backgroundColor: "#D1C4E9",
               yAxisID: "y1"
             }
@@ -119,14 +107,12 @@
           plugins: { title: { display: true, text: "Tempo e Nota por Etapa" } }
         }
       });
-      console.log("Gráfico 1 (Tempo e Nota) renderizado.");
 
       // Gráfico 2: Distribuição de Dificuldade (Pizza)
       const difficultyCount = logs.reduce((acc, log) => {
         acc[log.dificuldade] = (acc[log.dificuldade] || 0) + 1;
         return acc;
       }, {});
-      console.log("Contagem de dificuldades:", difficultyCount);
       const difficultyCtx = document.getElementById("difficultyChart").getContext("2d");
       new Chart(difficultyCtx, {
         type: "pie",
@@ -142,12 +128,10 @@
           plugins: { title: { display: true, text: "Distribuição por Dificuldade" } }
         }
       });
-      console.log("Gráfico 2 (Dificuldade) renderizado.");
 
       // Gráfico 3: Progresso Acumulado ao Longo do Tempo (Linha)
       const dates = logs.map(log => new Date(log.data_conclusao).toLocaleDateString());
       const cumulativeProgress = logs.map((_, index) => index + 1);
-      console.log("Datas e progresso acumulado:", dates, cumulativeProgress);
       const progressTimeCtx = document.getElementById("progressTimeChart").getContext("2d");
       new Chart(progressTimeCtx, {
         type: "line",
@@ -166,18 +150,16 @@
           plugins: { title: { display: true, text: "Progresso Acumulado ao Longo do Tempo" } }
         }
       });
-      console.log("Gráfico 3 (Progresso ao Longo do Tempo) renderizado.");
 
       // Gráfico 4: Tempo Médio por Matéria (Barras)
       const subjectTime = logs.reduce((acc, log) => {
         acc[log.materia] = acc[log.materia] || { total: 0, count: 0 };
-        acc[log.materia].total += parseInt(log.tempo_gasto) || 0;
+        acc[log.materia].total += parseInt(log.tempo_gasto);
         acc[log.materia].count += 1;
         return acc;
       }, {});
       const subjects = Object.keys(subjectTime);
       const avgTime = subjects.map(subject => subjectTime[subject].total / subjectTime[subject].count);
-      console.log("Matérias e tempo médio:", subjects, avgTime);
       const timePerSubjectCtx = document.getElementById("timePerSubjectChart").getContext("2d");
       new Chart(timePerSubjectCtx, {
         type: "bar",
@@ -195,12 +177,10 @@
           plugins: { title: { display: true, text: "Tempo Médio por Matéria" } }
         }
       });
-      console.log("Gráfico 4 (Tempo por Matéria) renderizado.");
 
       // Gráfico 5: Progresso Geral (Rosca)
       const completed = logs.length;
       const remaining = totalSteps - completed;
-      console.log("Progresso geral - Concluído:", completed, "Restante:", remaining);
       const overallProgressCtx = document.getElementById("overallProgressChart").getContext("2d");
       new Chart(overallProgressCtx, {
         type: "doughnut",
@@ -228,7 +208,71 @@
           }
         }
       });
-      console.log("Gráfico 5 (Progresso Geral) renderizado.");
+
+      // Novo Gráfico 6: Dificuldade Média por Matéria (Barras)
+      const difficultyMap = { "Fácil": 1, "Médio": 2, "Difícil": 3 };
+      const difficultyPerSubject = logs.reduce((acc, log) => {
+        acc[log.materia] = acc[log.materia] || { total: 0, count: 0 };
+        acc[log.materia].total += difficultyMap[log.dificuldade] || 0;
+        acc[log.materia].count += 1;
+        return acc;
+      }, {});
+      const avgDifficulty = subjects.map(subject => difficultyPerSubject[subject].total / difficultyPerSubject[subject].count);
+      const avgDifficultyPerSubjectCtx = document.getElementById("avgDifficultyPerSubjectChart").getContext("2d");
+      new Chart(avgDifficultyPerSubjectCtx, {
+        type: "bar",
+        data: {
+          labels: subjects,
+          datasets: [{
+            label: "Dificuldade Média",
+            data: avgDifficulty,
+            backgroundColor: "#FF9800"
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: { 
+            y: { 
+              beginAtZero: true, 
+              max: 3, 
+              title: { display: true, text: "Dificuldade (1=Fácil, 3=Difícil)" } 
+            } 
+          },
+          plugins: { title: { display: true, text: "Dificuldade Média por Matéria" } }
+        }
+      });
+
+      // Novo Gráfico 7: Nota de Autoavaliação Média por Matéria (Barras)
+      const scorePerSubject = logs.reduce((acc, log) => {
+        acc[log.materia] = acc[log.materia] || { total: 0, count: 0 };
+        acc[log.materia].total += parseInt(log.nota_autoavaliacao) || 0;
+        acc[log.materia].count += 1;
+        return acc;
+      }, {});
+      const avgScore = subjects.map(subject => scorePerSubject[subject].total / scorePerSubject[subject].count);
+      const avgScorePerSubjectCtx = document.getElementById("avgScorePerSubjectChart").getContext("2d");
+      new Chart(avgScorePerSubjectCtx, {
+        type: "bar",
+        data: {
+          labels: subjects,
+          datasets: [{
+            label: "Nota Média",
+            data: avgScore,
+            backgroundColor: "#D1C4E9"
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: { 
+            y: { 
+              beginAtZero: true, 
+              max: 10, 
+              title: { display: true, text: "Nota (0-10)" } 
+            } 
+          },
+          plugins: { title: { display: true, text: "Nota de Autoavaliação Média por Matéria" } }
+        }
+      });
     }
 
     window.signOut = async () => {
