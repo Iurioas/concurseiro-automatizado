@@ -34,7 +34,34 @@
   </nav>
   <main>
     <h1>Planejado</h1>
-    <table class="study-table" id="studyTable">
+
+      <div class="study-timer-container">
+        <div class="timer-wrapper">
+          <span class="timer-label">Foco ></span>
+          <div class="timer-circle">
+            <span id="timer-display">00:00</span>
+          </div>
+          <div class="timer-controls">
+            <button id="start-resume-btn">Continuar</button>
+            <button id="stop-btn">Sair</button>
+          </div>
+        </div>
+        <div class="overview-panel">
+          <h3>Visão geral</h3>
+          <div class="overview-stats">
+            <p><strong>Pomo de hoje:</strong> <span id="pomo-today">0</span></p>
+            <p><strong>Foco de hoje:</strong> <span id="focus-today">0m</span></p>
+            <p><strong>Pomo Total:</strong> <span id="pomo-total">0</span></p>
+            <p><strong>Duração Total Focada:</strong> <span id="total-focus">0h 0m</span></p>
+          </div>
+          <div class="focus-history">
+            <h4>Foco em registro <button id="expand-history">+</button></h4>
+            <ul id="history-list"></ul>
+          </div>
+        </div>
+      </div>
+    
+<table class="study-table" id="studyTable">
       <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th><th>Concluído</th></tr></thead>
       <tbody></tbody>
     </table>
@@ -347,6 +374,36 @@
         playSuccessSound();
       }
     }
-  </script>
+  
+
+      let timerInterval = null;
+      let elapsedTime = 0;
+      let isRunning = false;
+      function startTimer() {
+        if (!isRunning) {
+          isRunning = true;
+          timerInterval = setInterval(() => {
+            elapsedTime += 1000;
+            const minutes = Math.floor(elapsedTime / 60000);
+            const seconds = Math.floor((elapsedTime % 60000) / 1000);
+            document.getElementById("timer-display").innerText = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+          }, 1000);
+        }
+      }
+      function stopTimer() {
+        if (isRunning) {
+          clearInterval(timerInterval);
+          isRunning = false;
+          if (elapsedTime >= 10 * 60 * 1000) {
+            alert("Sessão de " + Math.floor(elapsedTime / 60000) + " minutos salva!");
+          }
+          elapsedTime = 0;
+          document.getElementById("timer-display").innerText = "00:00";
+        }
+      }
+      document.getElementById("start-resume-btn").addEventListener("click", startTimer);
+      document.getElementById("stop-btn").addEventListener("click", stopTimer);
+    
+</script>
 </body>
 </html>
