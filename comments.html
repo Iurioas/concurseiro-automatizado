@@ -78,7 +78,7 @@
         <div style="background: #33334D; padding: 12px; margin: 8px 0; border-radius: 4px;">
           <strong>Etapa ${log.etapa}: ${log.subtopico}</strong><br>
           <span>Matéria: ${log.materia}</span><br>
-          <span>Comentário: ${log.comentarios || "Nenhum comentário"}</span><br>
+          <span>Comentário: ${log.comentario || "Nenhum comentário"}</span><br>
           <span style="font-size: 12px; color: #bbb;">Registrado em: ${new Date(log.data_conclusao).toLocaleString("pt-BR")}</span><br>
           <button onclick="editComment(${index})">Editar Comentário</button>
         </div>
@@ -90,9 +90,9 @@
       const userDoc = await getDoc(doc(db, "users", user.uid));
       const logs = userDoc.data().logs || [];
       const log = logs[index];
-      const newComment = prompt("Edite o comentário:", log.comentarios || "");
+      const newComment = prompt("Edite o comentário:", log.comentario || "");
       if (newComment !== null && confirm("Tem certeza que deseja editar este comentário?")) {
-        logs[index].comentarios = newComment;
+        logs[index].comentario = newComment; // Corrige para "comentario" aqui também
         try {
           await updateDoc(doc(db, "users", user.uid), { logs });
           console.log("Comentário editado com sucesso!");
