@@ -9,40 +9,13 @@
     .current-highlight { background-color: #4CAF50; color: white; }
     .study-table td:nth-child(4) { 
       text-align: center; 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
+      /* Removeu padding: 0 para usar o padding padrão do styles.css */
+      display: flex; /* Usa Flexbox para centralizar */
+      justify-content: center; /* Centraliza horizontalmente */
+      align-items: center; /* Centraliza verticalmente */
     }
     .study-table td:nth-child(4) input[type="checkbox"] {
-      margin: 0; 
-    }
-    .timer-container {
-      text-align: center;
-      margin: 20px 0;
-    }
-    #studyTimer {
-      font-size: 24px;
-      font-weight: 500;
-      color: #EDE7F6;
-      margin-bottom: 10px;
-    }
-    .timer-buttons button {
-      background: #9575CD;
-      color: #EDE7F6;
-      border: 1px solid #EDE7F6;
-      padding: 8px 16px;
-      margin: 0 5px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s ease, transform 0.2s ease;
-    }
-    .timer-buttons button:hover {
-      background: #7E57C2;
-      transform: scale(1.05);
-    }
-    .timer-buttons button:disabled {
-      background: #444466;
-      cursor: not-allowed;
+      margin: 0; /* Remove margens extras */
     }
   </style>
 </head>
@@ -65,15 +38,11 @@
       <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th><th>Concluído</th></tr></thead>
       <tbody></tbody>
     </table>
-    <div class="timer-container">
-      <div id="studyTimer">00:00:00</div>
-      <div class="timer-buttons">
-        <button id="startTimerBtn" onclick="startTimer()">Iniciar</button>
-        <button id="pauseTimerBtn" onclick="pauseTimer()" disabled>Pausar</button>
-        <button id="stopTimerBtn" onclick="stopTimer()" disabled>Terminar</button>
-      </div>
-      <p id="totalStudyTime" style="font-size: 14px; color: #D1C4E9; margin-top: 10px;">Tempo Total de Estudo: 0 minutos</p>
-    </div>
+    <h2 id="statusTitle">Status</h2>
+    <table class="status-table" id="statusTable">
+      <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th></tr></thead>
+      <tbody></tbody>
+    </table>
     <button id="backButton" style="display:none" onclick="retrocederEtapa()">Retroceder</button>
     <div class="button-group">
       <button onclick="location.href='log-txt.html'; playClickSound()">Log Texto</button>
@@ -109,15 +78,10 @@
     let currentIndex = 0;
     let planData = [];
     let logs = [];
-    let achievements = [];
+    let achievements = []; // Inicializa como array vazio
     let lastCompletionTime = localStorage.getItem("lastCompletionTime") ? parseInt(localStorage.getItem("lastCompletionTime")) : 0;
-    let totalStudyTime = 0; // Tempo total acumulado em minutos
-    let timerInterval = null;
-    let studyTimeSeconds = 0;
-    let isTimerRunning = false;
 
     const MINIMUM_TIME_FOR_RANKING = 10 * 60 * 1000; // 10 minutos em milissegundos
-
     const rankList = ["E", "E+", "D", "D+", "C", "C+", "B", "B+", "A", "A+"];
     const updateRank = (logs) => {
       const completed = logs.length;
@@ -159,14 +123,12 @@
           const userDoc = await getDoc(doc(db, "users", user.uid));
           logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
           achievements = userDoc.exists() && userDoc.data().achievements ? userDoc.data().achievements : [];
-          totalStudyTime = userDoc.exists() && userDoc.data().totalStudyTime ? userDoc.data().totalStudyTime : 0;
           currentIndex = userDoc.exists() && userDoc.data().currentIndex !== undefined 
             ? userDoc.data().currentIndex 
             : (localStorage.getItem("currentIndex") ? parseInt(localStorage.getItem("currentIndex")) : 0);
           console.log("CurrentIndex carregado:", currentIndex);
           console.log("Logs carregados:", logs.length);
-          console.log("Tempo total de estudo carregado:", totalStudyTime, "minutos");
-          document.getElementById("totalStudyTime").innerText = `Tempo Total de Estudo: ${totalStudyTime} minutos`;
+          console.log("Plano a ser renderizado:", planData);
           renderPlan();
           checkAchievements();
         } else {
@@ -287,6 +249,7 @@
         validForRanking: validForRanking
       };
 
+      // Remove logs antigos da mesma etapa para evitar duplicatas
       logs = logs.filter(l => l.etapa !== (currentIndex + 1));
       logs.push(log);
 
@@ -295,7 +258,7 @@
       const avgScore = validLogs.length > 0 ? validLogs.reduce((sum, l) => sum + parseInt(l.nota_autoavaliacao || 0), 0) / validLogs.length : 0;
       const resetDate = new Date(currentTime);
       resetDate.setDate(1);
-      resetDate.setHours(1, 0, 0, 0);
+      resetDate.setHours(1, 0, 0, 0); // Dia 1, 01:00h do mês atual
       const monthlyRankingScore = validLogs.filter(log => new Date(log.data_conclusao) >= resetDate).reduce((sum, l) => sum + parseInt(l.tempo_gasto || 0) * parseInt(l.nota_autoavaliacao || 0), 0) || 0;
       const rankingScore = validLogs.length * (totalTime / (validLogs.length || 1)) * avgScore || 0;
 
@@ -314,8 +277,7 @@
           achievements: achievements || [], 
           rankingScore: rankingScore || 0, 
           monthlyRankingScore: monthlyRankingScore || 0,
-          currentIndex: currentIndex || 0,
-          totalStudyTime: totalStudyTime || 0
+          currentIndex: currentIndex || 0 
         });
         await updateDoc(doc(db, "plans", auth.currentUser.uid), { plan: planData });
         localStorage.setItem("currentIndex", currentIndex);
@@ -334,17 +296,16 @@
     window.retrocederEtapa = async function() {
       playClickSound();
       if (confirm("Tem certeza que deseja retroceder? Isso apagará o log da etapa atual.")) {
-        if (currentIndex >= 0 && planData[currentIndex]) {
+        if (currentIndex >= 0 && planData[currentIndex]) { // Verifica se há etapa para retroceder
           const etapaAtual = currentIndex + 1;
-          logs = logs.filter(log => log.etapa !== etapaAtual);
+          logs = logs.filter(log => log.etapa !== etapaAtual); // Remove apenas o log da etapa atual
           planData[currentIndex].completed = false;
-          currentIndex = Math.max(0, currentIndex - 1);
+          currentIndex = Math.max(0, currentIndex - 1); // Não permite currentIndex < 0
           localStorage.setItem("currentIndex", currentIndex);
           try {
             await updateDoc(doc(db, "users", auth.currentUser.uid), { 
               logs: logs || [], 
-              currentIndex: currentIndex || 0,
-              totalStudyTime: totalStudyTime || 0
+              currentIndex: currentIndex || 0 
             });
             await updateDoc(doc(db, "plans", auth.currentUser.uid), { plan: planData });
             console.log("Progresso retrocedido. Log da etapa", etapaAtual, "apagado. CurrentIndex:", currentIndex);
@@ -359,9 +320,6 @@
 
     window.signOut = async function() {
       playClickSound();
-      if (isTimerRunning) {
-        await stopTimer(); // Salva o tempo antes de deslogar
-      }
       try {
         await signOut(auth);
         localStorage.clear();
@@ -389,68 +347,6 @@
         playSuccessSound();
       }
     }
-
-    // Funções do Relógio
-    function updateTimerDisplay() {
-      const hours = Math.floor(studyTimeSeconds / 3600);
-      const minutes = Math.floor((studyTimeSeconds % 3600) / 60);
-      const seconds = studyTimeSeconds % 60;
-      document.getElementById("studyTimer").innerText = 
-        `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    }
-
-    window.startTimer = function() {
-      if (!isTimerRunning) {
-        playClickSound();
-        isTimerRunning = true;
-        timerInterval = setInterval(() => {
-          studyTimeSeconds++;
-          updateTimerDisplay();
-        }, 1000);
-        document.getElementById("startTimerBtn").disabled = true;
-        document.getElementById("pauseTimerBtn").disabled = false;
-        document.getElementById("stopTimerBtn").disabled = false;
-      }
-    };
-
-    window.pauseTimer = function() {
-      if (isTimerRunning) {
-        playClickSound();
-        isTimerRunning = false;
-        clearInterval(timerInterval);
-        document.getElementById("startTimerBtn").disabled = false;
-        document.getElementById("pauseTimerBtn").disabled = true;
-      }
-    };
-
-    window.stopTimer = async function() {
-      playClickSound();
-      if (timerInterval) {
-        clearInterval(timerInterval);
-      }
-      isTimerRunning = false;
-      const sessionTimeMinutes = Math.floor(studyTimeSeconds / 60);
-      if (sessionTimeMinutes >= 10) {
-        totalStudyTime += sessionTimeMinutes;
-        try {
-          await updateDoc(doc(db, "users", auth.currentUser.uid), { 
-            totalStudyTime: totalStudyTime 
-          });
-          console.log("Tempo de estudo salvo. Total acumulado:", totalStudyTime, "minutos");
-          document.getElementById("totalStudyTime").innerText = `Tempo Total de Estudo: ${totalStudyTime} minutos`;
-        } catch (error) {
-          console.error("Erro ao salvar tempo de estudo:", error.message);
-          alert("Erro ao salvar tempo de estudo: " + error.message);
-        }
-      } else {
-        console.log("Sessão inferior a 10 minutos, não salva. Tempo:", sessionTimeMinutes, "minutos");
-      }
-      studyTimeSeconds = 0;
-      updateTimerDisplay();
-      document.getElementById("startTimerBtn").disabled = false;
-      document.getElementById("pauseTimerBtn").disabled = true;
-      document.getElementById("stopTimerBtn").disabled = true;
-    };
   </script>
 </body>
 </html>
