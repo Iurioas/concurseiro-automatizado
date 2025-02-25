@@ -9,14 +9,14 @@
     .current-highlight { background-color: #4CAF50; color: white; }
     .study-table td:nth-child(4) { 
       text-align: center; 
-      padding: 0; /* Remove padding para evitar deslocamento */
-      height: 44px; /* Define uma altura fixa para consistência com outras células */
-      display: flex; /* Usa Flexbox para centralizar */
-      justify-content: center; /* Centraliza horizontalmente */
-      align-items: center; /* Centraliza verticalmente */
+      padding: 0; 
+      height: 44px; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
     }
     .study-table td:nth-child(4) input[type="checkbox"] {
-      margin: 0; /* Remove margens extras */
+      margin: 0; 
     }
   </style>
 </head>
@@ -231,6 +231,8 @@
       const dificuldade = prompt("Dificuldade (F/M/D):")?.toUpperCase() || "M";
       const nota = prompt("Nota (0-10):") || "0";
       const comentario = prompt("Comentário (opcional):") || "";
+      console.log("Dados capturados do prompt:", { tempo, dificuldade, nota, comentario }); // Depuração
+
       const log = {
         etapa: currentIndex + 1,
         subtopico: planData[currentIndex].subtopic,
@@ -243,6 +245,7 @@
         status: "Concluído",
         validForRanking: validForRanking
       };
+      console.log("Log a ser salvo:", log); // Depuração
       logs.push(log);
 
       const validLogs = logs.filter(l => l.validForRanking);
@@ -262,7 +265,7 @@
       currentIndex++;
 
       try {
-        console.log("Salvando log, conquistas e progresso...");
+        console.log("Salvando log, conquistas e progresso no Firestore...");
         await updateDoc(doc(db, "users", auth.currentUser.uid), { 
           logs, 
           achievements, 
@@ -270,6 +273,7 @@
           monthlyRankingScore,
           currentIndex 
         });
+        console.log("Dados salvos com sucesso. Logs:", logs);
         await updateDoc(doc(db, "plans", auth.currentUser.uid), { plan: planData });
         localStorage.setItem("currentIndex", currentIndex);
         localStorage.setItem("lastCompletionTime", currentTime);
