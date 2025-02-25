@@ -233,7 +233,7 @@
       const comentario = prompt("Comentário (opcional):") || "";
       const log = {
         etapa: currentIndex + 1,
-        subtopico: planData[currentIndex].subtopic,
+        subtopico: planData[currentIndex].subtopico,
         materia: planData[currentIndex].subject,
         dificuldade: dificuldade === "F" ? "Fácil" : dificuldade === "D" ? "Difícil" : "Médio",
         tempo_gasto: tempo,
@@ -287,10 +287,11 @@
     window.retrocederEtapa = async function() {
       playClickSound();
       if (confirm("Tem certeza que deseja retroceder? Isso apagará o log da etapa atual.")) {
-        if (currentIndex > 0) {
-          logs = logs.filter(log => log.etapa !== currentIndex + 1);
+        // Removido o if (currentIndex > 0) para permitir retroceder até a etapa 1
+        logs = logs.filter(log => log.etapa !== currentIndex + 1); // Remove o log da etapa atual
+        if (currentIndex >= 0 && planData[currentIndex]) { // Verifica se há uma etapa para retroceder
           planData[currentIndex].completed = false;
-          currentIndex--;
+          currentIndex = Math.max(0, currentIndex - 1); // Garante que currentIndex não fique negativo
           localStorage.setItem("currentIndex", currentIndex);
           try {
             await updateDoc(doc(db, "users", auth.currentUser.uid), { logs, currentIndex });
