@@ -33,26 +33,30 @@
     <button onclick="signOut()">Sair</button>
   </nav>
   <main>
-    
+    <h1>Planejado</h1>
+
       <div class="study-timer-container">
         <div class="timer-wrapper">
-          <span class="timer-label">Controle</span>
-          <div class="timer-circle" id="timer-circle">
+          <span class="timer-label">Foco ></span>
+          <div class="timer-circle">
             <span id="timer-display">00:00</span>
           </div>
           <div class="timer-controls">
             <button id="start-resume-btn">Continuar</button>
-            <button id="pause-btn">Pausar</button>
             <button id="stop-btn">Sair</button>
           </div>
         </div>
         <div class="overview-panel">
           <h3>Visão geral</h3>
           <div class="overview-stats">
-            <p><strong>Seções de hoje:</strong> <span id="pomo-today">0</span></p>
-            <p><strong>Tempo de hoje:</strong> <span id="focus-today">0m</span></p>
-            <p><strong>Seções Totais:</strong> <span id="pomo-total">0</span></p>
-            <p><strong>Tempo Total:</strong> <span id="total-focus">0h 0m</span></p>
+            <p><strong>Pomo de hoje:</strong> <span id="pomo-today">0</span></p>
+            <p><strong>Foco de hoje:</strong> <span id="focus-today">0m</span></p>
+            <p><strong>Pomo Total:</strong> <span id="pomo-total">0</span></p>
+            <p><strong>Duração Total Focada:</strong> <span id="total-focus">0h 0m</span></p>
+          </div>
+          <div class="focus-history">
+            <h4>Foco em registro <button id="expand-history">+</button></h4>
+            <ul id="history-list"></ul>
           </div>
         </div>
       </div>
@@ -68,10 +72,10 @@
     </table>
     <button id="backButton" style="display:none" onclick="retrocederEtapa()">Retroceder</button>
     <div class="button-group">
-      <button onclick="location.href='log-txt.html'; ">Log Texto</button>
-      <button onclick="location.href='log-json.html'; ">Log JSON</button>
-      <button onclick="location.href='comments.html'; ">Comentários</button>
-      <button onclick="location.href='graficos.html'; ">Gráficos</button>
+      <button onclick="location.href='log-txt.html'; playClickSound()">Log Texto</button>
+      <button onclick="location.href='log-json.html'; playClickSound()">Log JSON</button>
+      <button onclick="location.href='comments.html'; playClickSound()">Comentários</button>
+      <button onclick="location.href='graficos.html'; playClickSound()">Gráficos</button>
     </div>
     <p style="font-size: 14px; color: #8888A0; text-align: center;">(Copie o JSON para usar em conversores de gráficos)</p>
     <div id="loading" style="text-align: center; margin: 20px;">Carregando plano...</div>
@@ -83,7 +87,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
-    
+    import { playClickSound, playSuccessSound } from "./sounds.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
@@ -192,7 +196,7 @@
       } else {
         tbody.innerHTML = "<tr><td colspan='4'>Todas as etapas concluídas!</td></tr>";
         showNotification("Plano concluído! Parabéns!");
-        ;
+        playSuccessSound();
       }
 
       const completedSteps = planData.slice(0, currentIndex);
@@ -239,7 +243,7 @@
     }
 
     window.completeStep = async function(checkbox) {
-      ;
+      playClickSound();
       const currentTime = Date.now();
       const timeSinceLast = currentTime - lastCompletionTime;
       let validForRanking = timeSinceLast >= MINIMUM_TIME_FOR_RANKING;
@@ -306,7 +310,7 @@
         localStorage.setItem("currentIndex", currentIndex);
         localStorage.setItem("lastCompletionTime", currentTime);
         lastCompletionTime = currentTime;
-        ;
+        playSuccessSound();
         checkAchievements();
         renderPlan();
         console.log("Etapa concluída com sucesso. CurrentIndex:", currentIndex);
@@ -317,7 +321,7 @@
     };
 
     window.retrocederEtapa = async function() {
-      ;
+      playClickSound();
       if (confirm("Tem certeza que deseja retroceder? Isso apagará o log da etapa atual.")) {
         if (currentIndex >= 0 && planData[currentIndex]) { // Verifica se há etapa para retroceder
           const etapaAtual = currentIndex + 1;
@@ -342,7 +346,7 @@
     };
 
     window.signOut = async function() {
-      ;
+      playClickSound();
       try {
         await signOut(auth);
         localStorage.clear();
@@ -367,114 +371,38 @@
       if (!achievements.some(a => a.rank === currentRank)) {
         achievements = [{ rank: currentRank, date: new Date().toISOString() }];
         showNotification(`Novo ranking: ${currentRank}!`);
-        ;
+        playSuccessSound();
       }
     }
   
 
       let timerInterval = null;
-      let elapsedTime = localStorage.getItem("elapsedTime") ? parseInt(localStorage.getItem("elapsedTime")) : 0;
+      let elapsedTime = 0;
       let isRunning = false;
-      let startTime = null;
-
-      function updateTimerDisplay() {
-        const minutes = Math.floor(elapsedTime / 60000);
-        const seconds = Math.floor((elapsedTime % 60000) / 1000);
-        document.getElementById("timer-display").innerText = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-      }
-
       function startTimer() {
         if (!isRunning) {
           isRunning = true;
-          startTime = Date.now() - elapsedTime;
-          document.getElementById("timer-circle").classList.add("running");
           timerInterval = setInterval(() => {
-            elapsedTime = Date.now() - startTime;
-            updateTimerDisplay();
-            localStorage.setItem("elapsedTime", elapsedTime);
+            elapsedTime += 1000;
+            const minutes = Math.floor(elapsedTime / 60000);
+            const seconds = Math.floor((elapsedTime % 60000) / 1000);
+            document.getElementById("timer-display").innerText = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
           }, 1000);
-          document.getElementById("start-resume-btn").innerText = "Continuar";
         }
       }
-
-      function pauseTimer() {
+      function stopTimer() {
         if (isRunning) {
           clearInterval(timerInterval);
           isRunning = false;
-          document.getElementById("timer-circle").classList.remove("running");
-          document.getElementById("start-resume-btn").innerText = "Retomar";
-        }
-      }
-
-      async function stopTimer() {
-        if (isRunning || elapsedTime > 0) {
-          clearInterval(timerInterval);
-          const minutes = Math.floor(elapsedTime / 60000);
-          if (minutes >= 10) {
-            const session = {
-              start: new Date(startTime).toISOString(),
-              end: new Date().toISOString(),
-              duration: minutes
-            };
-            try {
-              const user = auth.currentUser;
-              if (user) {
-                const userDocRef = doc(db, "users", user.uid);
-                const userDoc = await getDoc(userDocRef);
-                const sessions = userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : [];
-                sessions.push(session);
-                await updateDoc(userDocRef, { sessions });
-                updateOverview(sessions);
-                alert("Sessão de " + minutes + " minutos salva!");
-              }
-            } catch (error) {
-              console.error("Erro ao salvar sessão:", error.message);
-            }
-            elapsedTime = 0;
-            localStorage.setItem("elapsedTime", "0");
-          } else {
-            if (confirm("Sessão menor que 10 minutos não será contabilizada. Deseja sair mesmo assim?")) {
-              elapsedTime = 0;
-              localStorage.setItem("elapsedTime", "0");
-            } else {
-              startTimer();
-              return;
-            }
+          if (elapsedTime >= 10 * 60 * 1000) {
+            alert("Sessão de " + Math.floor(elapsedTime / 60000) + " minutos salva!");
           }
-          isRunning = false;
-          document.getElementById("timer-circle").classList.remove("running");
-          updateTimerDisplay();
-          document.getElementById("start-resume-btn").innerText = "Continuar";
+          elapsedTime = 0;
+          document.getElementById("timer-display").innerText = "00:00";
         }
       }
-
-      function updateOverview(sessions) {
-        const today = new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
-        const todaySessions = sessions.filter(s => new Date(s.end).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }) === today);
-        const pomoToday = todaySessions.length;
-        const focusToday = todaySessions.reduce((sum, s) => sum + s.duration, 0);
-        const pomoTotal = sessions.length;
-        const totalFocus = sessions.reduce((sum, s) => sum + s.duration, 0);
-
-        document.getElementById("pomo-today").innerText = pomoToday;
-        document.getElementById("focus-today").innerText = `${focusToday}m`;
-        document.getElementById("pomo-total").innerText = pomoTotal;
-        document.getElementById("total-focus").innerText = `${Math.floor(totalFocus / 60)}h ${totalFocus % 60}m`;
-      }
-
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          const userDocRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userDocRef);
-          const sessions = userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : [];
-          updateOverview(sessions);
-        }
-      });
-
       document.getElementById("start-resume-btn").addEventListener("click", startTimer);
-      document.getElementById("pause-btn").addEventListener("click", pauseTimer);
       document.getElementById("stop-btn").addEventListener("click", stopTimer);
-      window.addEventListener("beforeunload", () => { if (isRunning) stopTimer(); });
     
 </script>
 </body>
