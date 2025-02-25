@@ -5,7 +5,30 @@
   <title>Gráficos - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+      // Gráfico 8: Tempo Total Bruto vs Líquido (Barras)
+      const totalTimeCtx = document.getElementById("totalTimeChart").getContext("2d");
+      new Chart(totalTimeCtx, {
+        type: "bar",
+        data: {
+          labels: ["Tempo Total Bruto", "Tempo Total Líquido"],
+          datasets: [{
+            label: "Tempo (min)",
+            data: [
+              logs.reduce((sum, log) => sum + (log.validForRanking ? parseInt(log.tempo_gasto || 0) : 0), 0), // Bruto do relógio
+              logs.reduce((sum, log) => sum + parseInt(log.tempo_gasto || 0), 0) // Líquido dos logs
+            ],
+            backgroundColor: ["#9575CD", "#4CAF50"]
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: { y: { beginAtZero: true, title: { display: true, text: "Minutos" } } },
+          plugins: { title: { display: true, text: "Tempo Total Bruto vs Líquido" } }
+        }
+      });
+    
+</script>
   <style>
     .chart-container {
       max-width: 600px;
@@ -34,7 +57,10 @@
     <div class="chart-container"><canvas id="overallProgressChart"></canvas></div>
     <div class="chart-container"><canvas id="avgDifficultyPerSubjectChart"></canvas></div> <!-- Novo gráfico -->
     <div class="chart-container"><canvas id="avgScorePerSubjectChart"></canvas></div> <!-- Novo gráfico -->
-    <div id="loading">Carregando gráficos...</div>
+    
+      <div class="chart-container"><canvas id="totalTimeChart"></canvas></div>
+    
+<div id="loading">Carregando gráficos...</div>
   </main>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
