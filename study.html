@@ -79,7 +79,7 @@
     let currentIndex = 0;
     let planData = [];
     let logs = [];
-    let achievements = []; // Inicializa como array vazio para evitar undefined
+    let achievements = []; // Inicializa como array vazio
     let lastCompletionTime = localStorage.getItem("lastCompletionTime") ? parseInt(localStorage.getItem("lastCompletionTime")) : 0;
 
     const MINIMUM_TIME_FOR_RANKING = 10 * 60 * 1000; // 10 minutos em milissegundos
@@ -227,14 +227,20 @@
         return;
       }
 
+      if (!planData[currentIndex]) {
+        console.error("Erro: planData[currentIndex] é indefinido. CurrentIndex:", currentIndex);
+        alert("Erro: Não foi possível avançar a etapa.");
+        return;
+      }
+
       const tempo = prompt("Tempo gasto (minutos):") || "0";
       const dificuldade = prompt("Dificuldade (F/M/D):")?.toUpperCase() || "M";
       const nota = prompt("Nota (0-10):") || "0";
       const comentario = prompt("Comentário (opcional):") || "";
       const log = {
         etapa: currentIndex + 1,
-        subtopico: planData[currentIndex].subtopico,
-        materia: planData[currentIndex].subject,
+        subtopico: planData[currentIndex].subtopico || "Desconhecido",
+        materia: planData[currentIndex].subject || "Desconhecida",
         dificuldade: dificuldade === "F" ? "Fácil" : dificuldade === "D" ? "Difícil" : "Médio",
         tempo_gasto: tempo,
         nota_autoavaliacao: nota,
@@ -243,20 +249,24 @@
         status: "Concluído",
         validForRanking: validForRanking
       };
+
+      // Remove logs antigos da mesma etapa para evitar duplicatas
+      logs = logs.filter(l => l.etapa !== (currentIndex + 1));
       logs.push(log);
 
       const validLogs = logs.filter(l => l.validForRanking);
-      const totalTime = validLogs.reduce((sum, l) => sum + parseInt(l.tempo_gasto), 0) || 0; // Evita undefined
-      const avgScore = validLogs.length > 0 ? validLogs.reduce((sum, l) => sum + parseInt(l.nota_autoavaliacao), 0) / validLogs.length : 0; // Evita divisão por zero
+      const totalTime = validLogs.reduce((sum, l) => sum + parseInt(l.tempo_gasto || 0), 0) || 0;
+      const avgScore = validLogs.length > 0 ? validLogs.reduce((sum, l) => sum + parseInt(l.nota_autoavaliacao || 0), 0) / validLogs.length : 0;
       const resetDate = new Date(currentTime);
       resetDate.setDate(1);
       resetDate.setHours(1, 0, 0, 0); // Dia 1, 01:00h do mês atual
+      const monthlyRankingScore = validLogs.filter(log => new Date(log.data_conclusao) >= resetDate).reduce((sum, l) => sum + parseInt(l.tempo_gasto || 0) * parseInt(l.nota_autoavaliacao || 0), 0) || 0;
+      const rankingScore = validLogs.length * (totalTime / (validLogs.length || 1)) * avgScore || 0;
+
       if (new Date(currentTime) >= resetDate && !localStorage.getItem("rankingReset")) {
         await updateDoc(doc(db, "users", auth.currentUser.uid), { monthlyRankingScore: 0 });
         localStorage.setItem("rankingReset", "true");
       }
-      const monthlyRankingScore = validLogs.filter(log => new Date(log.data_conclusao) >= resetDate).reduce((sum, l) => sum + parseInt(l.tempo_gasto) * parseInt(l.nota_autoavaliacao), 0) || 0;
-      const rankingScore = validLogs.length * (totalTime / (validLogs.length || 1)) * avgScore || 0; // Evita NaN
 
       planData[currentIndex].completed = true;
       currentIndex++;
@@ -288,7 +298,8 @@
       playClickSound();
       if (confirm("Tem certeza que deseja retroceder? Isso apagará o log da etapa atual.")) {
         if (currentIndex >= 0 && planData[currentIndex]) { // Verifica se há etapa para retroceder
-          logs = logs.filter(log => log.etapa !== currentIndex + 1); // Remove o log da etapa atual
+          const etapaAtual = currentIndex + 1;
+          logs = logs.filter(log => log.etapa !== etapaAtual); // Remove apenas o log da etapa atual
           planData[currentIndex].completed = false;
           currentIndex = Math.max(0, currentIndex - 1); // Não permite currentIndex < 0
           localStorage.setItem("currentIndex", currentIndex);
@@ -298,7 +309,7 @@
               currentIndex: currentIndex || 0 
             });
             await updateDoc(doc(db, "plans", auth.currentUser.uid), { plan: planData });
-            console.log("Progresso retrocedido e log apagado. CurrentIndex:", currentIndex);
+            console.log("Progresso retrocedido. Log da etapa", etapaAtual, "apagado. CurrentIndex:", currentIndex);
             renderPlan();
           } catch (error) {
             console.error("Erro ao retroceder:", error.message);
@@ -332,11 +343,10 @@
     function checkAchievements() {
       const currentRank = updateRank(logs);
       if (!achievements.some(a => a.rank === currentRank)) {
-        achievements = [{ rank: currentRank, date: new Date().toISOString() }]; // Sempre sobrescreve como array
+        achievements = [{ rank: currentRank, date: new Date().toISOString() }];
         showNotification(`Novo ranking: ${currentRank}!`);
         playSuccessSound();
       }
-      // Não salvamos aqui para evitar chamadas duplicadas; salvamos em completeStep
     }
   </script>
 </body>
