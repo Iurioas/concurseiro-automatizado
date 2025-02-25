@@ -153,6 +153,10 @@
           console.log("Logs carregados:", logs.length);
           console.log("Plano a ser renderizado:", planData);
           renderPlan();
+        const logTxt = logs.map(log => "Etapa: " + log.etapa + "\nSubtópico: " + log.subtopico + "\nMatéria: " + log.materia + "\nDificuldade: " + log.dificuldade + "\nTempo Gasto: " + log.tempo_gasto + " minutos\nNota: " + log.nota_autoavaliacao + "\nData: " + new Date(log.data_conclusao).toLocaleString("pt-BR") + "\nStatus: " + log.status + "\n---").join("");
+        downloadFile(logTxt, "log.txt", "text/plain");
+        downloadFile(JSON.stringify(logs, null, 2), "log.json", "application/json");
+        downloadGraphs();
           checkAchievements();
         } else {
           console.log("Nenhum plano encontrado.");
@@ -239,6 +243,31 @@
     }
 
     window.completeStep = async function(checkbox) {
+        
+      function downloadFile(content, fileName, type) {
+        const blob = new Blob([content], { type });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      }
+
+      async function downloadGraphs() {
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Espera gráficos
+        const canvases = document.querySelectorAll(".chart-container canvas");
+        canvases.forEach((canvas, index) => {
+          const imgData = canvas.toDataURL("image/png");
+          const a = document.createElement("a");
+          a.href = imgData;
+          a.download = "grafico_" + (index + 1) + ".png";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        });
+      }
+    
       playClickSound();
       const currentTime = Date.now();
       const timeSinceLast = currentTime - lastCompletionTime;
