@@ -53,11 +53,7 @@
             <p><strong>Seções de hoje:</strong> <span id="pomo-today">0</span></p>
             <p><strong>Tempo de hoje:</strong> <span id="focus-today">0m</span></p>
             <p><strong>Seções Totais:</strong> <span id="pomo-total">0</span></p>
-            <p><strong>Tempo Total Focado:</strong> <span id="total-focus">0h 0m</span></p>
-          </div>
-          <div class="focus-history">
-            <h4>Foco em registro <button id="expand-history">+</button></h4>
-            <ul id="history-list"></ul>
+            <p><strong>Tempo Total:</strong> <span id="total-focus">0h 0m</span></p>
           </div>
         </div>
       </div>
@@ -442,7 +438,7 @@
               elapsedTime = 0;
               localStorage.setItem("elapsedTime", "0");
             } else {
-              startTimer(); // Continua o relógio se cancelar
+              startTimer();
               return;
             }
           }
@@ -465,14 +461,6 @@
         document.getElementById("focus-today").innerText = `${focusToday}m`;
         document.getElementById("pomo-total").innerText = pomoTotal;
         document.getElementById("total-focus").innerText = `${Math.floor(totalFocus / 60)}h ${totalFocus % 60}m`;
-
-        const historyList = document.getElementById("history-list");
-        historyList.innerHTML = sessions.slice(-5).reverse().map(s => {
-          const start = new Date(s.start).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-          const end = new Date(s.end).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-          const date = new Date(s.end).toLocaleDateString("pt-BR", { month: "short", day: "numeric" });
-          return `<li>${date} ${start} - ${end} <span>${s.duration}m</span></li>`;
-        }).join("");
       }
 
       onAuthStateChanged(auth, async (user) => {
