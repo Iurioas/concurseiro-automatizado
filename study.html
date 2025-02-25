@@ -216,6 +216,8 @@
           renderPlan();
         const logTxt = logs.map(log => "Etapa: " + log.etapa + "\nSubtópico: " + log.subtopico + "\nMatéria: " + log.materia + "\nDificuldade: " + log.dificuldade + "\nTempo Gasto: " + log.tempo_gasto + " minutos\nNota: " + log.nota_autoavaliacao + "\nData: " + new Date(log.data_conclusao).toLocaleString("pt-BR") + "\nStatus: " + log.status + "\n---").join("");
         downloadFile(logTxt, "log.txt", "text/plain");
+        const logTxt = logs.map(log => "Etapa: " + log.etapa + "\nSubtópico: " + log.subtopico + "\nMatéria: " + log.materia + "\nDificuldade: " + log.dificuldade + "\nTempo Gasto: " + log.tempo_gasto + " minutos\nNota: " + log.nota_autoavaliacao + "\nData: " + new Date(log.data_conclusao).toLocaleString("pt-BR") + "\nStatus: " + log.status + "\n---").join("");
+        downloadFile(logTxt, "log.txt", "text/plain");
         logTxt = logs.map(log => "Etapa: " + log.etapa + "\nSubtópico: " + log.subtopico + "\nMatéria: " + log.materia + "\nDificuldade: " + log.dificuldade + "\nTempo Gasto: " + log.tempo_gasto + " minutos\nNota: " + log.nota_autoavaliacao + "\nData: " + new Date(log.data_conclusao).toLocaleString("pt-BR") + "\nStatus: " + log.status + "\n---").join("");
         downloadFile(logTxt, "log.txt", "text/plain");
         downloadFile(JSON.stringify(logs, null, 2), "log.json", "application/json");
