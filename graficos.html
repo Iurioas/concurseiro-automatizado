@@ -6,6 +6,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+  // Aviso: Verifique se o Chart.js usa eval(). Se sim, pode ser necessário ajustar a CSP ou a biblioteca para evitar bloqueios.
+  // Atualmente, mantendo os gráficos de pizza conforme solicitado.
+</script>
       // Gráfico 8: Tempo Total Bruto vs Líquido (Barras)
       const totalTimeCtx = document.getElementById("totalTimeChart").getContext("2d");
       new Chart(totalTimeCtx, {
