@@ -350,10 +350,6 @@ footer {
 .overview-panel h3 { color: #D1C4E9; margin-bottom: 15px; }
 .overview-stats p { margin: 10px 0; font-size: 14px; }
 .overview-stats strong { color: #9575CD; }
-.focus-history h4 { margin: 20px 0 10px; display: flex; justify-content: space-between; align-items: center; }
-#expand-history { background: none; border: 1px solid #9575CD; color: #9575CD; padding: 2px 8px; font-size: 12px; }
-.focus-history ul { list-style: none; max-height: 150px; overflow-y: auto; }
-.focus-history li { background: #25253A; padding: 10px; margin: 5px 0; border-radius: 4px; font-size: 14px; display: flex; justify-content: space-between; }
 @media (max-width: 768px) {
   .study-timer-container { flex-direction: column; align-items: center; }
   .timer-circle { width: 150px; height: 150px; }
