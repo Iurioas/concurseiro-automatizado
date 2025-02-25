@@ -86,7 +86,7 @@
     });
 
     window.signOut = async function() {
-      playClickSound();
+      ;
       try {
         await signOut(auth);
         localStorage.clear();
@@ -99,7 +99,7 @@
     };
 
     window.deleteAccount = async function() {
-      playClickSound();
+      ;
       if (confirm("Tem certeza que deseja deletar sua conta? Isso removerá todos os seus dados permanentemente.")) {
         try {
           const user = auth.currentUser;

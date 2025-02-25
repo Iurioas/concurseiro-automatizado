@@ -36,7 +36,7 @@
     
       <div class="study-timer-container">
         <div class="timer-wrapper">
-          <span class="timer-label">Controle Profissional</span>
+          <span class="timer-label">Controle</span>
           <div class="timer-circle" id="timer-circle">
             <span id="timer-display">00:00</span>
           </div>
@@ -68,10 +68,10 @@
     </table>
     <button id="backButton" style="display:none" onclick="retrocederEtapa()">Retroceder</button>
     <div class="button-group">
-      <button onclick="location.href='log-txt.html'; playClickSound()">Log Texto</button>
-      <button onclick="location.href='log-json.html'; playClickSound()">Log JSON</button>
-      <button onclick="location.href='comments.html'; playClickSound()">Comentários</button>
-      <button onclick="location.href='graficos.html'; playClickSound()">Gráficos</button>
+      <button onclick="location.href='log-txt.html'; ">Log Texto</button>
+      <button onclick="location.href='log-json.html'; ">Log JSON</button>
+      <button onclick="location.href='comments.html'; ">Comentários</button>
+      <button onclick="location.href='graficos.html'; ">Gráficos</button>
     </div>
     <p style="font-size: 14px; color: #8888A0; text-align: center;">(Copie o JSON para usar em conversores de gráficos)</p>
     <div id="loading" style="text-align: center; margin: 20px;">Carregando plano...</div>
@@ -83,7 +83,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
-    import { playClickSound, playSuccessSound } from "./sounds.js";
+    
 
     const firebaseConfig = {
       apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
@@ -192,7 +192,7 @@
       } else {
         tbody.innerHTML = "<tr><td colspan='4'>Todas as etapas concluídas!</td></tr>";
         showNotification("Plano concluído! Parabéns!");
-        playSuccessSound();
+        ;
       }
 
       const completedSteps = planData.slice(0, currentIndex);
@@ -239,7 +239,7 @@
     }
 
     window.completeStep = async function(checkbox) {
-      playClickSound();
+      ;
       const currentTime = Date.now();
       const timeSinceLast = currentTime - lastCompletionTime;
       let validForRanking = timeSinceLast >= MINIMUM_TIME_FOR_RANKING;
@@ -306,7 +306,7 @@
         localStorage.setItem("currentIndex", currentIndex);
         localStorage.setItem("lastCompletionTime", currentTime);
         lastCompletionTime = currentTime;
-        playSuccessSound();
+        ;
         checkAchievements();
         renderPlan();
         console.log("Etapa concluída com sucesso. CurrentIndex:", currentIndex);
@@ -317,7 +317,7 @@
     };
 
     window.retrocederEtapa = async function() {
-      playClickSound();
+      ;
       if (confirm("Tem certeza que deseja retroceder? Isso apagará o log da etapa atual.")) {
         if (currentIndex >= 0 && planData[currentIndex]) { // Verifica se há etapa para retroceder
           const etapaAtual = currentIndex + 1;
@@ -342,7 +342,7 @@
     };
 
     window.signOut = async function() {
-      playClickSound();
+      ;
       try {
         await signOut(auth);
         localStorage.clear();
@@ -367,7 +367,7 @@
       if (!achievements.some(a => a.rank === currentRank)) {
         achievements = [{ rank: currentRank, date: new Date().toISOString() }];
         showNotification(`Novo ranking: ${currentRank}!`);
-        playSuccessSound();
+        ;
       }
     }
   
@@ -462,14 +462,84 @@
         document.getElementById("total-focus").innerText = `${Math.floor(totalFocus / 60)}h ${totalFocus % 60}m`;
       }
 
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          const userDocRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userDocRef);
-          const sessions = userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : [];
-          updateOverview(sessions);
+      async function downloadFile(content, fileName, type) {
+        const blob = new Blob([content], { type });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }
+
+      async function downloadGraphs() {
+        const canvases = document.querySelectorAll(".chart-container canvas");
+        canvases.forEach((canvas, index) => {
+          const imgData = canvas.toDataURL("image/png");
+          const a = document.createElement("a");
+          a.href = imgData;
+          a.download = `grafico_${index + 1}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        });
+      }
+
+      window.completeStep = async function(checkbox) {
+        if (!confirm(`Tem certeza que deseja avançar para a próxima etapa?`)) {
+          checkbox.checked = false;
+          return;
         }
-      });
+        const currentTime = Date.now();
+        const timeSinceLast = currentTime - lastCompletionTime;
+        let validForRanking = timeSinceLast >= MINIMUM_TIME_FOR_RANKING;
+
+        const tempo = elapsedTime > 0 ? Math.floor(elapsedTime / 60000).toString() : prompt("Tempo gasto (minutos):") || "0";
+        const dificuldade = prompt("Dificuldade (F/M/D):")?.toUpperCase() || "M";
+        const nota = prompt("Nota (0-10):") || "0";
+        const comentario = prompt("Comentário (opcional):") || "";
+        const log = {
+          etapa: currentIndex + 1,
+          subtopico: planData[currentIndex].subtopico,
+          materia: planData[currentIndex].subject,
+          dificuldade: dificuldade === "F" ? "Fácil" : dificuldade === "D" ? "Difícil" : "Médio",
+          tempo_gasto: tempo,
+          nota_autoavaliacao: nota,
+          comentario: comentario,
+          data_conclusao: new Date().toISOString(),
+          status: "Concluído",
+          validForRanking: validForRanking
+        };
+
+        logs = logs.filter(l => l.etapa !== (currentIndex + 1));
+        logs.push(log);
+        planData[currentIndex].completed = true;
+        currentIndex++;
+        elapsedTime = 0;
+        localStorage.setItem("elapsedTime", "0");
+        updateTimerDisplay();
+        await updateDoc(doc(db, "users", auth.currentUser.uid), { 
+          logs: logs || [], 
+          achievements: achievements || [], 
+          rankingScore: rankingScore || 0, 
+          monthlyRankingScore: monthlyRankingScore || 0,
+          currentIndex: currentIndex || 0 
+        });
+        await updateDoc(doc(db, "plans", auth.currentUser.uid), { plan: planData });
+        localStorage.setItem("currentIndex", currentIndex);
+        localStorage.setItem("lastCompletionTime", currentTime);
+        lastCompletionTime = currentTime;
+        checkAchievements();
+        renderPlan();
+
+        // Download automático de logs e gráficos
+        const logTxt = logs.map(log => `Etapa: ${log.etapa}\nSubtópico: ${log.subtopico}\nMatéria: ${log.materia}\nDificuldade: ${log.dificuldade}\nTempo Gasto: ${log.tempo_gasto} minutos\nNota: ${log.nota_autoavaliacao}\nData: ${new Date(log.data_conclusao).toLocaleString("pt-BR")}\nStatus: ${log.status}\n---`).join("");
+        await downloadFile(logTxt, "log.txt", "text/plain");
+        await downloadFile(JSON.stringify(logs, null, 2), "log.json", "application/json");
+        await downloadGraphs();
+      };
 
       document.getElementById("start-resume-btn").addEventListener("click", startTimer);
       document.getElementById("pause-btn").addEventListener("click", pauseTimer);

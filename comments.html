@@ -97,7 +97,7 @@
           await updateDoc(doc(db, "users", user.uid), { logs });
           console.log("Comentário editado com sucesso!");
           renderComments(logs);
-          playClickSound();
+          ;
         } catch (error) {
           console.error("Erro ao editar comentário:", error.message);
           alert("Erro ao editar comentário: " + error.message);
@@ -106,7 +106,7 @@
     };
 
     window.signOut = async function() {
-      playClickSound();
+      ;
       try {
         await signOut(auth);
         console.log("Logout realizado com sucesso.");

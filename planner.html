@@ -332,7 +332,7 @@
         location.href = "login.html";
         return;
       }
-      playClickSound();
+      ;
       try {
         const planDoc = await getDoc(doc(db, "plans", user.uid));
         const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -369,7 +369,7 @@
     };
 
     window.signOut = async () => {
-      playClickSound();
+      ;
       try {
         await signOut(auth);
         localStorage.clear();
