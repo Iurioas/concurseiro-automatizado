@@ -7,7 +7,15 @@
   <link rel="stylesheet" href="styles.css">
   <style>
     .current-highlight { background-color: #4CAF50; color: white; }
-    .study-table td:nth-child(4) { text-align: center; }
+    .study-table td:nth-child(4) { 
+      text-align: center; 
+      vertical-align: middle; /* Centraliza verticalmente */
+      padding: 0; /* Remove padding extra para melhor alinhamento */
+    }
+    .study-table td:nth-child(4) input[type="checkbox"] {
+      display: block; /* Faz a checkbox ocupar o centro da célula */
+      margin: 0 auto; /* Centraliza horizontalmente */
+    }
   </style>
 </head>
 <body>
