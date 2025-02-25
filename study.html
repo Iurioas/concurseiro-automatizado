@@ -34,34 +34,7 @@
   </nav>
   <main>
     <h1>Planejado</h1>
-
-      <div class="study-timer-container">
-        <div class="timer-wrapper">
-          <span class="timer-label">Foco ></span>
-          <div class="timer-circle">
-            <span id="timer-display">00:00</span>
-          </div>
-          <div class="timer-controls">
-            <button id="start-resume-btn">Continuar</button>
-            <button id="stop-btn">Sair</button>
-          </div>
-        </div>
-        <div class="overview-panel">
-          <h3>Visão geral</h3>
-          <div class="overview-stats">
-            <p><strong>Pomo de hoje:</strong> <span id="pomo-today">0</span></p>
-            <p><strong>Foco de hoje:</strong> <span id="focus-today">0m</span></p>
-            <p><strong>Pomo Total:</strong> <span id="pomo-total">0</span></p>
-            <p><strong>Duração Total Focada:</strong> <span id="total-focus">0h 0m</span></p>
-          </div>
-          <div class="focus-history">
-            <h4>Foco em registro <button id="expand-history">+</button></h4>
-            <ul id="history-list"></ul>
-          </div>
-        </div>
-      </div>
-    
-<table class="study-table" id="studyTable">
+    <table class="study-table" id="studyTable">
       <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th><th>Concluído</th></tr></thead>
       <tbody></tbody>
     </table>
@@ -84,7 +57,296 @@
     <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
   </footer>
   <script type="module">
-// [INSIRA O CÓDIGO JAVASCRIPT COMPLETO AQUI]
-</script>
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    import { playClickSound, playSuccessSound } from "./sounds.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
+      authDomain: "concurseiro-automatizado.firebaseapp.com",
+      projectId: "concurseiro-automatizado",
+      storageBucket: "concurseiro-automatizado.firebasestorage.app",
+      messagingSenderId: "938840578480",
+      appId: "1:938840578480:web:4e8dd7e2dfdc42d7649e75",
+      measurementId: "G-H72D875STB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    let currentIndex = 0;
+    let planData = [];
+    let logs = [];
+    let achievements = []; // Inicializa como array vazio
+    let lastCompletionTime = localStorage.getItem("lastCompletionTime") ? parseInt(localStorage.getItem("lastCompletionTime")) : 0;
+
+    const MINIMUM_TIME_FOR_RANKING = 10 * 60 * 1000; // 10 minutos em milissegundos
+    const rankList = ["E", "E+", "D", "D+", "C", "C+", "B", "B+", "A", "A+"];
+    const updateRank = (logs) => {
+      const completed = logs.length;
+      const rankIndex = Math.min(Math.floor(completed / 5), rankList.length - 1);
+      return rankList[rankIndex];
+    };
+
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => console.log("Persistência configurada em study."))
+      .catch(error => console.error("Erro ao configurar persistência:", error.message));
+
+    onAuthStateChanged(auth, async (user) => {
+      console.log("Estado de autenticação em study:", user ? "Autenticado" : "Não autenticado");
+      const loading = document.getElementById("loading");
+      if (!user) {
+        console.log("Redirecionando para login após 1 segundo...");
+        loading.innerText = "Você não está autenticado. Redirecionando para login...";
+        setTimeout(() => location.href = "login.html", 1000);
+        return;
+      }
+      console.log("Usuário autenticado:", user.uid);
+      loading.style.display = "block";
+      try {
+        console.log("Carregando plano e progresso...");
+        const planDoc = await getDoc(doc(db, "plans", user.uid));
+        console.log("PlanDoc obtido:", planDoc.exists() ? "Existe" : "Não existe");
+        loading.style.display = "none";
+        if (planDoc.exists()) {
+          const planDataRaw = planDoc.data();
+          planData = planDataRaw.plan || [];
+          console.log("Plano carregado:", planData.length, "etapas, meses:", planDataRaw.months, "topics:", planDataRaw.topics);
+          if (planData.length === 0) {
+            console.log("Plano vazio detectado!");
+            loading.innerText = "Plano vazio. Crie um novo plano no Planejador.";
+            loading.style.display = "block";
+            setTimeout(() => location.href = "planner.html", 2000);
+            return;
+          }
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
+          achievements = userDoc.exists() && userDoc.data().achievements ? userDoc.data().achievements : [];
+          currentIndex = userDoc.exists() && userDoc.data().currentIndex !== undefined 
+            ? userDoc.data().currentIndex 
+            : (localStorage.getItem("currentIndex") ? parseInt(localStorage.getItem("currentIndex")) : 0);
+          console.log("CurrentIndex carregado:", currentIndex);
+          console.log("Logs carregados:", logs.length);
+          console.log("Plano a ser renderizado:", planData);
+          renderPlan();
+          checkAchievements();
+        } else {
+          console.log("Nenhum plano encontrado.");
+          loading.innerText = "Nenhum plano encontrado. Crie um plano no Planejador.";
+          loading.style.display = "block";
+          setTimeout(() => location.href = "planner.html", 2000);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar plano:", error.message);
+        loading.innerText = "Erro ao carregar plano: " + error.message;
+        loading.style.display = "block";
+        setTimeout(() => location.href = "planner.html", 2000);
+      }
+    });
+
+    function renderPlan() {
+      const tbody = document.querySelector("#studyTable tbody");
+      const refTbody = document.querySelector("#statusTable tbody");
+      tbody.innerHTML = "";
+      refTbody.innerHTML = "";
+
+      if (planData.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='4'>Nenhum plano carregado.</td></tr>";
+        return;
+      }
+
+      if (currentIndex < planData.length) {
+        const currentItem = planData[currentIndex];
+        tbody.innerHTML = `
+          <tr>
+            <td>${currentItem.priorityNumber}</td>
+            <td>${currentItem.subject}</td>
+            <td>${currentItem.subtopic}</td>
+            <td><input type="checkbox" ${currentItem.completed ? "checked" : ""} onchange="completeStep(this)"></td>
+          </tr>
+        `;
+      } else {
+        tbody.innerHTML = "<tr><td colspan='4'>Todas as etapas concluídas!</td></tr>";
+        showNotification("Plano concluído! Parabéns!");
+        playSuccessSound();
+      }
+
+      const completedSteps = planData.slice(0, currentIndex);
+      if (completedSteps.length > 0) {
+        refTbody.innerHTML += `<tr class="divider"><td colspan="3">Etapas Concluídas</td></tr>`;
+        completedSteps.forEach(item => {
+          refTbody.innerHTML += `
+            <tr>
+              <td>${item.priorityNumber}</td>
+              <td>${item.subject}</td>
+              <td>${item.subtopic}</td>
+            </tr>
+          `;
+        });
+      }
+
+      refTbody.innerHTML += `<tr class="divider"><td colspan="3">Etapa Atual</td></tr>`;
+      if (currentIndex < planData.length) {
+        const currentItem = planData[currentIndex];
+        refTbody.innerHTML += `
+          <tr class="current-highlight">
+            <td>${currentItem.priorityNumber}</td>
+            <td>${currentItem.subject}</td>
+            <td>${currentItem.subtopic}</td>
+          </tr>
+        `;
+      }
+
+      const nextSteps = planData.slice(currentIndex + 1, currentIndex + 11);
+      if (nextSteps.length > 0) {
+        refTbody.innerHTML += `<tr class="divider"><td colspan="3">Próximas Etapas</td></tr>`;
+        nextSteps.forEach(item => {
+          refTbody.innerHTML += `
+            <tr>
+              <td>${item.priorityNumber}</td>
+              <td>${item.subject}</td>
+              <td>${item.subtopic}</td>
+            </tr>
+          `;
+        });
+      }
+
+      document.getElementById("backButton").style.display = currentIndex > 0 ? "block" : "none";
+    }
+
+    window.completeStep = async function(checkbox) {
+      playClickSound();
+      const currentTime = Date.now();
+      const timeSinceLast = currentTime - lastCompletionTime;
+      let validForRanking = timeSinceLast >= MINIMUM_TIME_FOR_RANKING;
+
+      if (!confirm(`Tem certeza que deseja avançar para a próxima etapa? ${!validForRanking ? "Avanços em menos de 10 minutos não contam para o ranking." : ""}`)) {
+        checkbox.checked = false;
+        return;
+      }
+
+      if (!planData[currentIndex]) {
+        console.error("Erro: planData[currentIndex] é indefinido. CurrentIndex:", currentIndex);
+        alert("Erro: Não foi possível avançar a etapa.");
+        return;
+      }
+
+      const tempo = prompt("Tempo gasto (minutos):") || "0";
+      const dificuldade = prompt("Dificuldade (F/M/D):")?.toUpperCase() || "M";
+      const nota = prompt("Nota (0-10):") || "0";
+      const comentario = prompt("Comentário (opcional):") || "";
+      const log = {
+        etapa: currentIndex + 1,
+        subtopico: planData[currentIndex].subtopico || "Desconhecido",
+        materia: planData[currentIndex].subject || "Desconhecida",
+        dificuldade: dificuldade === "F" ? "Fácil" : dificuldade === "D" ? "Difícil" : "Médio",
+        tempo_gasto: tempo,
+        nota_autoavaliacao: nota,
+        comentario: comentario,
+        data_conclusao: new Date().toISOString(),
+        status: "Concluído",
+        validForRanking: validForRanking
+      };
+
+      // Remove logs antigos da mesma etapa para evitar duplicatas
+      logs = logs.filter(l => l.etapa !== (currentIndex + 1));
+      logs.push(log);
+
+      const validLogs = logs.filter(l => l.validForRanking);
+      const totalTime = validLogs.reduce((sum, l) => sum + parseInt(l.tempo_gasto || 0), 0) || 0;
+      const avgScore = validLogs.length > 0 ? validLogs.reduce((sum, l) => sum + parseInt(l.nota_autoavaliacao || 0), 0) / validLogs.length : 0;
+      const resetDate = new Date(currentTime);
+      resetDate.setDate(1);
+      resetDate.setHours(1, 0, 0, 0); // Dia 1, 01:00h do mês atual
+      const monthlyRankingScore = validLogs.filter(log => new Date(log.data_conclusao) >= resetDate).reduce((sum, l) => sum + parseInt(l.tempo_gasto || 0) * parseInt(l.nota_autoavaliacao || 0), 0) || 0;
+      const rankingScore = validLogs.length * (totalTime / (validLogs.length || 1)) * avgScore || 0;
+
+      if (new Date(currentTime) >= resetDate && !localStorage.getItem("rankingReset")) {
+        await updateDoc(doc(db, "users", auth.currentUser.uid), { monthlyRankingScore: 0 });
+        localStorage.setItem("rankingReset", "true");
+      }
+
+      planData[currentIndex].completed = true;
+      currentIndex++;
+
+      try {
+        console.log("Salvando log, conquistas e progresso...");
+        await updateDoc(doc(db, "users", auth.currentUser.uid), { 
+          logs: logs || [], 
+          achievements: achievements || [], 
+          rankingScore: rankingScore || 0, 
+          monthlyRankingScore: monthlyRankingScore || 0,
+          currentIndex: currentIndex || 0 
+        });
+        await updateDoc(doc(db, "plans", auth.currentUser.uid), { plan: planData });
+        localStorage.setItem("currentIndex", currentIndex);
+        localStorage.setItem("lastCompletionTime", currentTime);
+        lastCompletionTime = currentTime;
+        playSuccessSound();
+        checkAchievements();
+        renderPlan();
+        console.log("Etapa concluída com sucesso. CurrentIndex:", currentIndex);
+      } catch (error) {
+        console.error("Erro ao salvar log:", error.message);
+        alert("Erro ao salvar log: " + error.message);
+      }
+    };
+
+    window.retrocederEtapa = async function() {
+      playClickSound();
+      if (confirm("Tem certeza que deseja retroceder? Isso apagará o log da etapa atual.")) {
+        if (currentIndex >= 0 && planData[currentIndex]) { // Verifica se há etapa para retroceder
+          const etapaAtual = currentIndex + 1;
+          logs = logs.filter(log => log.etapa !== etapaAtual); // Remove apenas o log da etapa atual
+          planData[currentIndex].completed = false;
+          currentIndex = Math.max(0, currentIndex - 1); // Não permite currentIndex < 0
+          localStorage.setItem("currentIndex", currentIndex);
+          try {
+            await updateDoc(doc(db, "users", auth.currentUser.uid), { 
+              logs: logs || [], 
+              currentIndex: currentIndex || 0 
+            });
+            await updateDoc(doc(db, "plans", auth.currentUser.uid), { plan: planData });
+            console.log("Progresso retrocedido. Log da etapa", etapaAtual, "apagado. CurrentIndex:", currentIndex);
+            renderPlan();
+          } catch (error) {
+            console.error("Erro ao retroceder:", error.message);
+            alert("Erro ao retroceder: " + error.message);
+          }
+        }
+      }
+    };
+
+    window.signOut = async function() {
+      playClickSound();
+      try {
+        await signOut(auth);
+        localStorage.clear();
+        console.log("Logout realizado com sucesso.");
+        location.href = "index.html";
+      } catch (error) {
+        console.error("Erro ao sair:", error.message);
+        alert("Erro ao sair: " + error.message);
+      }
+    };
+
+    function showNotification(message) {
+      const notification = document.createElement("div");
+      notification.className = "notification";
+      notification.innerText = message;
+      document.body.appendChild(notification);
+      setTimeout(() => notification.remove(), 2500);
+    }
+
+    function checkAchievements() {
+      const currentRank = updateRank(logs);
+      if (!achievements.some(a => a.rank === currentRank)) {
+        achievements = [{ rank: currentRank, date: new Date().toISOString() }];
+        showNotification(`Novo ranking: ${currentRank}!`);
+        playSuccessSound();
+      }
+    }
+  </script>
 </body>
 </html>
