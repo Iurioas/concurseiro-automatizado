@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8">
   <title>Planejado - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -462,19 +463,18 @@
         document.getElementById("total-focus").innerText = `${Math.floor(totalFocus / 60)}h ${totalFocus % 60}m`;
       }
 
-      async function downloadFile(content, fileName, type) {
+      function downloadFile(content, fileName, type) {
         const blob = new Blob([content], { type });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
         a.download = fileName;
-        document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
       }
 
       async function downloadGraphs() {
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Espera gráficos carregarem
         const canvases = document.querySelectorAll(".chart-container canvas");
         canvases.forEach((canvas, index) => {
           const imgData = canvas.toDataURL("image/png");
@@ -488,7 +488,7 @@
       }
 
       window.completeStep = async function(checkbox) {
-        if (!confirm(`Tem certeza que deseja avançar para a próxima etapa?`)) {
+        if (!confirm("Tem certeza que deseja avançar para a próxima etapa?")) {
           checkbox.checked = false;
           return;
         }
@@ -534,12 +534,20 @@
         checkAchievements();
         renderPlan();
 
-        // Download automático de logs e gráficos
         const logTxt = logs.map(log => `Etapa: ${log.etapa}\nSubtópico: ${log.subtopico}\nMatéria: ${log.materia}\nDificuldade: ${log.dificuldade}\nTempo Gasto: ${log.tempo_gasto} minutos\nNota: ${log.nota_autoavaliacao}\nData: ${new Date(log.data_conclusao).toLocaleString("pt-BR")}\nStatus: ${log.status}\n---`).join("");
-        await downloadFile(logTxt, "log.txt", "text/plain");
-        await downloadFile(JSON.stringify(logs, null, 2), "log.json", "application/json");
-        await downloadGraphs();
+        downloadFile(logTxt, "log.txt", "text/plain");
+        downloadFile(JSON.stringify(logs, null, 2), "log.json", "application/json");
+        downloadGraphs();
       };
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const userDocRef = doc(db, "users", user.uid);
+          const userDoc = await getDoc(userDocRef);
+          const sessions = userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : [];
+          updateOverview(sessions);
+        }
+      });
 
       document.getElementById("start-resume-btn").addEventListener("click", startTimer);
       document.getElementById("pause-btn").addEventListener("click", pauseTimer);

@@ -46,7 +46,7 @@
       .catch(error => console.error("Erro ao configurar persistência:", error.message));
 
     document.getElementById("signupBtn").addEventListener("click", async () => {
-      ;
+      playClickSound();
       const login = document.getElementById("login").value.trim();
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value;
