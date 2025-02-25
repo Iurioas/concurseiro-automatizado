@@ -9,12 +9,14 @@
     .current-highlight { background-color: #4CAF50; color: white; }
     .study-table td:nth-child(4) { 
       text-align: center; 
-      vertical-align: middle; /* Centraliza verticalmente */
-      padding: 0; /* Remove padding extra para melhor alinhamento */
+      padding: 0; /* Remove padding para evitar deslocamento */
+      height: 44px; /* Define uma altura fixa para consistência com outras células */
+      display: flex; /* Usa Flexbox para centralizar */
+      justify-content: center; /* Centraliza horizontalmente */
+      align-items: center; /* Centraliza verticalmente */
     }
     .study-table td:nth-child(4) input[type="checkbox"] {
-      display: block; /* Faz a checkbox ocupar o centro da célula */
-      margin: 0 auto; /* Centraliza horizontalmente */
+      margin: 0; /* Remove margens extras */
     }
   </style>
 </head>
