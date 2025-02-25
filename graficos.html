@@ -1,86 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8">
   <title>Gráficos - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
-
-      const difficultyCount = logs.reduce((acc, log) => {
-        acc[log.dificuldade] = (acc[log.dificuldade] || 0) + 1;
-        return acc;
-      }, {});
-      const difficultyCtx = document.getElementById("difficultyChart").getContext("2d");
-      new Chart(difficultyCtx, {
-        type: "bar",
-        data: {
-          labels: Object.keys(difficultyCount),
-          datasets: [{
-            label: "Quantidade",
-            data: Object.values(difficultyCount),
-            backgroundColor: ["#4CAF50", "#FF9800", "#F44336"]
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: { y: { beginAtZero: true } },
-          plugins: { title: { display: true, text: "Distribuição por Dificuldade" } }
-        }
-      });
-
-      const completed = logs.length;
-      const remaining = totalSteps - completed;
-      const overallProgressCtx = document.getElementById("overallProgressChart").getContext("2d");
-      new Chart(overallProgressCtx, {
-        type: "bar",
-        data: {
-          labels: ["Concluído", "Restante"],
-          datasets: [{
-            label: "Etapas",
-            data: [completed, remaining],
-            backgroundColor: ["#4CAF50", "#E0E0E0"]
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: { y: { beginAtZero: true } },
-          plugins: { title: { display: true, text: "Progresso Geral do Plano" } }
-        }
-      });
-
-      const totalTimeCtx = document.getElementById("totalTimeChart").getContext("2d");
-      const totalTimeChart = new Chart(totalTimeCtx, {
-        type: "bar",
-        data: {
-          labels: ["Tempo Total Bruto", "Tempo Total Líquido"],
-          datasets: [{
-            label: "Tempo (min)",
-            data: [0, 0], // Inicializa com zeros
-            backgroundColor: ["#9575CD", "#4CAF50"]
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: { y: { beginAtZero: true, title: { display: true, text: "Minutos" } } },
-          plugins: { title: { display: true, text: "Tempo Total Bruto vs Líquido" } }
-        }
-      });
-
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          const userDocRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userDocRef);
-          const sessions = userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : [];
-          const totalBruto = sessions.reduce((sum, s) => sum + s.duration, 0);
-          const totalLiquido = logs.reduce((sum, log) => sum + parseInt(log.tempo_gasto || 0), 0);
-          totalTimeChart.data.datasets[0].data = [totalBruto, totalLiquido];
-          totalTimeChart.update();
-        }
-      });
-    
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     .chart-container {
       max-width: 600px;
@@ -109,10 +34,7 @@
     <div class="chart-container"><canvas id="overallProgressChart"></canvas></div>
     <div class="chart-container"><canvas id="avgDifficultyPerSubjectChart"></canvas></div> <!-- Novo gráfico -->
     <div class="chart-container"><canvas id="avgScorePerSubjectChart"></canvas></div> <!-- Novo gráfico -->
-    
-      <div class="chart-container"><canvas id="totalTimeChart"></canvas></div>
-    
-<div id="loading">Carregando gráficos...</div>
+    <div id="loading">Carregando gráficos...</div>
   </main>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
@@ -354,7 +276,7 @@
     }
 
     window.signOut = async () => {
-      ;
+      playClickSound();
       try {
         await signOut(auth);
         localStorage.clear();
