@@ -343,9 +343,9 @@ footer {
 #timer-display { font-size: 48px; font-weight: 700; color: #EDE7F6; }
 .timer-controls { margin-top: 20px; }
 .timer-controls button { padding: 10px 25px; font-size: 16px; }
-#start-resume-btn { background: linear-gradient(135deg, #4CAF50, #66BB6A); }
-#pause-btn { background: linear-gradient(135deg, #FF9800, #FFB300); }
-#stop-btn { background: linear-gradient(135deg, #D32F2F, #F44336); }
+#start-resume-btn { background: linear-gradient(135deg, #388E3C, #4CAF50); }
+#pause-btn { background: linear-gradient(135deg, #5E35B1, #7E57C2); }
+#stop-btn { background: linear-gradient(135deg, #AB47BC, #CE93D8); }
 .overview-panel { flex: 1; background: #33334D; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(149, 117, 205, 0.3); min-width: 250px; }
 .overview-panel h3 { color: #D1C4E9; margin-bottom: 15px; }
 .overview-stats p { margin: 10px 0; font-size: 14px; }
