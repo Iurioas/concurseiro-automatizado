@@ -414,8 +414,6 @@
       async function stopTimer() {
         if (isRunning || elapsedTime > 0) {
           clearInterval(timerInterval);
-          isRunning = false;
-          document.getElementById("timer-circle").classList.remove("running");
           const minutes = Math.floor(elapsedTime / 60000);
           if (minutes >= 10) {
             const session = {
@@ -437,11 +435,19 @@
             } catch (error) {
               console.error("Erro ao salvar sessão:", error.message);
             }
+            elapsedTime = 0;
+            localStorage.setItem("elapsedTime", "0");
           } else {
-            alert("Sessão menor que 10 minutos não será contabilizada.");
+            if (confirm("Sessão menor que 10 minutos não será contabilizada. Deseja sair mesmo assim?")) {
+              elapsedTime = 0;
+              localStorage.setItem("elapsedTime", "0");
+            } else {
+              startTimer(); // Continua o relógio se cancelar
+              return;
+            }
           }
-          elapsedTime = 0;
-          localStorage.setItem("elapsedTime", "0");
+          isRunning = false;
+          document.getElementById("timer-circle").classList.remove("running");
           updateTimerDisplay();
           document.getElementById("start-resume-btn").innerText = "Continuar";
         }
@@ -469,7 +475,6 @@
         }).join("");
       }
 
-      // Carrega sessões ao iniciar
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           const userDocRef = doc(db, "users", user.uid);
@@ -482,11 +487,7 @@
       document.getElementById("start-resume-btn").addEventListener("click", startTimer);
       document.getElementById("pause-btn").addEventListener("click", pauseTimer);
       document.getElementById("stop-btn").addEventListener("click", stopTimer);
-
-      // Salva sessão ao fechar a página
-      window.addEventListener("beforeunload", () => {
-        if (isRunning) stopTimer();
-      });
+      window.addEventListener("beforeunload", () => { if (isRunning) stopTimer(); });
     
 </script>
 </body>
