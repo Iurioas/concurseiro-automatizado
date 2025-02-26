@@ -2,13 +2,14 @@
 <html lang="pt-BR">
 
     
+    
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Gráficos - Concurseiro Automatizado</title>
       <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
       <link rel="stylesheet" href="styles.css">
-      <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.49.1/dist/apexcharts.min.js"></script>
     </head>
 <body>
   <div class="title-container">
@@ -80,12 +81,186 @@
     
     
     
+    
     function renderCharts(logs, totalSteps) {
-      var progressCtx = document.getElementById("progressChart").getContext("2d");
-      new Chart(progressCtx, {
-        type: "bar",
-        data: {
-          labels: logs.map(function(log) { return "Etapa " + log.etapa; }),
+      // Gráfico 1: Tempo Gasto e Nota por Etapa (Barras Agrupadas)
+      var progressOptions = {
+        chart: { type: "bar", height: 350 },
+        series: [
+          { name: "Tempo Gasto (min)", data: logs.map(function(log) { return parseInt(log.tempo_gasto) || 0; }) },
+          { name: "Nota Autoavaliação", data: logs.map(function(log) { return parseInt(log.nota_autoavaliacao) || 0; }) }
+        ],
+        xaxis: { categories: logs.map(function(log) { return "Etapa " + log.etapa; }) },
+        title: { text: "Tempo e Nota por Etapa" },
+        colors: ["#9575CD", "#D1C4E9"],
+        dataLabels: { enabled: false },
+        yaxis: { title: { text: "Valores" } }
+      };
+      new ApexCharts(document.querySelector("#progressChart"), progressOptions).render();
+
+      // Gráfico 2: Distribuição de Dificuldade (Barras Horizontais)
+      var difficultyCount = logs.reduce(function(acc, log) {
+        acc[log.dificuldade] = (acc[log.dificuldade] || 0) + 1;
+        return acc;
+      }, {});
+      var difficultyOptions = {
+        chart: { type: "bar", height: 350 },
+        series: [{ name: "Quantidade", data: Object.values(difficultyCount) }],
+        xaxis: { categories: Object.keys(difficultyCount), title: { text: "Quantidade" } },
+        yaxis: { title: { text: "Dificuldade" } },
+        title: { text: "Distribuição por Dificuldade" },
+        plotOptions: { bar: { horizontal: true } },
+        colors: ["#4CAF50"],
+        dataLabels: { enabled: false }
+      };
+      new ApexCharts(document.querySelector("#difficultyChart"), difficultyOptions).render();
+
+      // Gráfico 3: Progresso Semanal (Linha)
+      var weeklyProgress = {};
+      logs.forEach(function(log) {
+        var date = new Date(log.data_conclusao);
+        var weekStart = new Date(date.setDate(date.getDate() - date.getDay())).toLocaleDateString("pt-BR");
+        weeklyProgress[weekStart] = (weeklyProgress[weekStart] || 0) + 1;
+      });
+      var progressTimeOptions = {
+        chart: { type: "line", height: 350 },
+        series: [{ name: "Etapas por Semana", data: Object.values(weeklyProgress) }],
+        xaxis: { categories: Object.keys(weeklyProgress) },
+        yaxis: { title: { text: "Etapas" } },
+        title: { text: "Progresso Semanal" },
+        colors: ["#9575CD"],
+        dataLabels: { enabled: false },
+        stroke: { curve: "smooth" }
+      };
+      new ApexCharts(document.querySelector("#progressTimeChart"), progressTimeOptions).render();
+
+      // Gráfico 4: Tempo Médio e Volume por Matéria (Barras com Linha)
+      var subjectTime = logs.reduce(function(acc, log) {
+        acc[log.materia] = acc[log.materia] || { total: 0, count: 0 };
+        acc[log.materia].total += parseInt(log.tempo_gasto) || 0;
+        acc[log.materia].count += 1;
+        return acc;
+      }, {});
+      var subjects = Object.keys(subjectTime);
+      var avgTime = subjects.map(function(subject) { return subjectTime[subject].total / subjectTime[subject].count; });
+      var subjectCount = subjects.map(function(subject) { return subjectTime[subject].count; });
+      var timePerSubjectOptions = {
+        chart: { type: "bar", height: 350 },
+        series: [
+          { name: "Tempo Médio (min)", data: avgTime },
+          { name: "Nº de Etapas", type: "line", data: subjectCount }
+        ],
+        xaxis: { categories: subjects },
+        yaxis: [
+          { title: { text: "Minutos" } },
+          { opposite: true, title: { text: "Etapas" } }
+        ],
+        title: { text: "Tempo Médio e Volume por Matéria" },
+        colors: ["#4CAF50", "#9575CD"],
+        dataLabels: { enabled: false }
+      };
+      new ApexCharts(document.querySelector("#timePerSubjectChart"), timePerSubjectOptions).render();
+
+      // Gráfico 5: Progresso Geral (Barras Empilhadas)
+      var completed = logs.length;
+      var remaining = totalSteps - completed;
+      var overallProgressOptions = {
+        chart: { type: "bar", height: 350, stacked: true },
+        series: [
+          { name: "Concluído", data: [completed] },
+          { name: "Restante", data: [remaining] }
+        ],
+        xaxis: { categories: ["Progresso"] },
+        yaxis: { title: { text: "Etapas" } },
+        title: { text: "Progresso Geral do Plano" },
+        colors: ["#4CAF50", "#E0E0E0"],
+        dataLabels: { enabled: false },
+        tooltip: {
+          y: {
+            formatter: function(val, opts) {
+              var total = completed + remaining;
+              var percentage = ((val / total) * 100).toFixed(1);
+              return opts.series[opts.seriesIndex][opts.dataPointIndex] + " (" + percentage + "%)";
+            }
+          }
+        }
+      };
+      new ApexCharts(document.querySelector("#overallProgressChart"), overallProgressOptions).render();
+
+      // Gráfico 6: Dificuldade Média por Matéria (Barras Horizontais)
+      var difficultyMap = { "Fácil": 1, "Médio": 2, "Difícil": 3 };
+      var difficultyPerSubject = logs.reduce(function(acc, log) {
+        acc[log.materia] = acc[log.materia] || { total: 0, count: 0 };
+        acc[log.materia].total += difficultyMap[log.dificuldade] || 0;
+        acc[log.materia].count += 1;
+        return acc;
+      }, {});
+      var avgDifficulty = subjects.map(function(subject) { return difficultyPerSubject[subject].total / difficultyPerSubject[subject].count; });
+      var avgDifficultyOptions = {
+        chart: { type: "bar", height: 350 },
+        series: [{ name: "Dificuldade Média", data: avgDifficulty }],
+        xaxis: { categories: subjects, title: { text: "Dificuldade (1-3)" }, max: 3 },
+        yaxis: { title: { text: "Matéria" } },
+        title: { text: "Dificuldade Média por Matéria" },
+        plotOptions: { bar: { horizontal: true } },
+        colors: ["#FF9800"],
+        dataLabels: { enabled: false }
+      };
+      new ApexCharts(document.querySelector("#avgDifficultyPerSubjectChart"), avgDifficultyOptions).render();
+
+      // Gráfico 7: Nota Média por Matéria (Barras Horizontais com Linha)
+      var scorePerSubject = logs.reduce(function(acc, log) {
+        acc[log.materia] = acc[log.materia] || { total: 0, count: 0 };
+        acc[log.materia].total += parseInt(log.nota_autoavaliacao) || 0;
+        acc[log.materia].count += 1;
+        return acc;
+      }, {});
+      var avgScore = subjects.map(function(subject) { return scorePerSubject[subject].total / scorePerSubject[subject].count; });
+      var overallAvgScore = logs.reduce(function(sum, log) { return sum + (parseInt(log.nota_autoavaliacao) || 0); }, 0) / logs.length;
+      var avgScoreOptions = {
+        chart: { type: "bar", height: 350 },
+        series: [
+          { name: "Nota Média", data: avgScore },
+          { name: "Média Geral", type: "line", data: subjects.map(function() { return overallAvgScore; }) }
+        ],
+        xaxis: { categories: subjects, title: { text: "Nota (0-10)" }, max: 10 },
+        yaxis: { title: { text: "Matéria" } },
+        title: { text: "Nota Média por Matéria" },
+        plotOptions: { bar: { horizontal: true } },
+        colors: ["#D1C4E9", "#9575CD"],
+        dataLabels: { enabled: false }
+      };
+      new ApexCharts(document.querySelector("#avgScorePerSubjectChart"), avgScoreOptions).render();
+
+      // Gráfico 8: Eficiência por Dia (Barras Agrupadas)
+      var dailyEfficiency = {};
+      logs.forEach(function(log) {
+        var date = new Date(log.data_conclusao).toLocaleDateString("pt-BR");
+        dailyEfficiency[date] = dailyEfficiency[date] || { time: 0, steps: 0 };
+        dailyEfficiency[date].time += parseInt(log.tempo_gasto) || 0;
+        dailyEfficiency[date].steps += 1;
+      });
+      var dates = Object.keys(dailyEfficiency);
+      var totalTimePerDay = dates.map(function(date) { return dailyEfficiency[date].time; });
+      var stepsPerDay = dates.map(function(date) { return dailyEfficiency[date].steps; });
+      var totalTimeOptions = {
+        chart: { type: "bar", height: 350 },
+        series: [
+          { name: "Tempo Gasto (min)", data: totalTimePerDay },
+          { name: "Etapas Concluídas", data: stepsPerDay }
+        ],
+        xaxis: { categories: dates },
+        yaxis: [
+          { title: { text: "Minutos" } },
+          { opposite: true, title: { text: "Etapas" } }
+        ],
+        title: { text: "Eficiência por Dia" },
+        colors: ["#9575CD", "#4CAF50"],
+        dataLabels: { enabled: false }
+      };
+      new ApexCharts(document.querySelector("#totalTimeChart"), totalTimeOptions).render();
+    }
+    ),
           datasets: [
             {
               label: "Tempo Gasto (min)",
