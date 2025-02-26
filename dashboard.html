@@ -44,6 +44,9 @@
     <h2 style="text-align: center; margin-bottom: 20px;">Área do Aluno</h2>
     <p style="text-align: center;">Bem-vindo! Escolha uma opção no menu acima para gerenciar seus estudos.</p>
     <div id="loading" style="text-align: center; margin: 20px;">Carregando...</div>
+    <div style="text-align: center; margin-top: 20px;">
+      <button class="theme-toggle" onclick="toggleTheme()">Alternar Tema (Escuro/Claro)</button>
+    </div>
   </main>
   <footer>
     <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
@@ -83,6 +86,7 @@
       }
       console.log("Usuário autenticado:", user.uid);
       loading.style.display = "none"; // Esconde o loading após autenticação
+      applySavedTheme(); // Aplica o tema salvo ao carregar
     });
 
     window.signOut = async function() {
@@ -120,6 +124,30 @@
         }
       }
     };
+
+    // Função para alternar entre temas
+    window.toggleTheme = function() {
+      playClickSound();
+      const currentTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light';
+      if (currentTheme === 'dark') {
+        document.body.classList.add('light-theme');
+        document.body.classList.remove('dark-theme');
+      } else {
+        document.body.classList.add('dark-theme');
+        document.body.classList.remove('light-theme');
+      }
+      localStorage.setItem('theme', currentTheme === 'dark' ? 'light' : 'dark');
+    };
+
+    // Aplica o tema salvo (ou padrão escuro) ao carregar
+    function applySavedTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+      } else {
+        document.body.classList.add('dark-theme');
+      }
+    }
   </script>
 </body>
 </html>
