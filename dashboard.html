@@ -6,13 +6,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* Estilo para o botão Deletar Conta */
     .delete-account-btn {
-      background: #D32F2F; /* Vermelho escuro elegante */
-      color: #EDE7F6; /* Texto claro */
-      border: 1px solid #EDE7F6; /* Borda sutil */
-      padding: 8px 16px; /* Igual ao botão Sair */
-      margin-left: 10px; /* Mantém o espaçamento */
+      background: #D32F2F;
+      color: #EDE7F6;
+      border: 1px solid #EDE7F6;
+      padding: 8px 16px;
+      margin-left: 10px;
       border-radius: 6px;
       cursor: pointer;
       font-weight: 500;
@@ -20,9 +19,9 @@
       transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
     }
     .delete-account-btn:hover {
-      background: #B71C1C; /* Vermelho mais escuro no hover */
+      background: #B71C1C;
       transform: scale(1.05);
-      box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3); /* Sombra vermelha sutil */
+      box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
     }
   </style>
 </head>
@@ -85,8 +84,8 @@
         return;
       }
       console.log("Usuário autenticado:", user.uid);
-      loading.style.display = "none"; // Esconde o loading após autenticação
-      applySavedTheme(); // Aplica o tema salvo ao carregar
+      loading.style.display = "none";
+      applySavedTheme();
     });
 
     window.signOut = async function() {
@@ -108,9 +107,9 @@
         try {
           const user = auth.currentUser;
           if (user) {
-            await deleteDoc(doc(db, "users", user.uid)); // Deleta do Firestore (users)
-            await deleteDoc(doc(db, "plans", user.uid)); // Deleta do Firestore (plans)
-            await user.delete(); // Deleta do Authentication
+            await deleteDoc(doc(db, "users", user.uid));
+            await deleteDoc(doc(db, "plans", user.uid));
+            await user.delete();
             localStorage.clear();
             console.log("Conta deletada com sucesso.");
             alert("Conta deletada com sucesso!");
@@ -125,28 +124,28 @@
       }
     };
 
-    // Função para alternar entre temas
     window.toggleTheme = function() {
       playClickSound();
-      const currentTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light';
-      if (currentTheme === 'dark') {
-        document.body.classList.add('light-theme');
-        document.body.classList.remove('dark-theme');
+      const body = document.body;
+      const isLightTheme = body.classList.contains('light-theme');
+      if (isLightTheme) {
+        body.classList.remove('light-theme');
+        body.classList.add('dark-theme');
+        localStorage.setItem('theme', 'dark');
       } else {
-        document.body.classList.add('dark-theme');
-        document.body.classList.remove('light-theme');
+        body.classList.remove('dark-theme');
+        body.classList.add('light-theme');
+        localStorage.setItem('theme', 'light');
       }
-      localStorage.setItem('theme', currentTheme === 'dark' ? 'light' : 'dark');
+      console.log("Tema alterado para:", localStorage.getItem('theme')); // Debug
     };
 
-    // Aplica o tema salvo (ou padrão escuro) ao carregar
     function applySavedTheme() {
       const savedTheme = localStorage.getItem('theme') || 'dark';
-      if (savedTheme === 'light') {
-        document.body.classList.add('light-theme');
-      } else {
-        document.body.classList.add('dark-theme');
-      }
+      const body = document.body;
+      body.classList.remove('light-theme', 'dark-theme'); // Remove ambas as classes
+      body.classList.add(savedTheme === 'light' ? 'light-theme' : 'dark-theme');
+      console.log("Tema aplicado:", savedTheme); // Debug
     }
   </script>
 </body>
