@@ -6,7 +6,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="dark-theme">
+<body>
   <div class="title-container">
     <h1>Concurseiro Automatizado</h1>
   </div>
@@ -284,7 +284,6 @@
       "Direito ambiental. Conceitos gerais e evolução histórica": "Direito Ambiental",
       "Princípios do direito ambiental": "Direito Ambiental",
       "Contratos Empresariais": "Direito Empresarial",
-      "Falência e Recuperação de Empresas": "Direito Empresarial",
       "Definição": "Direito Empresarial",
       "Princípios da Seguridade Social": "Direito Empresarial",
       "Organização e Custeio da Seguridade Social - Lei n. 8.212, de 24 de julho de 1991": "Direito Empresarial",
@@ -320,7 +319,6 @@
         } else {
           planStatus.innerHTML = "<span style='color: #8888A0;'>Nenhum plano vigente. Escolha um plano abaixo para começar!</span>";
         }
-        applySavedTheme(); // Aplica o tema salvo ao carregar
       } catch (error) {
         console.error("Erro ao verificar plano:", error.message);
         planStatus.innerText = "Erro ao verificar plano: " + error.message;
@@ -382,16 +380,6 @@
         alert("Erro ao sair: " + error.message);
       }
     };
-
-    // Função para aplicar o tema salvo (ou padrão escuro)
-function applySavedTheme() {
-  const savedTheme = localStorage.getItem('theme') || 'dark';
-  const body = document.body;
-  body.classList.remove('light-theme', 'dark-theme');
-  body.classList.add(savedTheme === 'light' ? 'light-theme' : 'dark-theme');
-  console.log("Tema aplicado:", savedTheme);
-}
-    }
   </script>
 </body>
 </html>
