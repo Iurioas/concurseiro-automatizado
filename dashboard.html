@@ -6,12 +6,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <style>
+    /* Estilo para o botão Deletar Conta */
     .delete-account-btn {
-      background: #D32F2F;
-      color: #EDE7F6;
-      border: 1px solid #EDE7F6;
-      padding: 8px 16px;
-      margin-left: 10px;
+      background: #D32F2F; /* Vermelho escuro elegante */
+      color: #EDE7F6; /* Texto claro */
+      border: 1px solid #EDE7F6; /* Borda sutil */
+      padding: 8px 16px; /* Igual ao botão Sair */
+      margin-left: 10px; /* Mantém o espaçamento */
       border-radius: 6px;
       cursor: pointer;
       font-weight: 500;
@@ -19,13 +20,13 @@
       transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
     }
     .delete-account-btn:hover {
-      background: #B71C1C;
+      background: #B71C1C; /* Vermelho mais escuro no hover */
       transform: scale(1.05);
-      box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+      box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3); /* Sombra vermelha sutil */
     }
   </style>
 </head>
-<body class="dark-theme">
+<body>
   <div class="title-container">
     <h1>Concurseiro Automatizado</h1>
   </div>
@@ -43,9 +44,6 @@
     <h2 style="text-align: center; margin-bottom: 20px;">Área do Aluno</h2>
     <p style="text-align: center;">Bem-vindo! Escolha uma opção no menu acima para gerenciar seus estudos.</p>
     <div id="loading" style="text-align: center; margin: 20px;">Carregando...</div>
-    <div style="text-align: center; margin-top: 20px;">
-      <button class="theme-toggle" onclick="toggleTheme()">Alternar Tema (Escuro/Claro)</button>
-    </div>
   </main>
   <footer>
     <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
@@ -84,8 +82,7 @@
         return;
       }
       console.log("Usuário autenticado:", user.uid);
-      loading.style.display = "none";
-      applySavedTheme();
+      loading.style.display = "none"; // Esconde o loading após autenticação
     });
 
     window.signOut = async function() {
@@ -107,9 +104,9 @@
         try {
           const user = auth.currentUser;
           if (user) {
-            await deleteDoc(doc(db, "users", user.uid));
-            await deleteDoc(doc(db, "plans", user.uid));
-            await user.delete();
+            await deleteDoc(doc(db, "users", user.uid)); // Deleta do Firestore (users)
+            await deleteDoc(doc(db, "plans", user.uid)); // Deleta do Firestore (plans)
+            await user.delete(); // Deleta do Authentication
             localStorage.clear();
             console.log("Conta deletada com sucesso.");
             alert("Conta deletada com sucesso!");
@@ -123,30 +120,6 @@
         }
       }
     };
-
-    window.toggleTheme = function() {
-      playClickSound();
-      const body = document.body;
-      const isLightTheme = body.classList.contains('light-theme');
-      if (isLightTheme) {
-        body.classList.remove('light-theme');
-        body.classList.add('dark-theme');
-        localStorage.setItem('theme', 'dark');
-      } else {
-        body.classList.remove('dark-theme');
-        body.classList.add('light-theme');
-        localStorage.setItem('theme', 'light');
-      }
-      console.log("Tema alterado para:", localStorage.getItem('theme')); // Debug
-    };
-
-    function applySavedTheme() {
-      const savedTheme = localStorage.getItem('theme') || 'dark';
-      const body = document.body;
-      body.classList.remove('light-theme', 'dark-theme'); // Remove ambas as classes
-      body.classList.add(savedTheme === 'light' ? 'light-theme' : 'dark-theme');
-      console.log("Tema aplicado:", savedTheme); // Debug
-    }
   </script>
 </body>
 </html>
