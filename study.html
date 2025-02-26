@@ -19,7 +19,7 @@
     }
   </style>
 </head>
-<body>
+<body class="dark-theme">
   <div class="title-container">
     <h1 id="title">Concurseiro Automatizado</h1>
   </div>
@@ -154,6 +154,7 @@
           console.log("Plano a ser renderizado:", planData);
           renderPlan();
           checkAchievements();
+          applySavedTheme(); // Aplica o tema salvo ao carregar
         } else {
           console.log("Nenhum plano encontrado.");
           loading.innerText = "Nenhum plano encontrado. Crie um plano no Planejador.";
@@ -476,6 +477,18 @@
       document.getElementById("stop-btn").addEventListener("click", stopTimer);
       window.addEventListener("beforeunload", () => { if (isRunning) stopTimer(); });
     
-</script>
+    // Função para aplicar o tema salvo (ou padrão escuro)
+    function applySavedTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+      } else {
+        document.body.classList.add('dark-theme');
+      }
+    }
+
+    // Aplica o tema ao carregar
+    applySavedTheme();
+  </script>
 </body>
 </html>
