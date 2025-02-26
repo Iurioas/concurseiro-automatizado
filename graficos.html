@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -8,7 +9,7 @@
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.plot.ly/plotly-2.33.0.min.js"></script>
 </head>
-<body class="dark-theme">
+<body>
   <div class="title-container">
     <h1 id="title">Concurseiro Automatizado</h1>
   </div>
@@ -66,7 +67,6 @@
         const totalSteps = planDoc.exists() && planDoc.data().plan ? planDoc.data().plan.length : 0;
         renderCharts(logs, totalSteps, sessions);
         document.getElementById("loading").style.display = "none";
-        applySavedTheme(); // Aplica o tema salvo ao carregar
       } catch (error) {
         console.error("Erro ao carregar dados para gráficos:", error.message);
         document.getElementById("loading").innerText = "Erro ao carregar gráficos: " + error.message;
@@ -83,19 +83,6 @@
         yaxis: { gridcolor: "#4a4a4a", zerolinecolor: "#4a4a4a" } // Grade mais clara para contraste
       };
 
-      // Tema Claro com fundo branco
-      var lightTheme = {
-        plot_bgcolor: "#FFFFFF", // Fundo branco
-        paper_bgcolor: "#FFFFFF", // Fundo branco
-        font: { color: "#1E1E2F" },
-        xaxis: { gridcolor: "#E0E0E0", zerolinecolor: "#E0E0E0" }, // Grade cinza clara
-        yaxis: { gridcolor: "#E0E0E0", zerolinecolor: "#E0E0E0" } // Grade cinza clara
-      };
-
-      // Aplica o tema atual
-      const isLightTheme = document.body.classList.contains('light-theme');
-      const theme = isLightTheme ? lightTheme : darkTheme;
-
       // Gráfico 1: Progresso Geral (Rosca)
       var completed = logs.length;
       var remaining = totalSteps - completed;
@@ -104,12 +91,12 @@
         labels: ["Concluído", "Restante"],
         type: "pie",
         hole: 0.4,
-        marker: { colors: [isLightTheme ? "#9575CD" : "#9575CD", isLightTheme ? "#4a4a4a" : "#4a4a4a"] }
+        marker: { colors: ["#9575CD", "#4a4a4a"] }
       }];
       var overallProgressLayout = Object.assign({
         title: "Progresso Geral",
         showlegend: true
-      }, theme);
+      }, darkTheme);
       Plotly.newPlot("overallProgressChart", overallProgressData, overallProgressLayout);
 
       // Gráfico 2: Etapas Concluídas por Semana (Barras)
@@ -123,12 +110,12 @@
         x: Object.keys(weeklyProgress),
         y: Object.values(weeklyProgress),
         type: "bar",
-        marker: { color: isLightTheme ? "#9575CD" : "#9575CD" }
+        marker: { color: "#9575CD" }
       }];
       var progressTimeLayout = Object.assign({
         title: "Etapas por Semana",
         yaxis: { title: "Etapas" }
-      }, theme);
+      }, darkTheme);
       Plotly.newPlot("progressTimeChart", progressTimeData, progressTimeLayout);
 
       // Gráfico 3: Distribuição de Dificuldade (Pizza)
@@ -140,12 +127,12 @@
         values: Object.values(difficultyCount),
         labels: Object.keys(difficultyCount),
         type: "pie",
-        marker: { colors: [isLightTheme ? "#4CAF50" : "#4CAF50", isLightTheme ? "#FF9800" : "#FF9800", isLightTheme ? "#F44336" : "#F44336"] }
+        marker: { colors: ["#4CAF50", "#FF9800", "#F44336"] }
       }];
       var difficultyLayout = Object.assign({
         title: "Distribuição de Dificuldade",
         showlegend: true
-      }, theme);
+      }, darkTheme);
       Plotly.newPlot("difficultyChart", difficultyData, difficultyLayout);
 
       // Gráfico 4: Tempo Gasto por Matéria (Barras)
@@ -159,12 +146,12 @@
         x: subjects,
         y: totalTime,
         type: "bar",
-        marker: { color: isLightTheme ? "#4CAF50" : "#4CAF50" }
+        marker: { color: "#4CAF50" }
       }];
       var timePerSubjectLayout = Object.assign({
         title: "Tempo por Matéria",
         yaxis: { title: "Minutos" }
-      }, theme);
+      }, darkTheme);
       Plotly.newPlot("timePerSubjectChart", timePerSubjectData, timePerSubjectLayout);
 
       // Gráfico 5: Nota Média por Matéria (Barras Horizontais)
@@ -181,13 +168,13 @@
         y: avgScoreSubjects,
         type: "bar",
         orientation: "h",
-        marker: { color: isLightTheme ? "#D1C4E9" : "#D1C4E9" }
+        marker: { color: "#D1C4E9" }
       }];
       var avgScoreLayout = Object.assign({
         title: "Nota Média por Matéria",
         xaxis: { title: "Nota (0-10)", range: [0, 10] },
         yaxis: { title: "Matéria" }
-      }, theme);
+      }, darkTheme);
       Plotly.newPlot("avgScorePerSubjectChart", avgScoreData, avgScoreLayout);
 
       // Gráfico 6: Dificuldade Média por Matéria (Barras Horizontais)
@@ -205,13 +192,13 @@
         y: avgDifficultySubjects,
         type: "bar",
         orientation: "h",
-        marker: { color: isLightTheme ? "#FF9800" : "#FF9800" }
+        marker: { color: "#FF9800" }
       }];
       var avgDifficultyLayout = Object.assign({
         title: "Dificuldade Média por Matéria",
         xaxis: { title: "Dificuldade (1-3)", range: [0, 3] },
         yaxis: { title: "Matéria" }
-      }, theme);
+      }, darkTheme);
       Plotly.newPlot("avgDifficultyPerSubjectChart", avgDifficultyData, avgDifficultyLayout);
 
       // Gráfico 7: Tempo Bruto vs Líquido (Barras Agrupadas)
@@ -223,21 +210,21 @@
           y: [totalBruto / 60], // Convertendo minutos para horas
           type: "bar",
           name: "Horas Brutas",
-          marker: { color: isLightTheme ? "#9575CD" : "#9575CD" }
+          marker: { color: "#9575CD" }
         },
         {
           x: ["Tempo Total"],
           y: [totalLiquido / 60], // Convertendo minutos para horas
           type: "bar",
           name: "Horas Líquidas",
-          marker: { color: isLightTheme ? "#D1C4E9" : "#D1C4E9" }
+          marker: { color: "#D1C4E9" }
         }
       ];
       var timeComparisonLayout = Object.assign({
         title: "Tempo Bruto vs Líquido",
         yaxis: { title: "Horas" },
         barmode: "group"
-      }, theme);
+      }, darkTheme);
       Plotly.newPlot("timeComparisonChart", timeComparisonData, timeComparisonLayout);
     }
 
@@ -253,16 +240,6 @@
         alert("Erro ao sair: " + error.message);
       }
     };
-
-    // Função para aplicar o tema salvo (ou padrão escuro)
-function applySavedTheme() {
-  const savedTheme = localStorage.getItem('theme') || 'dark';
-  const body = document.body;
-  body.classList.remove('light-theme', 'dark-theme');
-  body.classList.add(savedTheme === 'light' ? 'light-theme' : 'dark-theme');
-  console.log("Tema aplicado:", savedTheme);
-}
-    }
   </script>
 </body>
 </html>
