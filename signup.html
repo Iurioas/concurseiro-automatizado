@@ -179,13 +179,13 @@
     });
 
     // Função para aplicar o tema salvo (ou padrão escuro)
-    function applySavedTheme() {
-      const savedTheme = localStorage.getItem('theme') || 'dark';
-      if (savedTheme === 'light') {
-        document.body.classList.add('light-theme');
-      } else {
-        document.body.classList.add('dark-theme');
-      }
+function applySavedTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  const body = document.body;
+  body.classList.remove('light-theme', 'dark-theme');
+  body.classList.add(savedTheme === 'light' ? 'light-theme' : 'dark-theme');
+  console.log("Tema aplicado:", savedTheme);
+}
     }
 
     // Aplica o tema ao carregar
