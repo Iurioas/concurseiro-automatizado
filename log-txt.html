@@ -6,7 +6,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="dark-theme">
+<body>
   <div class="title-container">
     <h1 id="title">Concurseiro Automatizado</h1>
   </div>
@@ -55,7 +55,6 @@
         const logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
         renderLogs(logs);
         document.getElementById("loading").style.display = "none";
-        applySavedTheme(); // Aplica o tema salvo ao carregar
       } catch (error) {
         console.error("Erro ao carregar logs:", error.message);
         document.getElementById("loading").innerText = "Erro ao carregar logs: " + error.message;
@@ -90,16 +89,6 @@ Status: ${log.status}
         alert("Erro ao sair: " + error.message);
       }
     };
-
-    // Função para aplicar o tema salvo (ou padrão escuro)
-function applySavedTheme() {
-  const savedTheme = localStorage.getItem('theme') || 'dark';
-  const body = document.body;
-  body.classList.remove('light-theme', 'dark-theme');
-  body.classList.add(savedTheme === 'light' ? 'light-theme' : 'dark-theme');
-  console.log("Tema aplicado:", savedTheme);
-}
-    }
   </script>
 </body>
 </html>
