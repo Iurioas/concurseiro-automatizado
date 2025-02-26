@@ -23,14 +23,12 @@
   <main>
     <h1>Gráficos de Progresso</h1>
     <button onclick="location.href='study.html'">Voltar</button>
-    <div class="chart-container"><div id="progressChart"></div></div>
-    <div class="chart-container"><div id="difficultyChart"></div></div>
-    <div class="chart-container"><div id="progressTimeChart"></div></div>
-    <div class="chart-container"><div id="timePerSubjectChart"></div></div>
     <div class="chart-container"><div id="overallProgressChart"></div></div>
-    <div class="chart-container"><div id="avgDifficultyPerSubjectChart"></div></div>
+    <div class="chart-container"><div id="progressTimeChart"></div></div>
+    <div class="chart-container"><div id="difficultyChart"></div></div>
+    <div class="chart-container"><div id="timePerSubjectChart"></div></div>
     <div class="chart-container"><div id="avgScorePerSubjectChart"></div></div>
-    <div class="chart-container"><div id="totalTimeChart"></div></div>
+    <div class="chart-container"><div id="avgDifficultyPerSubjectChart"></div></div>
     <div id="loading">Carregando gráficos...</div>
   </main>
   <script type="module">
@@ -74,50 +72,32 @@
     });
 
     function renderCharts(logs, totalSteps) {
-      // Gráfico 1: Tempo Gasto e Nota por Etapa (Barras Agrupadas)
-      var progressData = [
-        {
-          x: logs.map(function(log) { return "Etapa " + log.etapa; }),
-          y: logs.map(function(log) { return parseInt(log.tempo_gasto) || 0; }),
-          type: "bar",
-          name: "Tempo Gasto (min)",
-          marker: { color: "#9575CD" }
-        },
-        {
-          x: logs.map(function(log) { return "Etapa " + log.etapa; }),
-          y: logs.map(function(log) { return parseInt(log.nota_autoavaliacao) || 0; }),
-          type: "bar",
-          name: "Nota Autoavaliação",
-          marker: { color: "#D1C4E9" }
-        }
-      ];
-      var progressLayout = {
-        title: "Tempo e Nota por Etapa",
-        yaxis: { title: "Valores" },
-        barmode: "group"
+      // Tema Dark
+      var darkTheme = {
+        plot_bgcolor: "#1a1a1a",
+        paper_bgcolor: "#1a1a1a",
+        font: { color: "#EDE7F6" },
+        xaxis: { gridcolor: "#333", zerolinecolor: "#333" },
+        yaxis: { gridcolor: "#333", zerolinecolor: "#333" }
       };
-      Plotly.newPlot("progressChart", progressData, progressLayout);
 
-      // Gráfico 2: Distribuição de Dificuldade (Barras Horizontais)
-      var difficultyCount = logs.reduce(function(acc, log) {
-        acc[log.dificuldade] = (acc[log.dificuldade] || 0) + 1;
-        return acc;
-      }, {});
-      var difficultyData = [{
-        x: Object.values(difficultyCount),
-        y: Object.keys(difficultyCount),
-        type: "bar",
-        orientation: "h",
-        marker: { color: "#4CAF50" }
+      // Gráfico 1: Progresso Geral (Rosca)
+      var completed = logs.length;
+      var remaining = totalSteps - completed;
+      var overallProgressData = [{
+        values: [completed, remaining],
+        labels: ["Concluído", "Restante"],
+        type: "pie",
+        hole: 0.4,
+        marker: { colors: ["#9575CD", "#4a4a4a"] }
       }];
-      var difficultyLayout = {
-        title: "Distribuição por Dificuldade",
-        xaxis: { title: "Quantidade" },
-        yaxis: { title: "Dificuldade" }
-      };
-      Plotly.newPlot("difficultyChart", difficultyData, difficultyLayout);
+      var overallProgressLayout = Object.assign({
+        title: "Progresso Geral",
+        showlegend: true
+      }, darkTheme);
+      Plotly.newPlot("overallProgressChart", overallProgressData, overallProgressLayout);
 
-      // Gráfico 3: Progresso Semanal (Linha)
+      // Gráfico 2: Etapas Concluídas por Semana (Barras)
       var weeklyProgress = {};
       logs.forEach(function(log) {
         var date = new Date(log.data_conclusao);
@@ -127,79 +107,73 @@
       var progressTimeData = [{
         x: Object.keys(weeklyProgress),
         y: Object.values(weeklyProgress),
-        type: "scatter",
-        mode: "lines+points",
-        line: { color: "#9575CD" }
+        type: "bar",
+        marker: { color: "#9575CD" }
       }];
-      var progressTimeLayout = {
-        title: "Progresso Semanal",
+      var progressTimeLayout = Object.assign({
+        title: "Etapas por Semana",
         yaxis: { title: "Etapas" }
-      };
+      }, darkTheme);
       Plotly.newPlot("progressTimeChart", progressTimeData, progressTimeLayout);
 
-      // Gráfico 4: Tempo Médio e Volume por Matéria (Barras com Linha)
+      // Gráfico 3: Distribuição de Dificuldade (Pizza)
+      var difficultyCount = logs.reduce(function(acc, log) {
+        acc[log.dificuldade] = (acc[log.dificuldade] || 0) + 1;
+        return acc;
+      }, {});
+      var difficultyData = [{
+        values: Object.values(difficultyCount),
+        labels: Object.keys(difficultyCount),
+        type: "pie",
+        marker: { colors: ["#4CAF50", "#FF9800", "#F44336"] }
+      }];
+      var difficultyLayout = Object.assign({
+        title: "Distribuição de Dificuldade",
+        showlegend: true
+      }, darkTheme);
+      Plotly.newPlot("difficultyChart", difficultyData, difficultyLayout);
+
+      // Gráfico 4: Tempo Gasto por Matéria (Barras)
       var subjectTime = logs.reduce(function(acc, log) {
-        acc[log.materia] = acc[log.materia] || { total: 0, count: 0 };
-        acc[log.materia].total += parseInt(log.tempo_gasto) || 0;
-        acc[log.materia].count += 1;
+        acc[log.materia] = (acc[log.materia] || 0) + (parseInt(log.tempo_gasto) || 0);
         return acc;
       }, {});
       var subjects = Object.keys(subjectTime);
-      var avgTime = subjects.map(function(subject) { return subjectTime[subject].total / subjectTime[subject].count; });
-      var subjectCount = subjects.map(function(subject) { return subjectTime[subject].count; });
-      var timePerSubjectData = [
-        {
-          x: subjects,
-          y: avgTime,
-          type: "bar",
-          name: "Tempo Médio (min)",
-          marker: { color: "#4CAF50" },
-          yaxis: "y"
-        },
-        {
-          x: subjects,
-          y: subjectCount,
-          type: "scatter",
-          mode: "lines+points",
-          name: "Nº de Etapas",
-          line: { color: "#9575CD" },
-          yaxis: "y2"
-        }
-      ];
-      var timePerSubjectLayout = {
-        title: "Tempo Médio e Volume por Matéria",
-        yaxis: { title: "Minutos" },
-        yaxis2: { title: "Etapas", overlaying: "y", side: "right" }
-      };
+      var totalTime = subjects.map(function(subject) { return subjectTime[subject]; });
+      var timePerSubjectData = [{
+        x: subjects,
+        y: totalTime,
+        type: "bar",
+        marker: { color: "#4CAF50" }
+      }];
+      var timePerSubjectLayout = Object.assign({
+        title: "Tempo por Matéria",
+        yaxis: { title: "Minutos" }
+      }, darkTheme);
       Plotly.newPlot("timePerSubjectChart", timePerSubjectData, timePerSubjectLayout);
 
-      // Gráfico 5: Progresso Geral (Barras Empilhadas)
-      var completed = logs.length;
-      var remaining = totalSteps - completed;
-      var overallProgressData = [
-        {
-          x: ["Progresso"],
-          y: [completed],
-          type: "bar",
-          name: "Concluído",
-          marker: { color: "#4CAF50" }
-        },
-        {
-          x: ["Progresso"],
-          y: [remaining],
-          type: "bar",
-          name: "Restante",
-          marker: { color: "#E0E0E0" }
-        }
-      ];
-      var overallProgressLayout = {
-        title: "Progresso Geral do Plano",
-        yaxis: { title: "Etapas" },
-        barmode: "stack",
-        hovertemplate: "%{y} (%{customdata}%)<extra></extra>",
-        customdata: [[(completed / (completed + remaining) * 100).toFixed(1), (remaining / (completed + remaining) * 100).toFixed(1)]]
-      };
-      Plotly.newPlot("overallProgressChart", overallProgressData, overallProgressLayout);
+      // Gráfico 5: Nota Média por Matéria (Barras Horizontais)
+      var scorePerSubject = logs.reduce(function(acc, log) {
+        acc[log.materia] = acc[log.materia] || { total: 0, count: 0 };
+        acc[log.materia].total += parseInt(log.nota_autoavaliacao) || 0;
+        acc[log.materia].count += 1;
+        return acc;
+      }, {});
+      var avgScoreSubjects = Object.keys(scorePerSubject);
+      var avgScore = avgScoreSubjects.map(function(subject) { return scorePerSubject[subject].total / scorePerSubject[subject].count; });
+      var avgScoreData = [{
+        x: avgScore,
+        y: avgScoreSubjects,
+        type: "bar",
+        orientation: "h",
+        marker: { color: "#D1C4E9" }
+      }];
+      var avgScoreLayout = Object.assign({
+        title: "Nota Média por Matéria",
+        xaxis: { title: "Nota (0-10)", range: [0, 10] },
+        yaxis: { title: "Matéria" }
+      }, darkTheme);
+      Plotly.newPlot("avgScorePerSubjectChart", avgScoreData, avgScoreLayout);
 
       // Gráfico 6: Dificuldade Média por Matéria (Barras Horizontais)
       var difficultyMap = { "Fácil": 1, "Médio": 2, "Difícil": 3 };
@@ -209,91 +183,21 @@
         acc[log.materia].count += 1;
         return acc;
       }, {});
-      var avgDifficulty = subjects.map(function(subject) { return difficultyPerSubject[subject].total / difficultyPerSubject[subject].count; });
+      var avgDifficultySubjects = Object.keys(difficultyPerSubject);
+      var avgDifficulty = avgDifficultySubjects.map(function(subject) { return difficultyPerSubject[subject].total / difficultyPerSubject[subject].count; });
       var avgDifficultyData = [{
         x: avgDifficulty,
-        y: subjects,
+        y: avgDifficultySubjects,
         type: "bar",
         orientation: "h",
         marker: { color: "#FF9800" }
       }];
-      var avgDifficultyLayout = {
+      var avgDifficultyLayout = Object.assign({
         title: "Dificuldade Média por Matéria",
         xaxis: { title: "Dificuldade (1-3)", range: [0, 3] },
         yaxis: { title: "Matéria" }
-      };
+      }, darkTheme);
       Plotly.newPlot("avgDifficultyPerSubjectChart", avgDifficultyData, avgDifficultyLayout);
-
-      // Gráfico 7: Nota Média por Matéria (Barras Horizontais com Linha)
-      var scorePerSubject = logs.reduce(function(acc, log) {
-        acc[log.materia] = acc[log.materia] || { total: 0, count: 0 };
-        acc[log.materia].total += parseInt(log.nota_autoavaliacao) || 0;
-        acc[log.materia].count += 1;
-        return acc;
-      }, {});
-      var avgScore = subjects.map(function(subject) { return scorePerSubject[subject].total / scorePerSubject[subject].count; });
-      var overallAvgScore = logs.reduce(function(sum, log) { return sum + (parseInt(log.nota_autoavaliacao) || 0); }, 0) / logs.length;
-      var avgScoreData = [
-        {
-          x: avgScore,
-          y: subjects,
-          type: "bar",
-          orientation: "h",
-          name: "Nota Média",
-          marker: { color: "#D1C4E9" }
-        },
-        {
-          x: subjects.map(function() { return overallAvgScore; }),
-          y: subjects,
-          type: "scatter",
-          mode: "lines",
-          name: "Média Geral",
-          line: { color: "#9575CD" }
-        }
-      ];
-      var avgScoreLayout = {
-        title: "Nota Média por Matéria",
-        xaxis: { title: "Nota (0-10)", range: [0, 10] },
-        yaxis: { title: "Matéria" }
-      };
-      Plotly.newPlot("avgScorePerSubjectChart", avgScoreData, avgScoreLayout);
-
-      // Gráfico 8: Eficiência por Dia (Barras Agrupadas)
-      var dailyEfficiency = {};
-      logs.forEach(function(log) {
-        var date = new Date(log.data_conclusao).toLocaleDateString("pt-BR");
-        dailyEfficiency[date] = dailyEfficiency[date] || { time: 0, steps: 0 };
-        dailyEfficiency[date].time += parseInt(log.tempo_gasto) || 0;
-        dailyEfficiency[date].steps += 1;
-      });
-      var dates = Object.keys(dailyEfficiency);
-      var totalTimePerDay = dates.map(function(date) { return dailyEfficiency[date].time; });
-      var stepsPerDay = dates.map(function(date) { return dailyEfficiency[date].steps; });
-      var totalTimeData = [
-        {
-          x: dates,
-          y: totalTimePerDay,
-          type: "bar",
-          name: "Tempo Gasto (min)",
-          marker: { color: "#9575CD" },
-          yaxis: "y"
-        },
-        {
-          x: dates,
-          y: stepsPerDay,
-          type: "bar",
-          name: "Etapas Concluídas",
-          marker: { color: "#4CAF50" },
-          yaxis: "y2"
-        }
-      ];
-      var totalTimeLayout = {
-        title: "Eficiência por Dia",
-        yaxis: { title: "Minutos" },
-        yaxis2: { title: "Etapas", overlaying: "y", side: "right" },
-        barmode: "group"
-      };
-      Plotly.newPlot("totalTimeChart", totalTimeData, totalTimeLayout);
     }
 
     window.signOut = async function() {
