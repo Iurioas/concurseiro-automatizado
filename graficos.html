@@ -102,13 +102,292 @@
       }
     });
 
+    
     function renderCharts(logs, totalSteps) {
-      // Gráfico 1: Tempo Gasto e Nota por Etapa (Barras)
+      // Gráfico 1: Tempo Gasto e Nota por Etapa (Barras Agrupadas)
       const progressCtx = document.getElementById("progressChart").getContext("2d");
       new Chart(progressCtx, {
         type: "bar",
         data: {
           labels: logs.map(log => `Etapa ${log.etapa}`),
+          datasets: [
+            {
+              label: "Tempo Gasto (min)",
+              data: logs.map(log => parseInt(log.tempo_gasto)),
+              backgroundColor: "#9575CD",
+            },
+            {
+              label: "Nota Autoavaliação",
+              data: logs.map(log => parseInt(log.nota_autoavaliacao)),
+              backgroundColor: "#D1C4E9",
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true, title: { display: true, text: "Valores" } }
+          },
+          plugins: { title: { display: true, text: "Tempo e Nota por Etapa" } }
+        }
+      });
+
+      // Gráfico 2: Distribuição de Dificuldade (Barras Horizontais)
+      const difficultyCount = logs.reduce((acc, log) => {
+        acc[log.dificuldade] = (acc[log.dificuldade] || 0) + 1;
+        return acc;
+      }, {});
+      const difficultyCtx = document.getElementById("difficultyChart").getContext("2d");
+      new Chart(difficultyCtx, {
+        type: "bar",
+        data: {
+          labels: Object.keys(difficultyCount),
+          datasets: [{
+            label: "Quantidade",
+            data: Object.values(difficultyCount),
+            backgroundColor: ["#4CAF50", "#FF9800", "#F44336"],
+            borderWidth: 1,
+            borderColor: "#EDE7F6"
+          }]
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true,
+          scales: {
+            x: { beginAtZero: true, title: { display: true, text: "Quantidade" } },
+            y: { title: { display: true, text: "Dificuldade" } }
+          },
+          plugins: { title: { display: true, text: "Distribuição por Dificuldade" } }
+        }
+      });
+
+      // Gráfico 3: Progresso Semanal (Linha com Média Móvel)
+      const weeklyProgress = {};
+      logs.forEach(log => {
+        const date = new Date(log.data_conclusao);
+        const weekStart = new Date(date.setDate(date.getDate() - date.getDay())).toLocaleDateString("pt-BR");
+        weeklyProgress[weekStart] = (weeklyProgress[weekStart] || 0) + 1;
+      });
+      const progressTimeCtx = document.getElementById("progressTimeChart").getContext("2d");
+      new Chart(progressTimeCtx, {
+        type: "line",
+        data: {
+          labels: Object.keys(weeklyProgress),
+          datasets: [{
+            label: "Etapas por Semana",
+            data: Object.values(weeklyProgress),
+            borderColor: "#9575CD",
+            fill: false,
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: { y: { beginAtZero: true, title: { display: true, text: "Etapas" } } },
+          plugins: { title: { display: true, text: "Progresso Semanal" } }
+        }
+      });
+
+      // Gráfico 4: Tempo Médio e Volume por Matéria (Barras com Linha)
+      const subjectTime = logs.reduce((acc, log) => {
+        acc[log.materia] = acc[log.materia] || { total: 0, count: 0 };
+        acc[log.materia].total += parseInt(log.tempo_gasto);
+        acc[log.materia].count += 1;
+        return acc;
+      }, {});
+      const subjects = Object.keys(subjectTime);
+      const avgTime = subjects.map(subject => subjectTime[subject].total / subjectTime[subject].count);
+      const subjectCount = subjects.map(subject => subjectTime[subject].count);
+      const timePerSubjectCtx = document.getElementById("timePerSubjectChart").getContext("2d");
+      new Chart(timePerSubjectCtx, {
+        type: "bar",
+        data: {
+          labels: subjects,
+          datasets: [
+            {
+              label: "Tempo Médio (min)",
+              data: avgTime,
+              backgroundColor: "#4CAF50",
+              yAxisID: "y"
+            },
+            {
+              label: "Nº de Etapas",
+              data: subjectCount,
+              type: "line",
+              borderColor: "#9575CD",
+              yAxisID: "y1",
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true, title: { display: true, text: "Minutos" } },
+            y1: { beginAtZero: true, position: "right", title: { display: true, text: "Etapas" } }
+          },
+          plugins: { title: { display: true, text: "Tempo Médio e Volume por Matéria" } }
+        }
+      });
+
+      // Gráfico 5: Progresso Geral (Barras Empilhadas)
+      const completed = logs.length;
+      const remaining = totalSteps - completed;
+      const overallProgressCtx = document.getElementById("overallProgressChart").getContext("2d");
+      new Chart(overallProgressCtx, {
+        type: "bar",
+        data: {
+          labels: ["Progresso"],
+          datasets: [
+            {
+              label: "Concluído",
+              data: [completed],
+              backgroundColor: "#4CAF50",
+              stack: "Stack 0"
+            },
+            {
+              label: "Restante",
+              data: [remaining],
+              backgroundColor: "#E0E0E0",
+              stack: "Stack 0"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: { stacked: true },
+            y: { stacked: true, beginAtZero: true, title: { display: true, text: "Etapas" } }
+          },
+          plugins: {
+            title: { display: true, text: "Progresso Geral do Plano" },
+            tooltip: {
+              callbacks: {
+                label: (context) => {
+                  const value = context.raw;
+                  const total = completed + remaining;
+                  const percentage = ((value / total) * 100).toFixed(1);
+                  return `${context.dataset.label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // Gráfico 6: Dificuldade Média por Matéria (Barras Horizontais)
+      const difficultyMap = { "Fácil": 1, "Médio": 2, "Difícil": 3 };
+      const difficultyPerSubject = logs.reduce((acc, log) => {
+        acc[log.materia] = acc[log.materia] || { total: 0, count: 0 };
+        acc[log.materia].total += difficultyMap[log.dificuldade] || 0;
+        acc[log.materia].count += 1;
+        return acc;
+      }, {});
+      const avgDifficulty = subjects.map(subject => difficultyPerSubject[subject].total / difficultyPerSubject[subject].count);
+      const avgDifficultyPerSubjectCtx = document.getElementById("avgDifficultyPerSubjectChart").getContext("2d");
+      new Chart(avgDifficultyPerSubjectCtx, {
+        type: "bar",
+        data: {
+          labels: subjects,
+          datasets: [{
+            label: "Dificuldade Média",
+            data: avgDifficulty,
+            backgroundColor: "#FF9800"
+          }]
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true,
+          scales: {
+            x: { beginAtZero: true, max: 3, title: { display: true, text: "Dificuldade (1-3)" } }
+          },
+          plugins: { title: { display: true, text: "Dificuldade Média por Matéria" } }
+        }
+      });
+
+      // Gráfico 7: Nota Média por Matéria (Barras Horizontais com Linha)
+      const scorePerSubject = logs.reduce((acc, log) => {
+        acc[log.materia] = acc[log.materia] || { total: 0, count: 0 };
+        acc[log.materia].total += parseInt(log.nota_autoavaliacao) || 0;
+        acc[log.materia].count += 1;
+        return acc;
+      }, {});
+      const avgScore = subjects.map(subject => scorePerSubject[subject].total / scorePerSubject[subject].count);
+      const overallAvgScore = logs.reduce((sum, log) => sum + parseInt(log.nota_autoavaliacao) || 0, 0) / logs.length;
+      const avgScorePerSubjectCtx = document.getElementById("avgScorePerSubjectChart").getContext("2d");
+      new Chart(avgScorePerSubjectCtx, {
+        type: "bar",
+        data: {
+          labels: subjects,
+          datasets: [
+            {
+              label: "Nota Média",
+              data: avgScore,
+              backgroundColor: "#D1C4E9",
+              yAxisID: "y"
+            },
+            {
+              label: "Média Geral",
+              data: subjects.map(() => overallAvgScore),
+              type: "line",
+              borderColor: "#9575CD",
+              yAxisID: "y",
+              fill: false
+            }
+          ]
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true, max: 10, title: { display: true, text: "Nota (0-10)" } }
+          },
+          plugins: { title: { display: true, text: "Nota Média por Matéria" } }
+        }
+      });
+
+      // Gráfico 8: Eficiência por Dia (Barras Agrupadas)
+      const dailyEfficiency = {};
+      logs.forEach(log => {
+        const date = new Date(log.data_conclusao).toLocaleDateString("pt-BR");
+        dailyEfficiency[date] = dailyEfficiency[date] || { time: 0, steps: 0 };
+        dailyEfficiency[date].time += parseInt(log.tempo_gasto) || 0;
+        dailyEfficiency[date].steps += 1;
+      });
+      const dates = Object.keys(dailyEfficiency);
+      const totalTimePerDay = dates.map(date => dailyEfficiency[date].time);
+      const stepsPerDay = dates.map(date => dailyEfficiency[date].steps);
+      const totalTimeChartCtx = document.getElementById("totalTimeChart").getContext("2d");
+      new Chart(totalTimeChartCtx, {
+        type: "bar",
+        data: {
+          labels: dates,
+          datasets: [
+            {
+              label: "Tempo Gasto (min)",
+              data: totalTimePerDay,
+              backgroundColor: "#9575CD",
+              yAxisID: "y"
+            },
+            {
+              label: "Etapas Concluídas",
+              data: stepsPerDay,
+              backgroundColor: "#4CAF50",
+              yAxisID: "y1"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true, title: { display: true, text: "Minutos" } },
+            y1: { beginAtZero: true, position: "right", title: { display: true, text: "Etapas" } }
+          },
+          plugins: { title: { display: true, text: "Eficiência por Dia" } }
+        }
+      });
+    }
+    `),
           datasets: [
             {
               label: "Tempo Gasto (min)",
