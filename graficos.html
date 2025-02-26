@@ -74,13 +74,13 @@
     });
 
     function renderCharts(logs, totalSteps, sessions) {
-      // Tema Dark
+      // Tema Dark com fundo roxo escuro
       var darkTheme = {
-        plot_bgcolor: "#1a1a1a",
-        paper_bgcolor: "#1a1a1a",
+        plot_bgcolor: "#2a1a3d", // Roxo escuro para combinar com a borda do site
+        paper_bgcolor: "#2a1a3d", // Roxo escuro para combinar com a borda do site
         font: { color: "#EDE7F6" },
-        xaxis: { gridcolor: "#333", zerolinecolor: "#333" },
-        yaxis: { gridcolor: "#333", zerolinecolor: "#333" }
+        xaxis: { gridcolor: "#4a3a5d", zerolinecolor: "#4a3a5d" }, // Tom mais escuro para contraste
+        yaxis: { gridcolor: "#4a3a5d", zerolinecolor: "#4a3a5d" } // Tom mais escuro para contraste
       };
 
       // Gráfico 1: Progresso Geral (Rosca)
