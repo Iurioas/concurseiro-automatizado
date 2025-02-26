@@ -9,13 +9,12 @@
     .current-highlight { background-color: #4CAF50; color: white; }
     .study-table td:nth-child(4) { 
       text-align: center; 
-      /* Removeu padding: 0 para usar o padding padrão do styles.css */
-      display: flex; /* Usa Flexbox para centralizar */
-      justify-content: center; /* Centraliza horizontalmente */
-      align-items: center; /* Centraliza verticalmente */
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
     .study-table td:nth-child(4) input[type="checkbox"] {
-      margin: 0; /* Remove margens extras */
+      margin: 0;
     }
   </style>
 </head>
@@ -33,31 +32,29 @@
     <button onclick="signOut()">Sair</button>
   </nav>
   <main>
-    
-      <div class="study-timer-container">
-        <div class="timer-wrapper">
-          <span class="timer-label">Controle</span>
-          <div class="timer-circle" id="timer-circle">
-            <span id="timer-display">00:00</span>
-          </div>
-          <div class="timer-controls">
-            <button id="start-resume-btn">Continuar</button>
-            <button id="pause-btn">Pausar</button>
-            <button id="stop-btn">Sair</button>
-          </div>
+    <div class="study-timer-container">
+      <div class="timer-wrapper">
+        <span class="timer-label">Controle</span>
+        <div class="timer-circle" id="timer-circle">
+          <span id="timer-display">00:00</span>
         </div>
-        <div class="overview-panel">
-          <h3>Visão geral</h3>
-          <div class="overview-stats">
-            <p><strong>Seções de hoje:</strong> <span id="pomo-today">0</span></p>
-            <p><strong>Tempo de hoje:</strong> <span id="focus-today">0m</span></p>
-            <p><strong>Seções Totais:</strong> <span id="pomo-total">0</span></p>
-            <p><strong>Tempo Total:</strong> <span id="total-focus">0h 0m</span></p>
-          </div>
+        <div class="timer-controls">
+          <button id="start-resume-btn">Continuar</button>
+          <button id="pause-btn">Pausar</button>
+          <button id="stop-btn">Sair</button>
         </div>
       </div>
-    
-<table class="study-table" id="studyTable">
+      <div class="overview-panel">
+        <h3>Visão geral</h3>
+        <div class="overview-stats">
+          <p><strong>Seções de hoje:</strong> <span id="pomo-today">0</span></p>
+          <p><strong>Tempo de hoje:</strong> <span id="focus-today">0m</span></p>
+          <p><strong>Seções Totais:</strong> <span id="pomo-total">0</span></p>
+          <p><strong>Tempo Total:</strong> <span id="total-focus">0h 0m</span></p>
+        </div>
+      </div>
+    </div>
+    <table class="study-table" id="studyTable">
       <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th><th>Concluído</th></tr></thead>
       <tbody></tbody>
     </table>
@@ -101,10 +98,10 @@
     let currentIndex = 0;
     let planData = [];
     let logs = [];
-    let achievements = []; // Inicializa como array vazio
+    let achievements = [];
     let lastCompletionTime = localStorage.getItem("lastCompletionTime") ? parseInt(localStorage.getItem("lastCompletionTime")) : 0;
 
-    const MINIMUM_TIME_FOR_RANKING = 10 * 60 * 1000; // 10 minutos em milissegundos
+    const MINIMUM_TIME_FOR_RANKING = 10 * 60 * 1000;
     const rankList = ["E", "E+", "D", "D+", "C", "C+", "B", "B+", "A", "A+"];
     const updateRank = (logs) => {
       const completed = logs.length;
@@ -154,7 +151,8 @@
           console.log("Plano a ser renderizado:", planData);
           renderPlan();
           checkAchievements();
-          applySavedTheme(); // Aplica o tema salvo ao carregar
+          applySavedTheme();
+          updateOverview(userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : []);
         } else {
           console.log("Nenhum plano encontrado.");
           loading.innerText = "Nenhum plano encontrado. Crie um plano no Planejador.";
@@ -273,7 +271,6 @@
         validForRanking: validForRanking
       };
 
-      // Remove logs antigos da mesma etapa para evitar duplicatas
       logs = logs.filter(l => l.etapa !== (currentIndex + 1));
       logs.push(log);
 
@@ -282,7 +279,7 @@
       const avgScore = validLogs.length > 0 ? validLogs.reduce((sum, l) => sum + parseInt(l.nota_autoavaliacao || 0), 0) / validLogs.length : 0;
       const resetDate = new Date(currentTime);
       resetDate.setDate(1);
-      resetDate.setHours(1, 0, 0, 0); // Dia 1, 01:00h do mês atual
+      resetDate.setHours(1, 0, 0, 0);
       const monthlyRankingScore = validLogs.filter(log => new Date(log.data_conclusao) >= resetDate).reduce((sum, l) => sum + parseInt(l.tempo_gasto || 0) * parseInt(l.nota_autoavaliacao || 0), 0) || 0;
       const rankingScore = validLogs.length * (totalTime / (validLogs.length || 1)) * avgScore || 0;
 
@@ -320,11 +317,11 @@
     window.retrocederEtapa = async function() {
       playClickSound();
       if (confirm("Tem certeza que deseja retroceder? Isso apagará o log da etapa atual.")) {
-        if (currentIndex >= 0 && planData[currentIndex]) { // Verifica se há etapa para retroceder
+        if (currentIndex >= 0 && planData[currentIndex]) {
           const etapaAtual = currentIndex + 1;
-          logs = logs.filter(log => log.etapa !== etapaAtual); // Remove apenas o log da etapa atual
+          logs = logs.filter(log => log.etapa !== etapaAtual);
           planData[currentIndex].completed = false;
-          currentIndex = Math.max(0, currentIndex - 1); // Não permite currentIndex < 0
+          currentIndex = Math.max(0, currentIndex - 1);
           localStorage.setItem("currentIndex", currentIndex);
           try {
             await updateDoc(doc(db, "users", auth.currentUser.uid), { 
@@ -371,124 +368,109 @@
         playSuccessSound();
       }
     }
-  
 
-      let timerInterval = null;
-      let elapsedTime = localStorage.getItem("elapsedTime") ? parseInt(localStorage.getItem("elapsedTime")) : 0;
-      let isRunning = false;
-      let startTime = null;
+    let timerInterval = null;
+    let elapsedTime = localStorage.getItem("elapsedTime") ? parseInt(localStorage.getItem("elapsedTime")) : 0;
+    let isRunning = false;
+    let startTime = null;
 
-      function updateTimerDisplay() {
-        const minutes = Math.floor(elapsedTime / 60000);
-        const seconds = Math.floor((elapsedTime % 60000) / 1000);
-        document.getElementById("timer-display").innerText = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-      }
+    function updateTimerDisplay() {
+      const minutes = Math.floor(elapsedTime / 60000);
+      const seconds = Math.floor((elapsedTime % 60000) / 1000);
+      document.getElementById("timer-display").innerText = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
 
-      function startTimer() {
-        if (!isRunning) {
-          isRunning = true;
-          startTime = Date.now() - elapsedTime;
-          document.getElementById("timer-circle").classList.add("running");
-          timerInterval = setInterval(() => {
-            elapsedTime = Date.now() - startTime;
-            updateTimerDisplay();
-            localStorage.setItem("elapsedTime", elapsedTime);
-          }, 1000);
-          document.getElementById("start-resume-btn").innerText = "Continuar";
-        }
-      }
-
-      function pauseTimer() {
-        if (isRunning) {
-          clearInterval(timerInterval);
-          isRunning = false;
-          document.getElementById("timer-circle").classList.remove("running");
-          document.getElementById("start-resume-btn").innerText = "Retomar";
-        }
-      }
-
-      async function stopTimer() {
-        if (isRunning || elapsedTime > 0) {
-          clearInterval(timerInterval);
-          const minutes = Math.floor(elapsedTime / 60000);
-          if (minutes >= 10) {
-            const session = {
-              start: new Date(startTime).toISOString(),
-              end: new Date().toISOString(),
-              duration: minutes
-            };
-            try {
-              const user = auth.currentUser;
-              if (user) {
-                const userDocRef = doc(db, "users", user.uid);
-                const userDoc = await getDoc(userDocRef);
-                const sessions = userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : [];
-                sessions.push(session);
-                await updateDoc(userDocRef, { sessions });
-                updateOverview(sessions);
-                alert("Sessão de " + minutes + " minutos salva!");
-              }
-            } catch (error) {
-              console.error("Erro ao salvar sessão:", error.message);
-            }
-            elapsedTime = 0;
-            localStorage.setItem("elapsedTime", "0");
-          } else {
-            if (confirm("Sessão menor que 10 minutos não será contabilizada. Deseja sair mesmo assim?")) {
-              elapsedTime = 0;
-              localStorage.setItem("elapsedTime", "0");
-            } else {
-              startTimer();
-              return;
-            }
-          }
-          isRunning = false;
-          document.getElementById("timer-circle").classList.remove("running");
+    function startTimer() {
+      if (!isRunning) {
+        isRunning = true;
+        startTime = Date.now() - elapsedTime;
+        document.getElementById("timer-circle").classList.add("running");
+        timerInterval = setInterval(() => {
+          elapsedTime = Date.now() - startTime;
           updateTimerDisplay();
-          document.getElementById("start-resume-btn").innerText = "Continuar";
-        }
-      }
-
-      function updateOverview(sessions) {
-        const today = new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
-        const todaySessions = sessions.filter(s => new Date(s.end).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }) === today);
-        const pomoToday = todaySessions.length;
-        const focusToday = todaySessions.reduce((sum, s) => sum + s.duration, 0);
-        const pomoTotal = sessions.length;
-        const totalFocus = sessions.reduce((sum, s) => sum + s.duration, 0);
-
-        document.getElementById("pomo-today").innerText = pomoToday;
-        document.getElementById("focus-today").innerText = `${focusToday}m`;
-        document.getElementById("pomo-total").innerText = pomoTotal;
-        document.getElementById("total-focus").innerText = `${Math.floor(totalFocus / 60)}h ${totalFocus % 60}m`;
-      }
-
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          const userDocRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userDocRef);
-          const sessions = userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : [];
-          updateOverview(sessions);
-        }
-      });
-
-      document.getElementById("start-resume-btn").addEventListener("click", startTimer);
-      document.getElementById("pause-btn").addEventListener("click", pauseTimer);
-      document.getElementById("stop-btn").addEventListener("click", stopTimer);
-      window.addEventListener("beforeunload", () => { if (isRunning) stopTimer(); });
-    
-    // Função para aplicar o tema salvo (ou padrão escuro)
-    function applySavedTheme() {
-      const savedTheme = localStorage.getItem('theme') || 'dark';
-      if (savedTheme === 'light') {
-        document.body.classList.add('light-theme');
-      } else {
-        document.body.classList.add('dark-theme');
+          localStorage.setItem("elapsedTime", elapsedTime);
+        }, 1000);
+        document.getElementById("start-resume-btn").innerText = "Continuar";
       }
     }
 
-    // Aplica o tema ao carregar
-    applySavedTheme();
+    function pauseTimer() {
+      if (isRunning) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        document.getElementById("timer-circle").classList.remove("running");
+        document.getElementById("start-resume-btn").innerText = "Retomar";
+      }
+    }
+
+    async function stopTimer() {
+      if (isRunning || elapsedTime > 0) {
+        clearInterval(timerInterval);
+        const minutes = Math.floor(elapsedTime / 60000);
+        if (minutes >= 10) {
+          const session = {
+            start: new Date(startTime).toISOString(),
+            end: new Date().toISOString(),
+            duration: minutes
+          };
+          try {
+            const user = auth.currentUser;
+            if (user) {
+              const userDocRef = doc(db, "users", user.uid);
+              const userDoc = await getDoc(userDocRef);
+              const sessions = userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : [];
+              sessions.push(session);
+              await updateDoc(userDocRef, { sessions });
+              updateOverview(sessions);
+              alert("Sessão de " + minutes + " minutos salva!");
+            }
+          } catch (error) {
+            console.error("Erro ao salvar sessão:", error.message);
+          }
+          elapsedTime = 0;
+          localStorage.setItem("elapsedTime", "0");
+        } else {
+          if (confirm("Sessão menor que 10 minutos não será contabilizada. Deseja sair mesmo assim?")) {
+            elapsedTime = 0;
+            localStorage.setItem("elapsedTime", "0");
+          } else {
+            startTimer();
+            return;
+          }
+        }
+        isRunning = false;
+        document.getElementById("timer-circle").classList.remove("running");
+        updateTimerDisplay();
+        document.getElementById("start-resume-btn").innerText = "Continuar";
+      }
+    }
+
+    function updateOverview(sessions) {
+      const today = new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
+      const todaySessions = sessions.filter(s => new Date(s.end).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }) === today);
+      const pomoToday = todaySessions.length;
+      const focusToday = todaySessions.reduce((sum, s) => sum + s.duration, 0);
+      const pomoTotal = sessions.length;
+      const totalFocus = sessions.reduce((sum, s) => sum + s.duration, 0);
+
+      document.getElementById("pomo-today").innerText = pomoToday;
+      document.getElementById("focus-today").innerText = `${focusToday}m`;
+      document.getElementById("pomo-total").innerText = pomoTotal;
+      document.getElementById("total-focus").innerText = `${Math.floor(totalFocus / 60)}h ${totalFocus % 60}m`;
+    }
+
+    document.getElementById("start-resume-btn").addEventListener("click", startTimer);
+    document.getElementById("pause-btn").addEventListener("click", pauseTimer);
+    document.getElementById("stop-btn").addEventListener("click", stopTimer);
+    window.addEventListener("beforeunload", () => { if (isRunning) stopTimer(); });
+
+    function applySavedTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      const body = document.body;
+      body.classList.remove('light-theme', 'dark-theme');
+      body.classList.add(savedTheme === 'light' ? 'light-theme' : 'dark-theme');
+      console.log("Tema aplicado:", savedTheme);
+    }
   </script>
 </body>
 </html>
