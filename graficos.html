@@ -29,6 +29,7 @@
     <div class="chart-container"><div id="timePerSubjectChart"></div></div>
     <div class="chart-container"><div id="avgScorePerSubjectChart"></div></div>
     <div class="chart-container"><div id="avgDifficultyPerSubjectChart"></div></div>
+    <div class="chart-container"><div id="timeComparisonChart"></div></div>
     <div id="loading">Carregando gráficos...</div>
   </main>
   <script type="module">
@@ -62,8 +63,9 @@
         const userDoc = await getDoc(doc(db, "users", user.uid));
         const planDoc = await getDoc(doc(db, "plans", user.uid));
         const logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
+        const sessions = userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : [];
         const totalSteps = planDoc.exists() && planDoc.data().plan ? planDoc.data().plan.length : 0;
-        renderCharts(logs, totalSteps);
+        renderCharts(logs, totalSteps, sessions);
         document.getElementById("loading").style.display = "none";
       } catch (error) {
         console.error("Erro ao carregar dados para gráficos:", error.message);
@@ -71,7 +73,7 @@
       }
     });
 
-    function renderCharts(logs, totalSteps) {
+    function renderCharts(logs, totalSteps, sessions) {
       // Tema Dark
       var darkTheme = {
         plot_bgcolor: "#1a1a1a",
@@ -198,6 +200,32 @@
         yaxis: { title: "Matéria" }
       }, darkTheme);
       Plotly.newPlot("avgDifficultyPerSubjectChart", avgDifficultyData, avgDifficultyLayout);
+
+      // Gráfico 7: Tempo Bruto vs Líquido (Barras Agrupadas)
+      var totalBruto = sessions.reduce(function(acc, session) { return acc + (parseInt(session.duration) || 0); }, 0);
+      var totalLiquido = logs.reduce(function(acc, log) { return acc + (parseInt(log.tempo_gasto) || 0); }, 0);
+      var timeComparisonData = [
+        {
+          x: ["Tempo Total"],
+          y: [totalBruto / 60], // Convertendo minutos para horas
+          type: "bar",
+          name: "Horas Brutas",
+          marker: { color: "#9575CD" }
+        },
+        {
+          x: ["Tempo Total"],
+          y: [totalLiquido / 60], // Convertendo minutos para horas
+          type: "bar",
+          name: "Horas Líquidas",
+          marker: { color: "#D1C4E9" }
+        }
+      ];
+      var timeComparisonLayout = Object.assign({
+        title: "Tempo Bruto vs Líquido",
+        yaxis: { title: "Horas" },
+        barmode: "group"
+      }, darkTheme);
+      Plotly.newPlot("timeComparisonChart", timeComparisonData, timeComparisonLayout);
     }
 
     window.signOut = async function() {
