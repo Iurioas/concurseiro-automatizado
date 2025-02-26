@@ -134,23 +134,31 @@
         }
       });
 
-      // Gráfico 2: Distribuição de Dificuldade (Pizza)
+      // Gráfico 2: Distribuição de Dificuldade (Barras Horizontais)
       const difficultyCount = logs.reduce((acc, log) => {
         acc[log.dificuldade] = (acc[log.dificuldade] || 0) + 1;
         return acc;
       }, {});
       const difficultyCtx = document.getElementById("difficultyChart").getContext("2d");
       new Chart(difficultyCtx, {
-        type: "pie",
+        type: "bar",
         data: {
           labels: Object.keys(difficultyCount),
           datasets: [{
+            label: "Quantidade",
             data: Object.values(difficultyCount),
-            backgroundColor: ["#4CAF50", "#FF9800", "#F44336"]
+            backgroundColor: ["#4CAF50", "#FF9800", "#F44336"],
+            borderWidth: 1,
+            borderColor: "#EDE7F6"
           }]
         },
         options: {
+          indexAxis: "y", // Torna o gráfico horizontal
           responsive: true,
+          scales: {
+            x: { beginAtZero: true, title: { display: true, text: "Quantidade" } },
+            y: { title: { display: true, text: "Dificuldade" } }
+          },
           plugins: { title: { display: true, text: "Distribuição por Dificuldade" } }
         }
       });
@@ -204,21 +212,35 @@
         }
       });
 
-      // Gráfico 5: Progresso Geral (Rosca)
+      // Gráfico 5: Progresso Geral (Barras Empilhadas)
       const completed = logs.length;
       const remaining = totalSteps - completed;
       const overallProgressCtx = document.getElementById("overallProgressChart").getContext("2d");
       new Chart(overallProgressCtx, {
-        type: "doughnut",
+        type: "bar",
         data: {
-          labels: ["Concluído", "Restante"],
-          datasets: [{
-            data: [completed, remaining],
-            backgroundColor: ["#4CAF50", "#E0E0E0"]
-          }]
+          labels: ["Progresso"],
+          datasets: [
+            {
+              label: "Concluído",
+              data: [completed],
+              backgroundColor: "#4CAF50",
+              stack: "Stack 0"
+            },
+            {
+              label: "Restante",
+              data: [remaining],
+              backgroundColor: "#E0E0E0",
+              stack: "Stack 0"
+            }
+          ]
         },
         options: {
           responsive: true,
+          scales: {
+            x: { stacked: true },
+            y: { stacked: true, beginAtZero: true, title: { display: true, text: "Etapas" } }
+          },
           plugins: {
             title: { display: true, text: "Progresso Geral do Plano" },
             tooltip: {
@@ -227,7 +249,7 @@
                   const value = context.raw;
                   const total = completed + remaining;
                   const percentage = ((value / total) * 100).toFixed(1);
-                  return `${context.label}: ${value} (${percentage}%)`;
+                  return `${context.dataset.label}: ${value} (${percentage}%)`;
                 }
               }
             }
