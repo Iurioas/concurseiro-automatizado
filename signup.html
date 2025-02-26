@@ -5,6 +5,56 @@
   <title>Criar Conta - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background-color: #1E1E2F;
+    }
+    .login-container {
+      text-align: center;
+      padding: 30px;
+      background: #25253A;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px; /* Limita a largura para melhor visualização */
+    }
+    .login-container h1 {
+      color: #EDE7F6;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+    .login-container input {
+      margin: 15px auto; /* Centraliza horizontalmente */
+      display: block; /* Garante que cada input ocupe a largura total do container */
+    }
+    .login-container .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .login-container .button-group button {
+      width: 100%; /* Botões ocupam toda a largura do container */
+      margin: 0;
+    }
+    .login-container p#message {
+      margin-top: 15px;
+      color: #EDE7F6;
+    }
+    footer {
+      position: fixed;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      color: #8888A0;
+      font-size: 12px;
+    }
+  </style>
 </head>
 <body>
   <div class="login-container">
