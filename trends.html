@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
-<body class="dark-theme">
+<body>
   <div class="title-container">
     <h1>Concurseiro Automatizado</h1>
   </div>
@@ -56,39 +56,17 @@
         location.href = "login.html";
       }
       renderTrendsChart();
-      applySavedTheme(); // Aplica o tema salvo ao carregar
     });
 
     function renderTrendsChart() {
       const ctx = document.getElementById("trendsChart").getContext("2d");
-      const isLightTheme = document.body.classList.contains('light-theme');
       new Chart(ctx, {
         type: "bar",
         data: {
           labels: ["Direito Processual Internacional", "RGPS", "Serviços Públicos"],
-          datasets: [{ 
-            label: "Relevância Recente (%)", 
-            data: [4.6, 2.5, 2.5], 
-            backgroundColor: isLightTheme ? "#9575CD" : "#9575CD" 
-          }]
+          datasets: [{ label: "Relevância Recente (%)", data: [4.6, 2.5, 2.5], backgroundColor: "#9575CD" }]
         },
-        options: { 
-          scales: { 
-            y: { 
-              beginAtZero: true, 
-              max: 5,
-              ticks: { color: isLightTheme ? "#1E1E2F" : "#EDE7F6" }, // Cor dos ticks no eixo Y
-              grid: { color: isLightTheme ? "#E0E0E0" : "#4a4a4a" } // Grade do eixo Y
-            },
-            x: { 
-              ticks: { color: isLightTheme ? "#1E1E2F" : "#EDE7F6" }, // Cor dos ticks no eixo X
-              grid: { color: isLightTheme ? "#E0E0E0" : "#4a4a4a" } // Grade do eixo X
-            }
-          },
-          plugins: {
-            legend: { labels: { color: isLightTheme ? "#1E1E2F" : "#EDE7F6" } } // Cor da legenda
-          }
-        }
+        options: { scales: { y: { beginAtZero: true, max: 5 } } }
       });
     }
 
@@ -102,16 +80,6 @@
         alert("Erro ao sair: " + error.message);
       }
     };
-
-    // Função para aplicar o tema salvo (ou padrão escuro)
-function applySavedTheme() {
-  const savedTheme = localStorage.getItem('theme') || 'dark';
-  const body = document.body;
-  body.classList.remove('light-theme', 'dark-theme');
-  body.classList.add(savedTheme === 'light' ? 'light-theme' : 'dark-theme');
-  console.log("Tema aplicado:", savedTheme);
-}
-    }
   </script>
 </body>
 </html>
