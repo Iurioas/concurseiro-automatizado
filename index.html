@@ -22,15 +22,73 @@
     <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
   </footer>
   <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1E1E2F, #25253A); /* Gradiente de fundo */
+      justify-content: center; /* Centraliza verticalmente */
+      align-items: center; /* Centraliza horizontalmente */
+    }
     .login-container {
       text-align: center;
-      padding: 20px;
-      margin: 20px 10px;
-      background: #25253A;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      padding: 30px;
+      background: rgba(37, 37, 58, 0.9); /* Fundo semi-transparente */
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Sombra mais pronunciada */
+      backdrop-filter: blur(5px); /* Efeito de desfoque no fundo */
+      max-width: 400px;
+      width: 90%; /* Ajusta largura em mobile */
+      margin: 20px;
+      animation: fadeIn 0.8s ease-in-out;
     }
-    .create-account-btn { background: #4CAF50; }
+    h1 {
+      font-size: 32px;
+      color: #EDE7F6;
+      margin-bottom: 20px;
+      text-shadow: 0 2px 4px rgba(149, 117, 205, 0.3); /* Sombra no texto */
+    }
+    p {
+      font-size: 16px;
+      color: #D1C4E9;
+      margin-bottom: 30px;
+    }
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    button {
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #9575CD, #4CAF50);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(149, 117, 205, 0.5);
+    }
+    .create-account-btn {
+      background: linear-gradient(135deg, #4CAF50, #66BB6A);
+    }
+    footer {
+      position: relative; /* Remove o footer fixo para centralização */
+      margin-top: auto; /* Empurra para o fundo em mobile */
+      padding: 15px;
+      color: #8888A0;
+      font-size: 12px;
+    }
+    @media (min-width: 768px) {
+      .login-container {
+        padding: 50px;
+        max-width: 500px; /* Aumenta a largura no desktop */
+      }
+      h1 { font-size: 40px; }
+      p { font-size: 18px; }
+      .button-group { flex-direction: row; gap: 20px; }
+      button { padding: 15px 30px; }
+    }
   </style>
 </body>
 </html>
