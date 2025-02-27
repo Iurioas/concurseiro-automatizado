@@ -2,21 +2,16 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Planejado - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <style>
     .current-highlight { background-color: #4CAF50; color: white; }
-    .study-table td:nth-child(4) { 
-      text-align: center; 
-      /* Removeu padding: 0 para usar o padding padrão do styles.css */
-      display: flex; /* Usa Flexbox para centralizar */
-      justify-content: center; /* Centraliza horizontalmente */
-      align-items: center; /* Centraliza verticalmente */
-    }
-    .study-table td:nth-child(4) input[type="checkbox"] {
-      margin: 0; /* Remove margens extras */
-    }
+    .study-table td:nth-child(4) { text-align: center; display: flex; justify-content: center; align-items: center; }
+    .study-table td:nth-child(4) input[type="checkbox"] { margin: 0; }
   </style>
 </head>
 <body>
@@ -24,40 +19,41 @@
     <h1 id="title">Concurseiro Automatizado</h1>
   </div>
   <nav>
-    <a href="dashboard.html">Área do Aluno</a>
-    <a href="planner.html">Planejador</a>
-    <a href="study.html">Planejado</a>
-    <a href="trends.html">Tendências</a>
-    <a href="achievements.html">Conquistas</a>
-    <a href="ranking.html">Ranking</a>
-    <button onclick="signOut()">Sair</button>
+    <button id="menu-toggle" class="menu-toggle">☰</button>
+    <div id="nav-menu" class="nav-menu">
+      <a href="dashboard.html">Área do Aluno</a>
+      <a href="planner.html">Planejador</a>
+      <a href="study.html">Planejado</a>
+      <a href="trends.html">Tendências</a>
+      <a href="achievements.html">Conquistas</a>
+      <a href="ranking.html">Ranking</a>
+      <button onclick="signOut()">Sair</button>
+    </div>
   </nav>
   <main>
-    
-      <div class="study-timer-container">
-        <div class="timer-wrapper">
-          <span class="timer-label">Controle</span>
-          <div class="timer-circle" id="timer-circle">
-            <span id="timer-display">00:00</span>
-          </div>
-          <div class="timer-controls">
-            <button id="start-resume-btn">Continuar</button>
-            <button id="pause-btn">Pausar</button>
-            <button id="stop-btn">Sair</button>
-          </div>
+    <div class="study-timer-container">
+      <div class="timer-wrapper">
+        <span class="timer-label">Controle</span>
+        <div class="timer-circle" id="timer-circle">
+          <span id="timer-display">00:00</span>
         </div>
-        <div class="overview-panel">
-          <h3>Visão geral</h3>
-          <div class="overview-stats">
-            <p><strong>Seções de hoje:</strong> <span id="pomo-today">0</span></p>
-            <p><strong>Tempo de hoje:</strong> <span id="focus-today">0m</span></p>
-            <p><strong>Seções Totais:</strong> <span id="pomo-total">0</span></p>
-            <p><strong>Tempo Total:</strong> <span id="total-focus">0h 0m</span></p>
-          </div>
+        <div class="timer-controls">
+          <button id="start-resume-btn">Continuar</button>
+          <button id="pause-btn">Pausar</button>
+          <button id="stop-btn">Sair</button>
         </div>
       </div>
-    
-<table class="study-table" id="studyTable">
+      <div class="overview-panel">
+        <h3>Visão geral</h3>
+        <div class="overview-stats">
+          <p><strong>Seções de hoje:</strong> <span id="pomo-today">0</span></p>
+          <p><strong>Tempo de hoje:</strong> <span id="focus-today">0m</span></p>
+          <p><strong>Seções Totais:</strong> <span id="pomo-total">0</span></p>
+          <p><strong>Tempo Total:</strong> <span id="total-focus">0h 0m</span></p>
+        </div>
+      </div>
+    </div>
+    <table class="study-table" id="studyTable">
       <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th><th>Concluído</th></tr></thead>
       <tbody></tbody>
     </table>
@@ -101,10 +97,10 @@
     let currentIndex = 0;
     let planData = [];
     let logs = [];
-    let achievements = []; // Inicializa como array vazio
+    let achievements = [];
     let lastCompletionTime = localStorage.getItem("lastCompletionTime") ? parseInt(localStorage.getItem("lastCompletionTime")) : 0;
 
-    const MINIMUM_TIME_FOR_RANKING = 10 * 60 * 1000; // 10 minutos em milissegundos
+    const MINIMUM_TIME_FOR_RANKING = 10 * 60 * 1000;
     const rankList = ["E", "E+", "D", "D+", "C", "C+", "B", "B+", "A", "A+"];
     const updateRank = (logs) => {
       const completed = logs.length;
@@ -112,32 +108,23 @@
       return rankList[rankIndex];
     };
 
-    setPersistence(auth, browserLocalPersistence)
-      .then(() => console.log("Persistência configurada em study."))
-      .catch(error => console.error("Erro ao configurar persistência:", error.message));
+    setPersistence(auth, browserLocalPersistence);
 
     onAuthStateChanged(auth, async (user) => {
-      console.log("Estado de autenticação em study:", user ? "Autenticado" : "Não autenticado");
       const loading = document.getElementById("loading");
       if (!user) {
-        console.log("Redirecionando para login após 1 segundo...");
         loading.innerText = "Você não está autenticado. Redirecionando para login...";
         setTimeout(() => location.href = "login.html", 1000);
         return;
       }
-      console.log("Usuário autenticado:", user.uid);
       loading.style.display = "block";
       try {
-        console.log("Carregando plano e progresso...");
         const planDoc = await getDoc(doc(db, "plans", user.uid));
-        console.log("PlanDoc obtido:", planDoc.exists() ? "Existe" : "Não existe");
         loading.style.display = "none";
         if (planDoc.exists()) {
           const planDataRaw = planDoc.data();
           planData = planDataRaw.plan || [];
-          console.log("Plano carregado:", planData.length, "etapas, meses:", planDataRaw.months, "topics:", planDataRaw.topics);
           if (planData.length === 0) {
-            console.log("Plano vazio detectado!");
             loading.innerText = "Plano vazio. Crie um novo plano no Planejador.";
             loading.style.display = "block";
             setTimeout(() => location.href = "planner.html", 2000);
@@ -146,22 +133,15 @@
           const userDoc = await getDoc(doc(db, "users", user.uid));
           logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
           achievements = userDoc.exists() && userDoc.data().achievements ? userDoc.data().achievements : [];
-          currentIndex = userDoc.exists() && userDoc.data().currentIndex !== undefined 
-            ? userDoc.data().currentIndex 
-            : (localStorage.getItem("currentIndex") ? parseInt(localStorage.getItem("currentIndex")) : 0);
-          console.log("CurrentIndex carregado:", currentIndex);
-          console.log("Logs carregados:", logs.length);
-          console.log("Plano a ser renderizado:", planData);
+          currentIndex = userDoc.exists() && userDoc.data().currentIndex !== undefined ? userDoc.data().currentIndex : (localStorage.getItem("currentIndex") ? parseInt(localStorage.getItem("currentIndex")) : 0);
           renderPlan();
           checkAchievements();
         } else {
-          console.log("Nenhum plano encontrado.");
           loading.innerText = "Nenhum plano encontrado. Crie um plano no Planejador.";
           loading.style.display = "block";
           setTimeout(() => location.href = "planner.html", 2000);
         }
       } catch (error) {
-        console.error("Erro ao carregar plano:", error.message);
         loading.innerText = "Erro ao carregar plano: " + error.message;
         loading.style.display = "block";
         setTimeout(() => location.href = "planner.html", 2000);
@@ -183,10 +163,10 @@
         const currentItem = planData[currentIndex];
         tbody.innerHTML = `
           <tr>
-            <td>${currentItem.priorityNumber}</td>
-            <td>${currentItem.subject}</td>
-            <td>${currentItem.subtopic}</td>
-            <td><input type="checkbox" ${currentItem.completed ? "checked" : ""} onchange="completeStep(this)"></td>
+            <td data-label="Prioridade">${currentItem.priorityNumber}</td>
+            <td data-label="Matéria">${currentItem.subject}</td>
+            <td data-label="Subtópico">${currentItem.subtopic}</td>
+            <td data-label="Concluído"><input type="checkbox" ${currentItem.completed ? "checked" : ""} onchange="completeStep(this)"></td>
           </tr>
         `;
       } else {
@@ -201,9 +181,9 @@
         completedSteps.forEach(item => {
           refTbody.innerHTML += `
             <tr>
-              <td>${item.priorityNumber}</td>
-              <td>${item.subject}</td>
-              <td>${item.subtopic}</td>
+              <td data-label="Prioridade">${item.priorityNumber}</td>
+              <td data-label="Matéria">${item.subject}</td>
+              <td data-label="Subtópico">${item.subtopic}</td>
             </tr>
           `;
         });
@@ -214,9 +194,9 @@
         const currentItem = planData[currentIndex];
         refTbody.innerHTML += `
           <tr class="current-highlight">
-            <td>${currentItem.priorityNumber}</td>
-            <td>${currentItem.subject}</td>
-            <td>${currentItem.subtopic}</td>
+            <td data-label="Prioridade">${currentItem.priorityNumber}</td>
+            <td data-label="Matéria">${currentItem.subject}</td>
+            <td data-label="Subtópico">${currentItem.subtopic}</td>
           </tr>
         `;
       }
@@ -227,9 +207,9 @@
         nextSteps.forEach(item => {
           refTbody.innerHTML += `
             <tr>
-              <td>${item.priorityNumber}</td>
-              <td>${item.subject}</td>
-              <td>${item.subtopic}</td>
+              <td data-label="Prioridade">${item.priorityNumber}</td>
+              <td data-label="Matéria">${item.subject}</td>
+              <td data-label="Subtópico">${item.subtopic}</td>
             </tr>
           `;
         });
@@ -250,7 +230,6 @@
       }
 
       if (!planData[currentIndex]) {
-        console.error("Erro: planData[currentIndex] é indefinido. CurrentIndex:", currentIndex);
         alert("Erro: Não foi possível avançar a etapa.");
         return;
       }
@@ -272,16 +251,13 @@
         validForRanking: validForRanking
       };
 
-      // Remove logs antigos da mesma etapa para evitar duplicatas
       logs = logs.filter(l => l.etapa !== (currentIndex + 1));
       logs.push(log);
 
       const validLogs = logs.filter(l => l.validForRanking);
       const totalTime = validLogs.reduce((sum, l) => sum + parseInt(l.tempo_gasto || 0), 0) || 0;
       const avgScore = validLogs.length > 0 ? validLogs.reduce((sum, l) => sum + parseInt(l.nota_autoavaliacao || 0), 0) / validLogs.length : 0;
-      const resetDate = new Date(currentTime);
-      resetDate.setDate(1);
-      resetDate.setHours(1, 0, 0, 0); // Dia 1, 01:00h do mês atual
+      const resetDate = new Date(currentTime); resetDate.setDate(1); resetDate.setHours(1, 0, 0, 0);
       const monthlyRankingScore = validLogs.filter(log => new Date(log.data_conclusao) >= resetDate).reduce((sum, l) => sum + parseInt(l.tempo_gasto || 0) * parseInt(l.nota_autoavaliacao || 0), 0) || 0;
       const rankingScore = validLogs.length * (totalTime / (validLogs.length || 1)) * avgScore || 0;
 
@@ -294,13 +270,12 @@
       currentIndex++;
 
       try {
-        console.log("Salvando log, conquistas e progresso...");
         await updateDoc(doc(db, "users", auth.currentUser.uid), { 
-          logs: logs || [], 
-          achievements: achievements || [], 
-          rankingScore: rankingScore || 0, 
-          monthlyRankingScore: monthlyRankingScore || 0,
-          currentIndex: currentIndex || 0 
+          logs, 
+          achievements, 
+          rankingScore, 
+          monthlyRankingScore,
+          currentIndex 
         });
         await updateDoc(doc(db, "plans", auth.currentUser.uid), { plan: planData });
         localStorage.setItem("currentIndex", currentIndex);
@@ -309,9 +284,7 @@
         playSuccessSound();
         checkAchievements();
         renderPlan();
-        console.log("Etapa concluída com sucesso. CurrentIndex:", currentIndex);
       } catch (error) {
-        console.error("Erro ao salvar log:", error.message);
         alert("Erro ao salvar log: " + error.message);
       }
     };
@@ -319,22 +292,17 @@
     window.retrocederEtapa = async function() {
       playClickSound();
       if (confirm("Tem certeza que deseja retroceder? Isso apagará o log da etapa atual.")) {
-        if (currentIndex >= 0 && planData[currentIndex]) { // Verifica se há etapa para retroceder
+        if (currentIndex >= 0 && planData[currentIndex]) {
           const etapaAtual = currentIndex + 1;
-          logs = logs.filter(log => log.etapa !== etapaAtual); // Remove apenas o log da etapa atual
+          logs = logs.filter(log => log.etapa !== etapaAtual);
           planData[currentIndex].completed = false;
-          currentIndex = Math.max(0, currentIndex - 1); // Não permite currentIndex < 0
+          currentIndex = Math.max(0, currentIndex - 1);
           localStorage.setItem("currentIndex", currentIndex);
           try {
-            await updateDoc(doc(db, "users", auth.currentUser.uid), { 
-              logs: logs || [], 
-              currentIndex: currentIndex || 0 
-            });
+            await updateDoc(doc(db, "users", auth.currentUser.uid), { logs, currentIndex });
             await updateDoc(doc(db, "plans", auth.currentUser.uid), { plan: planData });
-            console.log("Progresso retrocedido. Log da etapa", etapaAtual, "apagado. CurrentIndex:", currentIndex);
             renderPlan();
           } catch (error) {
-            console.error("Erro ao retroceder:", error.message);
             alert("Erro ao retroceder: " + error.message);
           }
         }
@@ -343,15 +311,9 @@
 
     window.signOut = async function() {
       playClickSound();
-      try {
-        await signOut(auth);
-        localStorage.clear();
-        console.log("Logout realizado com sucesso.");
-        location.href = "index.html";
-      } catch (error) {
-        console.error("Erro ao sair:", error.message);
-        alert("Erro ao sair: " + error.message);
-      }
+      await signOut(auth);
+      localStorage.clear();
+      location.href = "index.html";
     };
 
     function showNotification(message) {
@@ -370,112 +332,115 @@
         playSuccessSound();
       }
     }
-  
 
-      let timerInterval = null;
-      let elapsedTime = localStorage.getItem("elapsedTime") ? parseInt(localStorage.getItem("elapsedTime")) : 0;
-      let isRunning = false;
-      let startTime = null;
+    let timerInterval = null;
+    let elapsedTime = localStorage.getItem("elapsedTime") ? parseInt(localStorage.getItem("elapsedTime")) : 0;
+    let isRunning = false;
+    let startTime = null;
 
-      function updateTimerDisplay() {
+    function updateTimerDisplay() {
+      const minutes = Math.floor(elapsedTime / 60000);
+      const seconds = Math.floor((elapsedTime % 60000) / 1000);
+      document.getElementById("timer-display").innerText = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    function startTimer() {
+      if (!isRunning) {
+        isRunning = true;
+        startTime = Date.now() - elapsedTime;
+        document.getElementById("timer-circle").classList.add("running");
+        timerInterval = setInterval(() => {
+          elapsedTime = Date.now() - startTime;
+          updateTimerDisplay();
+          localStorage.setItem("elapsedTime", elapsedTime);
+        }, 1000);
+        document.getElementById("start-resume-btn").innerText = "Continuar";
+      }
+    }
+
+    function pauseTimer() {
+      if (isRunning) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        document.getElementById("timer-circle").classList.remove("running");
+        document.getElementById("start-resume-btn").innerText = "Retomar";
+      }
+    }
+
+    async function stopTimer() {
+      if (isRunning || elapsedTime > 0) {
+        clearInterval(timerInterval);
         const minutes = Math.floor(elapsedTime / 60000);
-        const seconds = Math.floor((elapsedTime % 60000) / 1000);
-        document.getElementById("timer-display").innerText = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-      }
-
-      function startTimer() {
-        if (!isRunning) {
-          isRunning = true;
-          startTime = Date.now() - elapsedTime;
-          document.getElementById("timer-circle").classList.add("running");
-          timerInterval = setInterval(() => {
-            elapsedTime = Date.now() - startTime;
-            updateTimerDisplay();
-            localStorage.setItem("elapsedTime", elapsedTime);
-          }, 1000);
-          document.getElementById("start-resume-btn").innerText = "Continuar";
-        }
-      }
-
-      function pauseTimer() {
-        if (isRunning) {
-          clearInterval(timerInterval);
-          isRunning = false;
-          document.getElementById("timer-circle").classList.remove("running");
-          document.getElementById("start-resume-btn").innerText = "Retomar";
-        }
-      }
-
-      async function stopTimer() {
-        if (isRunning || elapsedTime > 0) {
-          clearInterval(timerInterval);
-          const minutes = Math.floor(elapsedTime / 60000);
-          if (minutes >= 10) {
-            const session = {
-              start: new Date(startTime).toISOString(),
-              end: new Date().toISOString(),
-              duration: minutes
-            };
-            try {
-              const user = auth.currentUser;
-              if (user) {
-                const userDocRef = doc(db, "users", user.uid);
-                const userDoc = await getDoc(userDocRef);
-                const sessions = userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : [];
-                sessions.push(session);
-                await updateDoc(userDocRef, { sessions });
-                updateOverview(sessions);
-                alert("Sessão de " + minutes + " minutos salva!");
-              }
-            } catch (error) {
-              console.error("Erro ao salvar sessão:", error.message);
+        if (minutes >= 10) {
+          const session = {
+            start: new Date(startTime).toISOString(),
+            end: new Date().toISOString(),
+            duration: minutes
+          };
+          try {
+            const user = auth.currentUser;
+            if (user) {
+              const userDocRef = doc(db, "users", user.uid);
+              const userDoc = await getDoc(userDocRef);
+              const sessions = userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : [];
+              sessions.push(session);
+              await updateDoc(userDocRef, { sessions });
+              updateOverview(sessions);
+              alert("Sessão de " + minutes + " minutos salva!");
             }
+          } catch (error) {
+            alert("Erro ao salvar sessão: " + error.message);
+          }
+          elapsedTime = 0;
+          localStorage.setItem("elapsedTime", "0");
+        } else {
+          if (confirm("Sessão menor que 10 minutos não será contabilizada. Deseja sair mesmo assim?")) {
             elapsedTime = 0;
             localStorage.setItem("elapsedTime", "0");
           } else {
-            if (confirm("Sessão menor que 10 minutos não será contabilizada. Deseja sair mesmo assim?")) {
-              elapsedTime = 0;
-              localStorage.setItem("elapsedTime", "0");
-            } else {
-              startTimer();
-              return;
-            }
+            startTimer();
+            return;
           }
-          isRunning = false;
-          document.getElementById("timer-circle").classList.remove("running");
-          updateTimerDisplay();
-          document.getElementById("start-resume-btn").innerText = "Continuar";
         }
+        isRunning = false;
+        document.getElementById("timer-circle").classList.remove("running");
+        updateTimerDisplay();
+        document.getElementById("start-resume-btn").innerText = "Continuar";
       }
+    }
 
-      function updateOverview(sessions) {
-        const today = new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
-        const todaySessions = sessions.filter(s => new Date(s.end).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }) === today);
-        const pomoToday = todaySessions.length;
-        const focusToday = todaySessions.reduce((sum, s) => sum + s.duration, 0);
-        const pomoTotal = sessions.length;
-        const totalFocus = sessions.reduce((sum, s) => sum + s.duration, 0);
+    function updateOverview(sessions) {
+      const today = new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
+      const todaySessions = sessions.filter(s => new Date(s.end).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }) === today);
+      const pomoToday = todaySessions.length;
+      const focusToday = todaySessions.reduce((sum, s) => sum + s.duration, 0);
+      const pomoTotal = sessions.length;
+      const totalFocus = sessions.reduce((sum, s) => sum + s.duration, 0);
 
-        document.getElementById("pomo-today").innerText = pomoToday;
-        document.getElementById("focus-today").innerText = `${focusToday}m`;
-        document.getElementById("pomo-total").innerText = pomoTotal;
-        document.getElementById("total-focus").innerText = `${Math.floor(totalFocus / 60)}h ${totalFocus % 60}m`;
+      document.getElementById("pomo-today").innerText = pomoToday;
+      document.getElementById("focus-today").innerText = `${focusToday}m`;
+      document.getElementById("pomo-total").innerText = pomoTotal;
+      document.getElementById("total-focus").innerText = `${Math.floor(totalFocus / 60)}h ${totalFocus % 60}m`;
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        const sessions = userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : [];
+        updateOverview(sessions);
       }
+    });
 
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          const userDocRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userDocRef);
-          const sessions = userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : [];
-          updateOverview(sessions);
-        }
-      });
-
-      document.getElementById("start-resume-btn").addEventListener("click", startTimer);
-      document.getElementById("pause-btn").addEventListener("click", pauseTimer);
-      document.getElementById("stop-btn").addEventListener("click", stopTimer);
-      window.addEventListener("beforeunload", () => { if (isRunning) stopTimer(); });
-    
-</script>
+    document.getElementById("start-resume-btn").addEventListener("click", startTimer);
+    document.getElementById("pause-btn").addEventListener("click", pauseTimer);
+    document.getElementById("stop-btn").addEventListener("click", stopTimer);
+    window.addEventListener("beforeunload", () => { if (isRunning) stopTimer(); });
+  </script>
+  <script>
+    document.getElementById("menu-toggle").addEventListener("click", () => {
+      document.getElementById("nav-menu").classList.toggle("active");
+    });
+  </script>
 </body>
 </html>
