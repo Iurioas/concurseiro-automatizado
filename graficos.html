@@ -1,9 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Gráficos - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
@@ -14,11 +15,14 @@
     <h1 id="title">Concurseiro Automatizado</h1>
   </div>
   <nav>
-    <a href="planner.html">Planejador</a>
-    <a href="study.html">Planejado</a>
-    <a href="achievements.html">Conquistas</a>
-    <a href="ranking.html">Ranking</a>
-    <button onclick="signOut()">Sair</button>
+    <button id="menu-toggle" class="menu-toggle">☰</button>
+    <div id="nav-menu" class="nav-menu">
+      <a href="planner.html">Planejador</a>
+      <a href="study.html">Planejado</a>
+      <a href="achievements.html">Conquistas</a>
+      <a href="ranking.html">Ranking</a>
+      <button onclick="signOut()">Sair</button>
+    </div>
   </nav>
   <main>
     <h1>Gráficos de Progresso</h1>
@@ -54,11 +58,9 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        console.log("Redirecionando para login...");
         location.href = "login.html";
         return;
       }
-      console.log("Usuário autenticado:", user.uid);
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         const planDoc = await getDoc(doc(db, "plans", user.uid));
@@ -68,178 +70,114 @@
         renderCharts(logs, totalSteps, sessions);
         document.getElementById("loading").style.display = "none";
       } catch (error) {
-        console.error("Erro ao carregar dados para gráficos:", error.message);
         document.getElementById("loading").innerText = "Erro ao carregar gráficos: " + error.message;
       }
     });
 
     function renderCharts(logs, totalSteps, sessions) {
-      // Tema Dark com fundo do site (#1E1E2F)
       var darkTheme = {
-        plot_bgcolor: "#1E1E2F", // Fundo do site, preto azulado escuro
-        paper_bgcolor: "#1E1E2F", // Fundo do site, preto azulado escuro
+        plot_bgcolor: "#1E1E2F",
+        paper_bgcolor: "#1E1E2F",
         font: { color: "#EDE7F6" },
-        xaxis: { gridcolor: "#4a4a4a", zerolinecolor: "#4a4a4a" }, // Grade mais clara para contraste
-        yaxis: { gridcolor: "#4a4a4a", zerolinecolor: "#4a4a4a" } // Grade mais clara para contraste
+        xaxis: { gridcolor: "#4a4a4a", zerolinecolor: "#4a4a4a" },
+        yaxis: { gridcolor: "#4a4a4a", zerolinecolor: "#4a4a4a" }
       };
 
-      // Gráfico 1: Progresso Geral (Rosca)
       var completed = logs.length;
       var remaining = totalSteps - completed;
-      var overallProgressData = [{
+      Plotly.newPlot("overallProgressChart", [{
         values: [completed, remaining],
         labels: ["Concluído", "Restante"],
         type: "pie",
         hole: 0.4,
         marker: { colors: ["#9575CD", "#4a4a4a"] }
-      }];
-      var overallProgressLayout = Object.assign({
-        title: "Progresso Geral",
-        showlegend: true
-      }, darkTheme);
-      Plotly.newPlot("overallProgressChart", overallProgressData, overallProgressLayout);
+      }], Object.assign({ title: "Progresso Geral" }, darkTheme));
 
-      // Gráfico 2: Etapas Concluídas por Semana (Barras)
       var weeklyProgress = {};
-      logs.forEach(function(log) {
+      logs.forEach(log => {
         var date = new Date(log.data_conclusao);
         var weekStart = new Date(date.setDate(date.getDate() - date.getDay())).toLocaleDateString("pt-BR");
         weeklyProgress[weekStart] = (weeklyProgress[weekStart] || 0) + 1;
       });
-      var progressTimeData = [{
+      Plotly.newPlot("progressTimeChart", [{
         x: Object.keys(weeklyProgress),
         y: Object.values(weeklyProgress),
         type: "bar",
         marker: { color: "#9575CD" }
-      }];
-      var progressTimeLayout = Object.assign({
-        title: "Etapas por Semana",
-        yaxis: { title: "Etapas" }
-      }, darkTheme);
-      Plotly.newPlot("progressTimeChart", progressTimeData, progressTimeLayout);
+      }], Object.assign({ title: "Etapas por Semana", yaxis: { title: "Etapas" } }, darkTheme));
 
-      // Gráfico 3: Distribuição de Dificuldade (Pizza)
-      var difficultyCount = logs.reduce(function(acc, log) {
+      var difficultyCount = logs.reduce((acc, log) => {
         acc[log.dificuldade] = (acc[log.dificuldade] || 0) + 1;
         return acc;
       }, {});
-      var difficultyData = [{
+      Plotly.newPlot("difficultyChart", [{
         values: Object.values(difficultyCount),
         labels: Object.keys(difficultyCount),
         type: "pie",
         marker: { colors: ["#4CAF50", "#FF9800", "#F44336"] }
-      }];
-      var difficultyLayout = Object.assign({
-        title: "Distribuição de Dificuldade",
-        showlegend: true
-      }, darkTheme);
-      Plotly.newPlot("difficultyChart", difficultyData, difficultyLayout);
+      }], Object.assign({ title: "Distribuição de Dificuldade" }, darkTheme));
 
-      // Gráfico 4: Tempo Gasto por Matéria (Barras)
-      var subjectTime = logs.reduce(function(acc, log) {
+      var subjectTime = logs.reduce((acc, log) => {
         acc[log.materia] = (acc[log.materia] || 0) + (parseInt(log.tempo_gasto) || 0);
         return acc;
       }, {});
-      var subjects = Object.keys(subjectTime);
-      var totalTime = subjects.map(function(subject) { return subjectTime[subject]; });
-      var timePerSubjectData = [{
-        x: subjects,
-        y: totalTime,
+      Plotly.newPlot("timePerSubjectChart", [{
+        x: Object.keys(subjectTime),
+        y: Object.values(subjectTime),
         type: "bar",
         marker: { color: "#4CAF50" }
-      }];
-      var timePerSubjectLayout = Object.assign({
-        title: "Tempo por Matéria",
-        yaxis: { title: "Minutos" }
-      }, darkTheme);
-      Plotly.newPlot("timePerSubjectChart", timePerSubjectData, timePerSubjectLayout);
+      }], Object.assign({ title: "Tempo por Matéria", yaxis: { title: "Minutos" } }, darkTheme));
 
-      // Gráfico 5: Nota Média por Matéria (Barras Horizontais)
-      var scorePerSubject = logs.reduce(function(acc, log) {
+      var scorePerSubject = logs.reduce((acc, log) => {
         acc[log.materia] = acc[log.materia] || { total: 0, count: 0 };
         acc[log.materia].total += parseInt(log.nota_autoavaliacao) || 0;
         acc[log.materia].count += 1;
         return acc;
       }, {});
-      var avgScoreSubjects = Object.keys(scorePerSubject);
-      var avgScore = avgScoreSubjects.map(function(subject) { return scorePerSubject[subject].total / scorePerSubject[subject].count; });
-      var avgScoreData = [{
+      var avgScore = Object.keys(scorePerSubject).map(subject => scorePerSubject[subject].total / scorePerSubject[subject].count);
+      Plotly.newPlot("avgScorePerSubjectChart", [{
         x: avgScore,
-        y: avgScoreSubjects,
+        y: Object.keys(scorePerSubject),
         type: "bar",
         orientation: "h",
         marker: { color: "#D1C4E9" }
-      }];
-      var avgScoreLayout = Object.assign({
-        title: "Nota Média por Matéria",
-        xaxis: { title: "Nota (0-10)", range: [0, 10] },
-        yaxis: { title: "Matéria" }
-      }, darkTheme);
-      Plotly.newPlot("avgScorePerSubjectChart", avgScoreData, avgScoreLayout);
+      }], Object.assign({ title: "Nota Média por Matéria", xaxis: { title: "Nota (0-10)", range: [0, 10] } }, darkTheme));
 
-      // Gráfico 6: Dificuldade Média por Matéria (Barras Horizontais)
       var difficultyMap = { "Fácil": 1, "Médio": 2, "Difícil": 3 };
-      var difficultyPerSubject = logs.reduce(function(acc, log) {
+      var difficultyPerSubject = logs.reduce((acc, log) => {
         acc[log.materia] = acc[log.materia] || { total: 0, count: 0 };
         acc[log.materia].total += difficultyMap[log.dificuldade] || 0;
         acc[log.materia].count += 1;
         return acc;
       }, {});
-      var avgDifficultySubjects = Object.keys(difficultyPerSubject);
-      var avgDifficulty = avgDifficultySubjects.map(function(subject) { return difficultyPerSubject[subject].total / difficultyPerSubject[subject].count; });
-      var avgDifficultyData = [{
+      var avgDifficulty = Object.keys(difficultyPerSubject).map(subject => difficultyPerSubject[subject].total / difficultyPerSubject[subject].count);
+      Plotly.newPlot("avgDifficultyPerSubjectChart", [{
         x: avgDifficulty,
-        y: avgDifficultySubjects,
+        y: Object.keys(difficultyPerSubject),
         type: "bar",
         orientation: "h",
         marker: { color: "#FF9800" }
-      }];
-      var avgDifficultyLayout = Object.assign({
-        title: "Dificuldade Média por Matéria",
-        xaxis: { title: "Dificuldade (1-3)", range: [0, 3] },
-        yaxis: { title: "Matéria" }
-      }, darkTheme);
-      Plotly.newPlot("avgDifficultyPerSubjectChart", avgDifficultyData, avgDifficultyLayout);
+      }], Object.assign({ title: "Dificuldade Média por Matéria", xaxis: { title: "Dificuldade (1-3)", range: [0, 3] } }, darkTheme));
 
-      // Gráfico 7: Tempo Bruto vs Líquido (Barras Agrupadas)
-      var totalBruto = sessions.reduce(function(acc, session) { return acc + (parseInt(session.duration) || 0); }, 0);
-      var totalLiquido = logs.reduce(function(acc, log) { return acc + (parseInt(log.tempo_gasto) || 0); }, 0);
-      var timeComparisonData = [
-        {
-          x: ["Tempo Total"],
-          y: [totalBruto / 60], // Convertendo minutos para horas
-          type: "bar",
-          name: "Horas Brutas",
-          marker: { color: "#9575CD" }
-        },
-        {
-          x: ["Tempo Total"],
-          y: [totalLiquido / 60], // Convertendo minutos para horas
-          type: "bar",
-          name: "Horas Líquidas",
-          marker: { color: "#D1C4E9" }
-        }
-      ];
-      var timeComparisonLayout = Object.assign({
-        title: "Tempo Bruto vs Líquido",
-        yaxis: { title: "Horas" },
-        barmode: "group"
-      }, darkTheme);
-      Plotly.newPlot("timeComparisonChart", timeComparisonData, timeComparisonLayout);
+      var totalBruto = sessions.reduce((acc, session) => acc + (parseInt(session.duration) || 0), 0);
+      var totalLiquido = logs.reduce((acc, log) => acc + (parseInt(log.tempo_gasto) || 0), 0);
+      Plotly.newPlot("timeComparisonChart", [
+        { x: ["Tempo Total"], y: [totalBruto / 60], type: "bar", name: "Horas Brutas", marker: { color: "#9575CD" } },
+        { x: ["Tempo Total"], y: [totalLiquido / 60], type: "bar", name: "Horas Líquidas", marker: { color: "#D1C4E9" } }
+      ], Object.assign({ title: "Tempo Bruto vs Líquido", yaxis: { title: "Horas" }, barmode: "group" }, darkTheme));
     }
 
     window.signOut = async function() {
       playClickSound();
-      try {
-        await signOut(auth);
-        localStorage.clear();
-        console.log("Logout realizado.");
-        location.href = "index.html";
-      } catch (error) {
-        console.error("Erro ao sair:", error.message);
-        alert("Erro ao sair: " + error.message);
-      }
+      await signOut(auth);
+      localStorage.clear();
+      location.href = "index.html";
     };
+  </script>
+  <script>
+    document.getElementById("menu-toggle").addEventListener("click", () => {
+      document.getElementById("nav-menu").classList.toggle("active");
+    });
   </script>
 </body>
 </html>
