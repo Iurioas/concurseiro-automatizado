@@ -32,9 +32,9 @@
       display: flex; 
       flex-direction: column; 
       min-height: 100vh; 
-      background: linear-gradient(135deg, #1E1E2F, #25253A); /* Gradiente de fundo */
-      justify-content: center; /* Centraliza verticalmente */
-      align-items: center; /* Centraliza horizontalmente */
+      background: linear-gradient(135deg, #1E1E2F, #25253A);
+      justify-content: center;
+      align-items: center;
     }
     .title-container {
       position: fixed;
@@ -45,20 +45,20 @@
     .login-container {
       text-align: center;
       padding: 30px;
-      background: rgba(37, 37, 58, 0.9); /* Fundo semi-transparente */
+      background: rgba(37, 37, 58, 0.9);
       border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Sombra mais pronunciada */
-      backdrop-filter: blur(5px); /* Efeito de desfoque no fundo */
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(5px);
       max-width: 400px;
-      width: 90%; /* Ajusta largura em mobile */
-      margin: 70px 20px 20px; /* Espaço para o título fixo */
+      width: 90%;
+      margin: 70px 20px 20px;
       animation: fadeIn 0.8s ease-in-out;
     }
     h1 {
       font-size: 32px;
       color: #EDE7F6;
       margin-bottom: 20px;
-      text-shadow: 0 2px 4px rgba(149, 117, 205, 0.3); /* Sombra no texto */
+      text-shadow: 0 2px 4px rgba(149, 117, 205, 0.3);
     }
     input {
       padding: 12px;
@@ -97,22 +97,22 @@
       font-size: 14px;
     }
     footer {
-      position: relative; /* Remove o footer fixo */
-      margin-top: auto; /* Empurra para o fundo em mobile */
+      position: relative;
+      margin-top: auto;
       padding: 15px;
       color: #8888A0;
       font-size: 12px;
     }
     @media (min-width: 768px) {
       .login-container {
-        padding: 50px;
-        max-width: 500px; /* Aumenta a largura no desktop */
-        margin: 80px auto; /* Espaço ajustado para o título fixo */
+        padding: 40px; /* Reduzido de 50px */
+        max-width: 450px; /* Reduzido de 500px */
+        margin: 80px auto;
       }
-      h1 { font-size: 40px; }
-      input { padding: 15px; font-size: 18px; }
-      .button-group { flex-direction: row; gap: 20px; }
-      button { padding: 15px 30px; }
+      h1 { font-size: 34px; /* Reduzido de 40px */ }
+      input { padding: 12px; font-size: 16px; /* Reduzido de 15px e 18px */ }
+      .button-group { flex-direction: row; gap: 15px; /* Reduzido de 20px */ }
+      button { padding: 12px 25px; /* Reduzido de 15px 30px */ }
     }
   </style>
   <script type="module">
