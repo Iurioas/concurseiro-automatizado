@@ -32,25 +32,87 @@
       display: flex; 
       flex-direction: column; 
       min-height: 100vh; 
+      background: linear-gradient(135deg, #1E1E2F, #25253A); /* Gradiente de fundo */
+      justify-content: center; /* Centraliza verticalmente */
+      align-items: center; /* Centraliza horizontalmente */
+    }
+    .title-container {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1100;
     }
     .login-container {
       text-align: center;
-      padding: 20px;
-      margin: 70px auto 20px; /* Centraliza horizontalmente */
-      background: #25253A;
+      padding: 30px;
+      background: rgba(37, 37, 58, 0.9); /* Fundo semi-transparente */
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Sombra mais pronunciada */
+      backdrop-filter: blur(5px); /* Efeito de desfoque no fundo */
+      max-width: 400px;
+      width: 90%; /* Ajusta largura em mobile */
+      margin: 70px 20px 20px; /* Espaço para o título fixo */
+      animation: fadeIn 0.8s ease-in-out;
+    }
+    h1 {
+      font-size: 32px;
+      color: #EDE7F6;
+      margin-bottom: 20px;
+      text-shadow: 0 2px 4px rgba(149, 117, 205, 0.3); /* Sombra no texto */
+    }
+    input {
+      padding: 12px;
+      margin: 10px 0;
       border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-      flex-grow: 1;
-      display: flex; /* Adicionado para centralização vertical */
+      background: #33334D;
+      border: 1px solid #444466;
+      color: #EDE7F6;
+      font-size: 16px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    input:focus {
+      border-color: #9575CD;
+      box-shadow: 0 0 8px rgba(149, 117, 205, 0.3);
+    }
+    .button-group {
+      display: flex;
       flex-direction: column;
-      justify-content: center; /* Centraliza verticalmente */
-      max-width: 400px; /* Limita a largura */
+      gap: 15px;
+      margin-top: 20px;
+    }
+    button {
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #9575CD, #4CAF50);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(149, 117, 205, 0.5);
+    }
+    p#message {
+      margin-top: 15px;
+      color: #EDE7F6;
+      font-size: 14px;
+    }
+    footer {
+      position: relative; /* Remove o footer fixo */
+      margin-top: auto; /* Empurra para o fundo em mobile */
+      padding: 15px;
+      color: #8888A0;
+      font-size: 12px;
     }
     @media (min-width: 768px) {
-      body { 
-        justify-content: center; /* Centraliza verticalmente no desktop */
+      .login-container {
+        padding: 50px;
+        max-width: 500px; /* Aumenta a largura no desktop */
+        margin: 80px auto; /* Espaço ajustado para o título fixo */
       }
-      .login-container { margin: 0 auto; /* Remove margens fixas para centralizar */ }
+      h1 { font-size: 40px; }
+      input { padding: 15px; font-size: 18px; }
+      .button-group { flex-direction: row; gap: 20px; }
+      button { padding: 15px 30px; }
     }
   </style>
   <script type="module">
