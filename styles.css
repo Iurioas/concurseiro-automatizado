@@ -17,7 +17,7 @@ body {
 /* Navegação Mobile */
 nav {
   background: linear-gradient(135deg, #5E35B1, #311B92);
-  padding: 8px; /* Reduzido de 10px para dar mais espaço ao conteúdo */
+  padding: 10px;
   position: fixed;
   top: 50px;
   width: 100%;
@@ -29,7 +29,7 @@ nav {
   background: transparent;
   border: none;
   color: #EDE7F6;
-  font-size: 18px; /* Reduzido de 20px para ficar mais sutil */
+  font-size: 20px;
   cursor: pointer;
   display: block;
 }
@@ -162,7 +162,7 @@ table {
 th, td {
   border: 1px solid #444466;
   padding: 8px;
-  text-align: center;
+  text-align: center; /* Centraliza o texto nas células */
   word-wrap: break-word;
 }
 
@@ -185,7 +185,7 @@ td {
     justify-content: space-between;
     padding: 8px;
     position: relative;
-    text-align: left;
+    text-align: left; /* Para mobile, mantém o texto à esquerda com label */
   }
   td:before {
     content: attr(data-label);
@@ -209,6 +209,17 @@ input[type="checkbox"]:checked {
   background: #9575CD;
   border-color: #9575CD;
 }
+
+/* Removido o "✔" do checkbox */
+/* input[type="checkbox"]:checked:after {
+  content: "✔";
+  color: #EDE7F6;
+  font-size: 12px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+} */
 
 /* Loader */
 #loading {
