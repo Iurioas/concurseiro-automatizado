@@ -2,27 +2,19 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Área do Concurseiro</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* Estilo para o botão Deletar Conta */
     .delete-account-btn {
-      background: #D32F2F; /* Vermelho escuro elegante */
-      color: #EDE7F6; /* Texto claro */
-      border: 1px solid #EDE7F6; /* Borda sutil */
-      padding: 8px 16px; /* Igual ao botão Sair */
-      margin-left: 10px; /* Mantém o espaçamento */
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 500;
-      font-size: 14px;
-      transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+      background: #D32F2F;
+      color: #EDE7F6;
     }
     .delete-account-btn:hover {
-      background: #B71C1C; /* Vermelho mais escuro no hover */
-      transform: scale(1.05);
-      box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3); /* Sombra vermelha sutil */
+      background: #B71C1C;
     }
   </style>
 </head>
@@ -31,14 +23,17 @@
     <h1>Concurseiro Automatizado</h1>
   </div>
   <nav>
-    <a href="dashboard.html">Área do Aluno</a>
-    <a href="planner.html">Planejador</a>
-    <a href="study.html">Planejado</a>
-    <a href="trends.html">Tendências</a>
-    <a href="achievements.html">Conquistas</a>
-    <a href="ranking.html">Ranking</a>
-    <button onclick="signOut()">Sair</button>
-    <button onclick="deleteAccount()" class="delete-account-btn">Deletar Conta</button>
+    <button id="menu-toggle" class="menu-toggle">☰</button>
+    <div id="nav-menu" class="nav-menu">
+      <a href="dashboard.html">Área do Aluno</a>
+      <a href="planner.html">Planejador</a>
+      <a href="study.html">Planejado</a>
+      <a href="trends.html">Tendências</a>
+      <a href="achievements.html">Conquistas</a>
+      <a href="ranking.html">Ranking</a>
+      <button onclick="signOut()">Sair</button>
+      <button onclick="deleteAccount()" class="delete-account-btn">Deletar Conta</button>
+    </div>
   </nav>
   <main>
     <h2 style="text-align: center; margin-bottom: 20px;">Área do Aluno</h2>
@@ -68,34 +63,23 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    setPersistence(auth, browserLocalPersistence)
-      .then(() => console.log("Persistência configurada em dashboard."))
-      .catch(error => console.error("Erro ao configurar persistência:", error.message));
+    setPersistence(auth, browserLocalPersistence);
 
     onAuthStateChanged(auth, (user) => {
-      console.log("Estado de autenticação em dashboard:", user ? "Autenticado" : "Não autenticado");
       const loading = document.getElementById("loading");
       if (!user) {
-        console.log("Redirecionando para login após 1 segundo...");
         loading.innerText = "Você não está autenticado. Redirecionando para login...";
         setTimeout(() => location.href = "login.html", 1000);
         return;
       }
-      console.log("Usuário autenticado:", user.uid);
-      loading.style.display = "none"; // Esconde o loading após autenticação
+      loading.style.display = "none";
     });
 
     window.signOut = async function() {
       playClickSound();
-      try {
-        await signOut(auth);
-        localStorage.clear();
-        console.log("Logout realizado com sucesso.");
-        location.href = "index.html";
-      } catch (error) {
-        console.error("Erro ao sair:", error.message);
-        alert("Erro ao sair: " + error.message);
-      }
+      await signOut(auth);
+      localStorage.clear();
+      location.href = "index.html";
     };
 
     window.deleteAccount = async function() {
@@ -104,22 +88,23 @@
         try {
           const user = auth.currentUser;
           if (user) {
-            await deleteDoc(doc(db, "users", user.uid)); // Deleta do Firestore (users)
-            await deleteDoc(doc(db, "plans", user.uid)); // Deleta do Firestore (plans)
-            await user.delete(); // Deleta do Authentication
+            await deleteDoc(doc(db, "users", user.uid));
+            await deleteDoc(doc(db, "plans", user.uid));
+            await user.delete();
             localStorage.clear();
-            console.log("Conta deletada com sucesso.");
             alert("Conta deletada com sucesso!");
             location.href = "index.html";
-          } else {
-            alert("Você precisa estar logado para deletar a conta.");
           }
         } catch (error) {
-          console.error("Erro ao deletar conta:", error.message);
           alert("Erro ao deletar conta: " + error.message);
         }
       }
     };
+  </script>
+  <script>
+    document.getElementById("menu-toggle").addEventListener("click", () => {
+      document.getElementById("nav-menu").classList.toggle("active");
+    });
   </script>
 </body>
 </html>
