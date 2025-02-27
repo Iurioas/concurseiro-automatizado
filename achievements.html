@@ -2,6 +2,9 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Conquistas - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
@@ -11,17 +14,20 @@
     <h1 id="title">Concurseiro Automatizado</h1>
   </div>
   <nav>
-    <a href="dashboard.html">Área do Aluno</a>
-    <a href="planner.html">Planejador</a>
-    <a href="study.html">Planejado</a>
-    <a href="trends.html">Tendências</a>
-    <a href="achievements.html">Conquistas</a>
-    <a href="ranking.html">Ranking</a>
-    <button onclick="signOut()">Sair</button>
+    <button id="menu-toggle" class="menu-toggle">☰</button>
+    <div id="nav-menu" class="nav-menu">
+      <a href="dashboard.html">Área do Aluno</a>
+      <a href="planner.html">Planejador</a>
+      <a href="study.html">Planejado</a>
+      <a href="trends.html">Tendências</a>
+      <a href="achievements.html">Conquistas</a>
+      <a href="ranking.html">Ranking</a>
+      <button onclick="signOut()">Sair</button>
+    </div>
   </nav>
   <main>
     <h1>Ranking Atual</h1>
-    <div id="achievementsList" style="display: flex; flex-direction: column; gap: 10px; max-width: 300px; margin: 20px auto;"></div>
+    <div id="achievementsList" style="display: flex; flex-direction: column; gap: 10px; margin: 20px 0;"></div>
     <div id="loading">Carregando conquistas...</div>
   </main>
   <footer>
@@ -57,18 +63,15 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        console.log("Redirecionando para login...");
         location.href = "login.html";
         return;
       }
-      console.log("Usuário autenticado:", user.uid);
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         let userAchievements = userDoc.exists() && userDoc.data().achievements ? userDoc.data().achievements : [];
         renderAchievements(userAchievements);
         document.getElementById("loading").style.display = "none";
       } catch (error) {
-        console.error("Erro ao carregar conquistas:", error.message);
         document.getElementById("loading").innerText = "Erro ao carregar conquistas: " + error.message;
       }
     });
@@ -86,16 +89,15 @@
 
     window.signOut = async () => {
       playClickSound();
-      try {
-        await signOut(auth);
-        localStorage.clear();
-        console.log("Logout realizado.");
-        location.href = "index.html";
-      } catch (error) {
-        console.error("Erro ao sair:", error.message);
-        alert("Erro ao sair: " + error.message);
-      }
+      await signOut(auth);
+      localStorage.clear();
+      location.href = "index.html";
     };
+  </script>
+  <script>
+    document.getElementById("menu-toggle").addEventListener("click", () => {
+      document.getElementById("nav-menu").classList.toggle("active");
+    });
   </script>
 </body>
 </html>
