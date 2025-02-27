@@ -2,62 +2,18 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Login - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      background-color: #1E1E2F;
-    }
-    .login-container {
-      text-align: center;
-      padding: 30px;
-      background: #25253A;
-      border-radius: 8px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-      width: 100%;
-      max-width: 400px; /* Limita a largura para melhor visualização */
-    }
-    .login-container h1 {
-      color: #EDE7F6;
-      font-size: 28px;
-      margin-bottom: 20px;
-    }
-    .login-container input {
-      margin: 15px auto; /* Centraliza horizontalmente */
-      display: block; /* Garante que cada input ocupe a largura total do container */
-    }
-    .login-container .button-group {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    .login-container .button-group button {
-      width: 100%; /* Botões ocupam toda a largura do container */
-      margin: 0;
-    }
-    .login-container p#message {
-      margin-top: 15px;
-      color: #EDE7F6;
-    }
-    footer {
-      position: fixed;
-      bottom: 10px;
-      width: 100%;
-      text-align: center;
-      color: #8888A0;
-      font-size: 12px;
-    }
-  </style>
 </head>
 <body>
-  <div class="login-container">
+  <div class="title-container">
+    <h1>Concurseiro Automatizado</h1>
+  </div>
+  <main class="login-container">
     <h1>Login</h1>
     <input id="email" type="email" placeholder="E-mail" required>
     <input id="password" type="password" placeholder="Senha" required>
@@ -67,14 +23,25 @@
       <button onclick="location.href='index.html'">Voltar</button>
     </div>
     <p id="message"></p>
-  </div>
+  </main>
   <footer>
     <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
   </footer>
+  <style>
+    body { display: flex; flex-direction: column; min-height: 100vh; }
+    .login-container {
+      text-align: center;
+      padding: 20px;
+      margin: 70px 10px 20px;
+      background: #25253A;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      flex-grow: 1;
+    }
+  </style>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     import { playClickSound } from "./sounds.js";
 
     const firebaseConfig = {
@@ -89,11 +56,8 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
 
-    setPersistence(auth, browserLocalPersistence)
-      .then(() => console.log("Persistência configurada em login."))
-      .catch(error => console.error("Erro ao configurar persistência:", error.message));
+    setPersistence(auth, browserLocalPersistence);
 
     document.getElementById("loginButton").addEventListener("click", async () => {
       playClickSound();
@@ -103,7 +67,6 @@
       loginBtn.disabled = true;
       loginBtn.innerText = "Entrando...";
 
-      // Validação básica
       if (!email || !password) {
         document.getElementById("message").innerText = "Por favor, preencha todos os campos.";
         loginBtn.disabled = false;
@@ -114,33 +77,20 @@
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-        console.log("Login bem-sucedido para:", user.uid);
-
         if (!user.emailVerified) {
           document.getElementById("message").innerHTML = "Por favor, <strong>verifique seu e-mail</strong> <span style='color: #ffca28;'>(Cheque spam/promoções)</span>";
-          await auth.signOut(); // Desloga se o e-mail não foi verificado
+          await auth.signOut();
         } else {
-          console.log("Redirecionando para dashboard...");
           location.href = "dashboard.html";
         }
       } catch (error) {
-        console.error("Erro ao logar:", error.code, error.message);
         let errorMessage;
         switch (error.code) {
-          case "auth/invalid-email":
-            errorMessage = "E-mail inválido.";
-            break;
-          case "auth/user-not-found":
-            errorMessage = "Usuário não encontrado.";
-            break;
-          case "auth/wrong-password":
-            errorMessage = "Senha incorreta.";
-            break;
-          case "auth/too-many-requests":
-            errorMessage = "Muitas tentativas. Tente novamente mais tarde.";
-            break;
-          default:
-            errorMessage = "Erro ao fazer login: " + error.message;
+          case "auth/invalid-email": errorMessage = "E-mail inválido."; break;
+          case "auth/user-not-found": errorMessage = "Usuário não encontrado."; break;
+          case "auth/wrong-password": errorMessage = "Senha incorreta."; break;
+          case "auth/too-many-requests": errorMessage = "Muitas tentativas. Tente novamente mais tarde."; break;
+          default: errorMessage = "Erro ao fazer login: " + error.message;
         }
         document.getElementById("message").innerText = errorMessage;
       } finally {
