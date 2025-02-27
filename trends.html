@@ -2,6 +2,9 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Tendências Recentes - Concurseiro Automatizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
@@ -12,20 +15,23 @@
     <h1>Concurseiro Automatizado</h1>
   </div>
   <nav>
-    <a href="dashboard.html">Área do Aluno</a>
-    <a href="planner.html">Planejador</a>
-    <a href="study.html">Planejado</a>
-    <a href="trends.html">Tendências</a>
-    <a href="achievements.html">Conquistas</a>
-    <a href="ranking.html">Ranking</a>
-    <button onclick="signOut()">Sair</button>
+    <button id="menu-toggle" class="menu-toggle">☰</button>
+    <div id="nav-menu" class="nav-menu">
+      <a href="dashboard.html">Área do Aluno</a>
+      <a href="planner.html">Planejador</a>
+      <a href="study.html">Planejado</a>
+      <a href="trends.html">Tendências</a>
+      <a href="achievements.html">Conquistas</a>
+      <a href="ranking.html">Ranking</a>
+      <button onclick="signOut()">Sair</button>
+    </div>
   </nav>
   <main>
     <h2>Tendências Recentes</h2>
-    <div class="contest-trends" style="background: #2A2A40; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); margin: 20px auto; max-width: 600px;">
+    <div class="contest-trends" style="background: #2A2A40; padding: 15px; border-radius: 8px; margin: 20px 0;">
       <h3 style="color: #D1C4E9; text-align: center; margin-bottom: 15px;">Juiz Federal (FGV)</h3>
-      <div class="info-box" style="background: #33334D; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(149, 117, 205, 0.3); margin-bottom: 25px;">
-        <p style="font-size: 14px; line-height: 1.8; color: #EDE7F6;">Os assuntos abaixo têm baixa relevância histórica, mas estão em alta nas provas recentes da FGV para Juiz Federal (2023-2025), podendo ser mais cobrados no futuro. Incluímos alguns como abordagem subsidiária no seu plano para garantir uma preparação mais completa.</p>
+      <div class="info-box" style="background: #33334D; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <p style="font-size: 14px; line-height: 1.6; color: #EDE7F6;">Os assuntos abaixo têm baixa relevância histórica, mas estão em alta nas provas recentes da FGV para Juiz Federal (2023-2025), podendo ser mais cobrados no futuro.</p>
       </div>
       <canvas id="trendsChart" width="400" height="200"></canvas>
     </div>
@@ -72,14 +78,15 @@
 
     window.signOut = async () => {
       playClickSound();
-      try {
-        await signOut(auth);
-        localStorage.clear();
-        location.href = "index.html";
-      } catch (error) {
-        alert("Erro ao sair: " + error.message);
-      }
+      await signOut(auth);
+      localStorage.clear();
+      location.href = "index.html";
     };
+  </script>
+  <script>
+    document.getElementById("menu-toggle").addEventListener("click", () => {
+      document.getElementById("nav-menu").classList.toggle("active");
+    });
   </script>
 </body>
 </html>
