@@ -19,7 +19,7 @@ nav {
   background: linear-gradient(135deg, #5E35B1, #311B92);
   padding: 10px;
   position: fixed;
-  top: 50px; /* Ajustado para ficar abaixo do título */
+  top: 50px;
   width: 100%;
   z-index: 1000;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -75,7 +75,7 @@ nav {
   width: 100%;
   z-index: 1100;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  height: 50px; /* Altura fixa para evitar sobreposição */
+  height: 50px;
 }
 
 .title-container h1 {
@@ -86,7 +86,7 @@ nav {
 
 /* Conteúdo Principal */
 main {
-  margin: 110px 10px 20px; /* Aumentado para evitar corte pelo título e menu */
+  margin: 110px 10px 20px;
   padding: 15px;
   background: #25253A;
   border-radius: 8px;
@@ -162,7 +162,7 @@ table {
 th, td {
   border: 1px solid #444466;
   padding: 8px;
-  text-align: left;
+  text-align: center; /* Centraliza o texto nas células */
   word-wrap: break-word;
 }
 
@@ -185,6 +185,7 @@ td {
     justify-content: space-between;
     padding: 8px;
     position: relative;
+    text-align: left; /* Para mobile, mantém o texto à esquerda com label */
   }
   td:before {
     content: attr(data-label);
@@ -209,7 +210,8 @@ input[type="checkbox"]:checked {
   border-color: #9575CD;
 }
 
-input[type="checkbox"]:checked:after {
+/* Removido o "✔" do checkbox */
+/* input[type="checkbox"]:checked:after {
   content: "✔";
   color: #EDE7F6;
   font-size: 12px;
@@ -217,7 +219,7 @@ input[type="checkbox"]:checked:after {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-}
+} */
 
 /* Loader */
 #loading {
