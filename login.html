@@ -28,15 +28,29 @@
     <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
   </footer>
   <style>
-    body { display: flex; flex-direction: column; min-height: 100vh; }
+    body { 
+      display: flex; 
+      flex-direction: column; 
+      min-height: 100vh; 
+    }
     .login-container {
       text-align: center;
       padding: 20px;
-      margin: 70px 10px 20px;
+      margin: 70px auto 20px; /* Centraliza horizontalmente */
       background: #25253A;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       flex-grow: 1;
+      display: flex; /* Adicionado para centralização vertical */
+      flex-direction: column;
+      justify-content: center; /* Centraliza verticalmente */
+      max-width: 400px; /* Limita a largura */
+    }
+    @media (min-width: 768px) {
+      body { 
+        justify-content: center; /* Centraliza verticalmente no desktop */
+      }
+      .login-container { margin: 0 auto; /* Remove margens fixas para centralizar */ }
     }
   </style>
   <script type="module">
