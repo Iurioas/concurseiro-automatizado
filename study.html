@@ -1,446 +1,390 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <title>Planejado - Concurseiro Automatizado</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
-  <style>
-    .current-highlight { background-color: #4CAF50; color: white; }
-    .study-table td:nth-child(4) { text-align: center; display: flex; justify-content: center; align-items: center; }
-    .study-table td:nth-child(4) input[type="checkbox"] { margin: 0; }
-  </style>
-</head>
-<body>
-  <div class="title-container">
-    <h1 id="title">Concurseiro Automatizado</h1>
-  </div>
-  <nav>
-    <button id="menu-toggle" class="menu-toggle">☰</button>
-    <div id="nav-menu" class="nav-menu">
-      <a href="dashboard.html">Área do Aluno</a>
-      <a href="planner.html">Planejador</a>
-      <a href="study.html">Planejado</a>
-      <a href="trends.html">Tendências</a>
-      <a href="achievements.html">Conquistas</a>
-      <a href="ranking.html">Ranking</a>
-      <button onclick="signOut()">Sair</button>
-    </div>
-  </nav>
-  <main>
-    <div class="study-timer-container">
-      <div class="timer-wrapper">
-        <span class="timer-label">Controle</span>
-        <div class="timer-circle" id="timer-circle">
-          <span id="timer-display">00:00</span>
-        </div>
-        <div class="timer-controls">
-          <button id="start-resume-btn">Continuar</button>
-          <button id="pause-btn">Pausar</button>
-          <button id="stop-btn">Sair</button>
-        </div>
-      </div>
-      <div class="overview-panel">
-        <h3>Visão geral</h3>
-        <div class="overview-stats">
-          <p><strong>Seções de hoje:</strong> <span id="pomo-today">0</span></p>
-          <p><strong>Tempo de hoje:</strong> <span id="focus-today">0m</span></p>
-          <p><strong>Seções Totais:</strong> <span id="pomo-total">0</span></p>
-          <p><strong>Tempo Total:</strong> <span id="total-focus">0h 0m</span></p>
-        </div>
-      </div>
-    </div>
-    <table class="study-table" id="studyTable">
-      <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th><th>Concluído</th></tr></thead>
-      <tbody></tbody>
-    </table>
-    <h2 id="statusTitle">Status</h2>
-    <table class="status-table" id="statusTable">
-      <thead><tr><th>Prioridade</th><th>Matéria</th><th>Subtópico</th></tr></thead>
-      <tbody></tbody>
-    </table>
-    <button id="backButton" style="display:none" onclick="retrocederEtapa()">Retroceder</button>
-    <div class="button-group">
-      <button onclick="location.href='log-txt.html'; playClickSound()">Log Texto</button>
-      <button onclick="location.href='log-json.html'; playClickSound()">Log JSON</button>
-      <button onclick="location.href='comments.html'; playClickSound()">Comentários</button>
-      <button onclick="location.href='graficos.html'; playClickSound()">Gráficos</button>
-    </div>
-    <p style="font-size: 14px; color: #8888A0; text-align: center;">(Copie o JSON para usar em conversores de gráficos)</p>
-    <div id="loading" style="text-align: center; margin: 20px;">Carregando plano...</div>
-  </main>
-  <footer>
-    <p>© 2025 Concurseiro Automatizado. Todos os direitos reservados.</p>
-  </footer>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
-    import { playClickSound, playSuccessSound } from "./sounds.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+  import { playClickSound, playSuccessSound } from "./sounds.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
-      authDomain: "concurseiro-automatizado.firebaseapp.com",
-      projectId: "concurseiro-automatizado",
-      storageBucket: "concurseiro-automatizado.firebasestorage.app",
-      messagingSenderId: "938840578480",
-      appId: "1:938840578480:web:4e8dd7e2dfdc42d7649e75",
-      measurementId: "G-H72D875STB"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyC7NfWNyIc-6PmkPqGql-N9lMiiQR8uJgo",
+    authDomain: "concurseiro-automatizado.firebaseapp.com",
+    projectId: "concurseiro-automatizado",
+    storageBucket: "concurseiro-automatizado.firebasestorage.app",
+    messagingSenderId: "938840578480",
+    appId: "1:938840578480:web:4e8dd7e2dfdc42d7649e75",
+    measurementId: "G-H72D875STB"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    let currentIndex = 0;
-    let planData = [];
-    let logs = [];
-    let achievements = [];
-    let lastCompletionTime = localStorage.getItem("lastCompletionTime") ? parseInt(localStorage.getItem("lastCompletionTime")) : 0;
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  let currentIndex = 0;
+  let planData = [];
+  let logs = [];
+  let achievements = [];
+  let lastCompletionTime = localStorage.getItem("lastCompletionTime") ? parseInt(localStorage.getItem("lastCompletionTime")) : 0;
 
-    const MINIMUM_TIME_FOR_RANKING = 10 * 60 * 1000;
-    const rankList = ["E", "E+", "D", "D+", "C", "C+", "B", "B+", "A", "A+"];
-    const updateRank = (logs) => {
-      const completed = logs.length;
-      const rankIndex = Math.min(Math.floor(completed / 5), rankList.length - 1);
-      return rankList[rankIndex];
-    };
+  const MINIMUM_TIME_FOR_RANKING = 10 * 60 * 1000;
+  const rankList = ["E", "E+", "D", "D+", "C", "C+", "B", "B+", "A", "A+"];
+  const updateRank = (logs) => {
+    const completed = logs.length;
+    const rankIndex = Math.min(Math.floor(completed / 5), rankList.length - 1);
+    return rankList[rankIndex];
+  };
 
-    setPersistence(auth, browserLocalPersistence);
+  setPersistence(auth, browserLocalPersistence);
 
-    onAuthStateChanged(auth, async (user) => {
-      const loading = document.getElementById("loading");
-      if (!user) {
-        loading.innerText = "Você não está autenticado. Redirecionando para login...";
-        setTimeout(() => location.href = "login.html", 1000);
-        return;
-      }
-      loading.style.display = "block";
-      try {
-        const planDoc = await getDoc(doc(db, "plans", user.uid));
-        loading.style.display = "none";
-        if (planDoc.exists()) {
-          const planDataRaw = planDoc.data();
-          planData = planDataRaw.plan || [];
-          if (planData.length === 0) {
-            loading.innerText = "Plano vazio. Crie um novo plano no Planejador.";
-            loading.style.display = "block";
-            setTimeout(() => location.href = "planner.html", 2000);
-            return;
-          }
-          const userDoc = await getDoc(doc(db, "users", user.uid));
-          logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
-          achievements = userDoc.exists() && userDoc.data().achievements ? userDoc.data().achievements : [];
-          currentIndex = userDoc.exists() && userDoc.data().currentIndex !== undefined ? userDoc.data().currentIndex : (localStorage.getItem("currentIndex") ? parseInt(localStorage.getItem("currentIndex")) : 0);
-          renderPlan();
-          checkAchievements();
-        } else {
-          loading.innerText = "Nenhum plano encontrado. Crie um plano no Planejador.";
+  onAuthStateChanged(auth, async (user) => {
+    const loading = document.getElementById("loading");
+    if (!user) {
+      loading.innerText = "Você não está autenticado. Redirecionando para login...";
+      setTimeout(() => location.href = "login.html", 1000);
+      return;
+    }
+    loading.style.display = "block";
+    try {
+      const planDoc = await getDoc(doc(db, "plans", user.uid));
+      loading.style.display = "none";
+      if (planDoc.exists()) {
+        const planDataRaw = planDoc.data();
+        planData = planDataRaw.plan || [];
+        if (planData.length === 0) {
+          loading.innerText = "Plano vazio. Crie um novo plano no Planejador.";
           loading.style.display = "block";
           setTimeout(() => location.href = "planner.html", 2000);
+          return;
         }
-      } catch (error) {
-        loading.innerText = "Erro ao carregar plano: " + error.message;
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        logs = userDoc.exists() && userDoc.data().logs ? userDoc.data().logs : [];
+        achievements = userDoc.exists() && userDoc.data().achievements ? userDoc.data().achievements : [];
+        currentIndex = userDoc.exists() && userDoc.data().currentIndex !== undefined ? userDoc.data().currentIndex : (localStorage.getItem("currentIndex") ? parseInt(localStorage.getItem("currentIndex")) : 0);
+        renderPlan();
+        checkAchievements();
+      } else {
+        loading.innerText = "Nenhum plano encontrado. Crie um plano no Planejador.";
         loading.style.display = "block";
         setTimeout(() => location.href = "planner.html", 2000);
       }
-    });
+    } catch (error) {
+      loading.innerText = "Erro ao carregar plano: " + error.message;
+      loading.style.display = "block";
+      setTimeout(() => location.href = "planner.html", 2000);
+    }
+  });
 
-    function renderPlan() {
-      const tbody = document.querySelector("#studyTable tbody");
-      const refTbody = document.querySelector("#statusTable tbody");
-      tbody.innerHTML = "";
-      refTbody.innerHTML = "";
+  function renderPlan() {
+    const tbody = document.querySelector("#studyTable tbody");
+    const refTbody = document.querySelector("#statusTable tbody");
+    tbody.innerHTML = "";
+    refTbody.innerHTML = "";
 
-      if (planData.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='4'>Nenhum plano carregado.</td></tr>";
-        return;
-      }
+    if (planData.length === 0) {
+      tbody.innerHTML = "<tr><td colspan='4'>Nenhum plano carregado.</td></tr>";
+      return;
+    }
 
-      if (currentIndex < planData.length) {
-        const currentItem = planData[currentIndex];
-        tbody.innerHTML = `
-          <tr>
-            <td data-label="Prioridade">${currentItem.priorityNumber}</td>
-            <td data-label="Matéria">${currentItem.subject}</td>
-            <td data-label="Subtópico">${currentItem.subtopic}</td>
-            <td data-label="Concluído"><input type="checkbox" ${currentItem.completed ? "checked" : ""} onchange="completeStep(this)"></td>
-          </tr>
-        `;
-      } else {
-        tbody.innerHTML = "<tr><td colspan='4'>Todas as etapas concluídas!</td></tr>";
-        showNotification("Plano concluído! Parabéns!");
-        playSuccessSound();
-      }
+    if (currentIndex < planData.length) {
+      const currentItem = planData[currentIndex];
+      tbody.innerHTML = `
+        <tr>
+          <td data-label="Prioridade">${currentItem.priorityNumber}</td>
+          <td data-label="Matéria">${currentItem.subject}</td>
+          <td data-label="Subtópico">${currentItem.subtopic}</td>
+          <td data-label="Concluído"><input type="checkbox" ${currentItem.completed ? "checked" : ""} onchange="completeStep(this)"></td>
+        </tr>
+      `;
+    } else {
+      tbody.innerHTML = "<tr><td colspan='4'>Todas as etapas concluídas!</td></tr>";
+      showNotification("Plano concluído! Parabéns!");
+      playSuccessSound();
+    }
 
-      const completedSteps = planData.slice(0, currentIndex);
-      if (completedSteps.length > 0) {
-        refTbody.innerHTML += `<tr class="divider"><td colspan="3">Etapas Concluídas</td></tr>`;
-        completedSteps.forEach(item => {
-          refTbody.innerHTML += `
-            <tr>
-              <td data-label="Prioridade">${item.priorityNumber}</td>
-              <td data-label="Matéria">${item.subject}</td>
-              <td data-label="Subtópico">${item.subtopic}</td>
-            </tr>
-          `;
-        });
-      }
-
-      refTbody.innerHTML += `<tr class="divider"><td colspan="3">Etapa Atual</td></tr>`;
-      if (currentIndex < planData.length) {
-        const currentItem = planData[currentIndex];
+    const completedSteps = planData.slice(0, currentIndex);
+    if (completedSteps.length > 0) {
+      refTbody.innerHTML += `<tr class="divider"><td colspan="3">Etapas Concluídas</td></tr>`;
+      completedSteps.forEach(item => {
         refTbody.innerHTML += `
-          <tr class="current-highlight">
-            <td data-label="Prioridade">${currentItem.priorityNumber}</td>
-            <td data-label="Matéria">${currentItem.subject}</td>
-            <td data-label="Subtópico">${currentItem.subtopic}</td>
+          <tr>
+            <td data-label="Prioridade">${item.priorityNumber}</td>
+            <td data-label="Matéria">${item.subject}</td>
+            <td data-label="Subtópico">${item.subtopic}</td>
           </tr>
         `;
-      }
-
-      const nextSteps = planData.slice(currentIndex + 1, currentIndex + 11);
-      if (nextSteps.length > 0) {
-        refTbody.innerHTML += `<tr class="divider"><td colspan="3">Próximas Etapas</td></tr>`;
-        nextSteps.forEach(item => {
-          refTbody.innerHTML += `
-            <tr>
-              <td data-label="Prioridade">${item.priorityNumber}</td>
-              <td data-label="Matéria">${item.subject}</td>
-              <td data-label="Subtópico">${item.subtopic}</td>
-            </tr>
-          `;
-        });
-      }
-
-      document.getElementById("backButton").style.display = currentIndex > 0 ? "block" : "none";
+      });
     }
 
-    window.completeStep = async function(checkbox) {
-      playClickSound();
-      const currentTime = Date.now();
-      const timeSinceLast = currentTime - lastCompletionTime;
-      let validForRanking = timeSinceLast >= MINIMUM_TIME_FOR_RANKING;
+    refTbody.innerHTML += `<tr class="divider"><td colspan="3">Etapa Atual</td></tr>`;
+    if (currentIndex < planData.length) {
+      const currentItem = planData[currentIndex];
+      refTbody.innerHTML += `
+        <tr class="current-highlight">
+          <td data-label="Prioridade">${currentItem.priorityNumber}</td>
+          <td data-label="Matéria">${currentItem.subject}</td>
+          <td data-label="Subtópico">${currentItem.subtopic}</td>
+        </tr>
+      `;
+    }
 
-      if (!confirm(`Tem certeza que deseja avançar para a próxima etapa? ${!validForRanking ? "Avanços em menos de 10 minutos não contam para o ranking." : ""}`)) {
-        checkbox.checked = false;
-        return;
-      }
+    const nextSteps = planData.slice(currentIndex + 1, currentIndex + 11);
+    if (nextSteps.length > 0) {
+      refTbody.innerHTML += `<tr class="divider"><td colspan="3">Próximas Etapas</td></tr>`;
+      nextSteps.forEach(item => {
+        refTbody.innerHTML += `
+          <tr>
+            <td data-label="Prioridade">${item.priorityNumber}</td>
+            <td data-label="Matéria">${item.subject}</td>
+            <td data-label="Subtópico">${item.subtopic}</td>
+          </tr>
+        `;
+      });
+    }
 
-      if (!planData[currentIndex]) {
-        alert("Erro: Não foi possível avançar a etapa.");
-        return;
-      }
+    document.getElementById("backButton").style.display = currentIndex > 0 ? "block" : "none";
+  }
 
-      const tempo = prompt("Tempo gasto (minutos):") || "0";
-      const dificuldade = prompt("Dificuldade (F/M/D):")?.toUpperCase() || "M";
-      const nota = prompt("Nota (0-10):") || "0";
-      const comentario = prompt("Comentário (opcional):") || "";
-      const log = {
-        etapa: currentIndex + 1,
-        subtopico: planData[currentIndex].subtopico || "Desconhecido",
-        materia: planData[currentIndex].subject || "Desconhecida",
-        dificuldade: dificuldade === "F" ? "Fácil" : dificuldade === "D" ? "Difícil" : "Médio",
-        tempo_gasto: tempo,
-        nota_autoavaliacao: nota,
-        comentario: comentario,
-        data_conclusao: new Date().toISOString(),
-        status: "Concluído",
-        validForRanking: validForRanking
-      };
+  window.completeStep = async function(checkbox) {
+    playClickSound();
+    const currentTime = Date.now();
+    const timeSinceLast = currentTime - lastCompletionTime;
+    let validForRanking = timeSinceLast >= MINIMUM_TIME_FOR_RANKING;
 
-      logs = logs.filter(l => l.etapa !== (currentIndex + 1));
-      logs.push(log);
+    if (!confirm(`Tem certeza que deseja avançar para a próxima etapa? ${!validForRanking ? "Avanços em menos de 10 minutos não contam para o ranking." : ""}`)) {
+      checkbox.checked = false;
+      return;
+    }
 
-      const validLogs = logs.filter(l => l.validForRanking);
-      const totalTime = validLogs.reduce((sum, l) => sum + parseInt(l.tempo_gasto || 0), 0) || 0;
-      const avgScore = validLogs.length > 0 ? validLogs.reduce((sum, l) => sum + parseInt(l.nota_autoavaliacao || 0), 0) / validLogs.length : 0;
-      const resetDate = new Date(currentTime); resetDate.setDate(1); resetDate.setHours(1, 0, 0, 0);
-      const monthlyRankingScore = validLogs.filter(log => new Date(log.data_conclusao) >= resetDate).reduce((sum, l) => sum + parseInt(l.tempo_gasto || 0) * parseInt(l.nota_autoavaliacao || 0), 0) || 0;
-      const rankingScore = validLogs.length * (totalTime / (validLogs.length || 1)) * avgScore || 0;
+    if (!planData[currentIndex]) {
+      alert("Erro: Não foi possível avançar a etapa.");
+      return;
+    }
 
-      if (new Date(currentTime) >= resetDate && !localStorage.getItem("rankingReset")) {
-        await updateDoc(doc(db, "users", auth.currentUser.uid), { monthlyRankingScore: 0 });
-        localStorage.setItem("rankingReset", "true");
-      }
+    const tempo = prompt("Tempo gasto (minutos):") || "0";
+    const dificuldade = prompt("Dificuldade (F/M/D):")?.toUpperCase() || "M";
+    const nota = prompt("Nota (0-10):") || "0";
+    const comentario = prompt("Comentário (opcional):") || "";
+    const log = {
+      etapa: currentIndex + 1,
+      subtopico: planData[currentIndex].subtopico || "Desconhecido",
+      materia: planData[currentIndex].subject || "Desconhecida",
+      dificuldade: dificuldade === "F" ? "Fácil" : dificuldade === "D" ? "Difícil" : "Médio",
+      tempo_gasto: tempo,
+      nota_autoavaliacao: nota,
+      comentario: comentario,
+      data_conclusao: new Date().toISOString(),
+      status: "Concluído",
+      validForRanking: validForRanking
+    };
 
-      planData[currentIndex].completed = true;
-      currentIndex++;
+    logs = logs.filter(l => l.etapa !== (currentIndex + 1));
+    logs.push(log);
 
-      try {
-        await updateDoc(doc(db, "users", auth.currentUser.uid), { 
-          logs, 
-          achievements, 
-          rankingScore, 
-          monthlyRankingScore,
-          currentIndex 
-        });
-        await updateDoc(doc(db, "plans", auth.currentUser.uid), { plan: planData });
+    const validLogs = logs.filter(l => l.validForRanking);
+    const totalTime = validLogs.reduce((sum, l) => sum + parseInt(l.tempo_gasto || 0), 0) || 0;
+    const avgScore = validLogs.length > 0 ? validLogs.reduce((sum, l) => sum + parseInt(l.nota_autoavaliacao || 0), 0) / validLogs.length : 0;
+    const resetDate = new Date(currentTime); resetDate.setDate(1); resetDate.setHours(1, 0, 0, 0);
+    const monthlyRankingScore = validLogs.filter(log => new Date(log.data_conclusao) >= resetDate).reduce((sum, l) => sum + parseInt(l.tempo_gasto || 0) * parseInt(l.nota_autoavaliacao || 0), 0) || 0;
+    const rankingScore = validLogs.length * (totalTime / (validLogs.length || 1)) * avgScore || 0;
+
+    if (new Date(currentTime) >= resetDate && !localStorage.getItem("rankingReset")) {
+      await updateDoc(doc(db, "users", auth.currentUser.uid), { monthlyRankingScore: 0 });
+      localStorage.setItem("rankingReset", "true");
+    }
+
+    planData[currentIndex].completed = true;
+    currentIndex++;
+
+    try {
+      await updateDoc(doc(db, "users", auth.currentUser.uid), { 
+        logs, 
+        achievements, 
+        rankingScore, 
+        monthlyRankingScore,
+        currentIndex 
+      });
+      await updateDoc(doc(db, "plans", auth.currentUser.uid), { plan: planData });
+      localStorage.setItem("currentIndex", currentIndex);
+      localStorage.setItem("lastCompletionTime", currentTime);
+      lastCompletionTime = currentTime;
+      playSuccessSound();
+      checkAchievements();
+      renderPlan();
+    } catch (error) {
+      alert("Erro ao salvar log: " + error.message);
+    }
+  };
+
+  window.retrocederEtapa = async function() {
+    playClickSound();
+    if (confirm("Tem certeza que deseja retroceder? Isso apagará o log da etapa atual.")) {
+      if (currentIndex >= 0 && planData[currentIndex]) {
+        const etapaAtual = currentIndex + 1;
+        logs = logs.filter(log => log.etapa !== etapaAtual);
+        planData[currentIndex].completed = false;
+        currentIndex = Math.max(0, currentIndex - 1);
         localStorage.setItem("currentIndex", currentIndex);
-        localStorage.setItem("lastCompletionTime", currentTime);
-        lastCompletionTime = currentTime;
-        playSuccessSound();
-        checkAchievements();
-        renderPlan();
-      } catch (error) {
-        alert("Erro ao salvar log: " + error.message);
-      }
-    };
-
-    window.retrocederEtapa = async function() {
-      playClickSound();
-      if (confirm("Tem certeza que deseja retroceder? Isso apagará o log da etapa atual.")) {
-        if (currentIndex >= 0 && planData[currentIndex]) {
-          const etapaAtual = currentIndex + 1;
-          logs = logs.filter(log => log.etapa !== etapaAtual);
-          planData[currentIndex].completed = false;
-          currentIndex = Math.max(0, currentIndex - 1);
-          localStorage.setItem("currentIndex", currentIndex);
-          try {
-            await updateDoc(doc(db, "users", auth.currentUser.uid), { logs, currentIndex });
-            await updateDoc(doc(db, "plans", auth.currentUser.uid), { plan: planData });
-            renderPlan();
-          } catch (error) {
-            alert("Erro ao retroceder: " + error.message);
-          }
+        try {
+          await updateDoc(doc(db, "users", auth.currentUser.uid), { logs, currentIndex });
+          await updateDoc(doc(db, "plans", auth.currentUser.uid), { plan: planData });
+          renderPlan();
+        } catch (error) {
+          alert("Erro ao retroceder: " + error.message);
         }
       }
-    };
-
-    window.signOut = async function() {
-      playClickSound();
-      await signOut(auth);
-      localStorage.clear();
-      location.href = "index.html";
-    };
-
-    function showNotification(message) {
-      const notification = document.createElement("div");
-      notification.className = "notification";
-      notification.innerText = message;
-      document.body.appendChild(notification);
-      setTimeout(() => notification.remove(), 2500);
     }
+  };
 
-    function checkAchievements() {
-      const currentRank = updateRank(logs);
-      if (!achievements.some(a => a.rank === currentRank)) {
-        achievements = [{ rank: currentRank, date: new Date().toISOString() }];
-        showNotification(`Novo ranking: ${currentRank}!`);
-        playSuccessSound();
-      }
+  window.signOut = async function() {
+    playClickSound();
+    await saveSessionOnExit(); // Salvar sessão antes de sair
+    await signOut(auth);
+    localStorage.clear();
+    location.href = "index.html";
+  };
+
+  function showNotification(message) {
+    const notification = document.createElement("div");
+    notification.className = "notification";
+    notification.innerText = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 2500);
+  }
+
+  function checkAchievements() {
+    const currentRank = updateRank(logs);
+    if (!achievements.some(a => a.rank === currentRank)) {
+      achievements = [{ rank: currentRank, date: new Date().toISOString() }];
+      showNotification(`Novo ranking: ${currentRank}!`);
+      playSuccessSound();
     }
+  }
 
-    let timerInterval = null;
-    let elapsedTime = localStorage.getItem("elapsedTime") ? parseInt(localStorage.getItem("elapsedTime")) : 0;
-    let isRunning = false;
-    let startTime = null;
+  let timerInterval = null;
+  let elapsedTime = localStorage.getItem("elapsedTime") ? parseInt(localStorage.getItem("elapsedTime")) : 0;
+  let isRunning = false;
+  let startTime = null;
 
-    function updateTimerDisplay() {
-      const minutes = Math.floor(elapsedTime / 60000);
-      const seconds = Math.floor((elapsedTime % 60000) / 1000);
-      document.getElementById("timer-display").innerText = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-    }
+  function updateTimerDisplay() {
+    const minutes = Math.floor(elapsedTime / 60000);
+    const seconds = Math.floor((elapsedTime % 60000) / 1000);
+    document.getElementById("timer-display").innerText = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
 
-    function startTimer() {
-      if (!isRunning) {
-        isRunning = true;
-        startTime = Date.now() - elapsedTime;
-        document.getElementById("timer-circle").classList.add("running");
-        timerInterval = setInterval(() => {
-          elapsedTime = Date.now() - startTime;
-          updateTimerDisplay();
-          localStorage.setItem("elapsedTime", elapsedTime);
-        }, 1000);
-        document.getElementById("start-resume-btn").innerText = "Continuar";
-      }
-    }
-
-    function pauseTimer() {
-      if (isRunning) {
-        clearInterval(timerInterval);
-        isRunning = false;
-        document.getElementById("timer-circle").classList.remove("running");
-        document.getElementById("start-resume-btn").innerText = "Retomar";
-      }
-    }
-
-    async function stopTimer() {
-      if (isRunning || elapsedTime > 0) {
-        clearInterval(timerInterval);
-        const minutes = Math.floor(elapsedTime / 60000);
-        if (minutes >= 10) {
-          const session = {
-            start: new Date(startTime).toISOString(),
-            end: new Date().toISOString(),
-            duration: minutes
-          };
-          try {
-            const user = auth.currentUser;
-            if (user) {
-              const userDocRef = doc(db, "users", user.uid);
-              const userDoc = await getDoc(userDocRef);
-              const sessions = userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : [];
-              sessions.push(session);
-              await updateDoc(userDocRef, { sessions });
-              updateOverview(sessions);
-              alert("Sessão de " + minutes + " minutos salva!");
-            }
-          } catch (error) {
-            alert("Erro ao salvar sessão: " + error.message);
-          }
-          elapsedTime = 0;
-          localStorage.setItem("elapsedTime", "0");
-        } else {
-          if (confirm("Sessão menor que 10 minutos não será contabilizada. Deseja sair mesmo assim?")) {
-            elapsedTime = 0;
-            localStorage.setItem("elapsedTime", "0");
-          } else {
-            startTimer();
-            return;
-          }
-        }
-        isRunning = false;
-        document.getElementById("timer-circle").classList.remove("running");
+  function startTimer() {
+    if (!isRunning) {
+      isRunning = true;
+      startTime = Date.now() - elapsedTime;
+      document.getElementById("timer-circle").classList.add("running");
+      timerInterval = setInterval(() => {
+        elapsedTime = Date.now() - startTime;
         updateTimerDisplay();
-        document.getElementById("start-resume-btn").innerText = "Continuar";
-      }
+        localStorage.setItem("elapsedTime", elapsedTime);
+      }, 1000);
+      document.getElementById("start-resume-btn").innerText = "Continuar";
     }
+  }
 
-    function updateOverview(sessions) {
-      const today = new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
-      const todaySessions = sessions.filter(s => new Date(s.end).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }) === today);
-      const pomoToday = todaySessions.length;
-      const focusToday = todaySessions.reduce((sum, s) => sum + s.duration, 0);
-      const pomoTotal = sessions.length;
-      const totalFocus = sessions.reduce((sum, s) => sum + s.duration, 0);
-
-      document.getElementById("pomo-today").innerText = pomoToday;
-      document.getElementById("focus-today").innerText = `${focusToday}m`;
-      document.getElementById("pomo-total").innerText = pomoTotal;
-      document.getElementById("total-focus").innerText = `${Math.floor(totalFocus / 60)}h ${totalFocus % 60}m`;
+  function pauseTimer() {
+    if (isRunning) {
+      clearInterval(timerInterval);
+      isRunning = false;
+      document.getElementById("timer-circle").classList.remove("running");
+      document.getElementById("start-resume-btn").innerText = "Retomar";
     }
+  }
 
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const userDocRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userDocRef);
-        const sessions = userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : [];
-        updateOverview(sessions);
+  async function stopTimer() {
+    if (isRunning || elapsedTime > 0) {
+      clearInterval(timerInterval);
+      const minutes = Math.floor(elapsedTime / 60000);
+      if (minutes >= 10) {
+        const session = {
+          start: new Date(startTime).toISOString(),
+          end: new Date().toISOString(),
+          duration: minutes
+        };
+        try {
+          const user = auth.currentUser;
+          if (user) {
+            const userDocRef = doc(db, "users", user.uid);
+            const userDoc = await getDoc(userDocRef);
+            const sessions = userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : [];
+            sessions.push(session);
+            await updateDoc(userDocRef, { sessions });
+            updateOverview(sessions);
+            alert("Sessão de " + minutes + " minutos salva!");
+          }
+        } catch (error) {
+          alert("Erro ao salvar sessão: " + error.message);
+        }
+      } else {
+        if (!confirm("Sessão menor que 10 minutos não será contabilizada. Deseja terminar mesmo assim?")) {
+          startTimer();
+          return;
+        }
       }
-    });
+      elapsedTime = 0;
+      localStorage.setItem("elapsedTime", "0");
+      isRunning = false;
+      document.getElementById("timer-circle").classList.remove("running");
+      updateTimerDisplay();
+      document.getElementById("start-resume-btn").innerText = "Continuar";
+    }
+  }
 
-    document.getElementById("start-resume-btn").addEventListener("click", startTimer);
-    document.getElementById("pause-btn").addEventListener("click", pauseTimer);
-    document.getElementById("stop-btn").addEventListener("click", stopTimer);
-    window.addEventListener("beforeunload", () => { if (isRunning) stopTimer(); });
-  </script>
-  <script>
-    document.getElementById("menu-toggle").addEventListener("click", () => {
-      document.getElementById("nav-menu").classList.toggle("active");
-    });
-  </script>
-</body>
-</html>
+  async function saveSessionOnExit() {
+    if (isRunning && elapsedTime > 0) {
+      clearInterval(timerInterval);
+      const minutes = Math.floor(elapsedTime / 60000);
+      if (minutes >= 10) {
+        const session = {
+          start: new Date(startTime).toISOString(),
+          end: new Date().toISOString(),
+          duration: minutes
+        };
+        try {
+          const user = auth.currentUser;
+          if (user) {
+            const userDocRef = doc(db, "users", user.uid);
+            const userDoc = await getDoc(userDocRef);
+            const sessions = userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : [];
+            sessions.push(session);
+            await updateDoc(userDocRef, { sessions });
+            updateOverview(sessions);
+          }
+        } catch (error) {
+          console.error("Erro ao salvar sessão ao sair: " + error.message);
+        }
+      }
+      elapsedTime = 0;
+      localStorage.setItem("elapsedTime", "0");
+      isRunning = false;
+    }
+  }
+
+  function updateOverview(sessions) {
+    const today = new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
+    const todaySessions = sessions.filter(s => new Date(s.end).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }) === today);
+    const pomoToday = todaySessions.length;
+    const focusToday = todaySessions.reduce((sum, s) => sum + s.duration, 0);
+    const pomoTotal = sessions.length;
+    const totalFocus = sessions.reduce((sum, s) => sum + s.duration, 0);
+
+    document.getElementById("pomo-today").innerText = pomoToday;
+    document.getElementById("focus-today").innerText = `${focusToday}m`;
+    document.getElementById("pomo-total").innerText = pomoTotal;
+    document.getElementById("total-focus").innerText = `${Math.floor(totalFocus / 60)}h ${totalFocus % 60}m`;
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const userDocRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
+      const sessions = userDoc.exists() && userDoc.data().sessions ? userDoc.data().sessions : [];
+      updateOverview(sessions);
+    }
+  });
+
+  document.getElementById("start-resume-btn").addEventListener("click", startTimer);
+  document.getElementById("pause-btn").addEventListener("click", pauseTimer);
+  document.getElementById("stop-btn").addEventListener("click", stopTimer);
+  window.addEventListener("beforeunload", saveSessionOnExit);
+</script>
